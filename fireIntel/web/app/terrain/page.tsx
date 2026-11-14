@@ -173,11 +173,11 @@ export default function TerrainExplorerPage() {
       </header>
 
       {/* Geomorphology Controls Capsule (Top-Center) */}
-      <div className="absolute top-16 sm:top-20 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 pointer-events-auto max-w-[95vw] overflow-x-auto py-1 scrollbar-none">
+      <div className="absolute top-16 sm:top-20 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2.5 pointer-events-auto max-w-[95vw] overflow-x-auto py-1 scrollbar-none">
         <div className="flex items-center glass-surface rounded-full p-1 border border-white/10 shadow-2xl flex-nowrap shrink-0">
           <button
             onClick={() => setTerrainMode("satellite")}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
+            className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer whitespace-nowrap ${
               terrainMode === "satellite"
                 ? "bg-white/20 text-white font-semibold shadow-sm"
                 : "text-slate-400 hover:text-white hover:bg-white/[0.05]"
@@ -187,7 +187,7 @@ export default function TerrainExplorerPage() {
           </button>
           <button
             onClick={() => setTerrainMode("elevation")}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
+            className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer whitespace-nowrap ${
               terrainMode === "elevation"
                 ? "bg-emerald-500/30 text-emerald-200 border border-emerald-500/40 shadow-sm font-semibold"
                 : "text-slate-400 hover:text-emerald-300 hover:bg-white/[0.05]"
@@ -197,7 +197,7 @@ export default function TerrainExplorerPage() {
           </button>
           <button
             onClick={() => setTerrainMode("slope")}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
+            className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer whitespace-nowrap ${
               terrainMode === "slope"
                 ? "bg-amber-500/30 text-amber-200 border border-amber-500/40 shadow-sm font-semibold"
                 : "text-slate-400 hover:text-amber-300 hover:bg-white/[0.05]"
@@ -207,7 +207,7 @@ export default function TerrainExplorerPage() {
           </button>
           <button
             onClick={() => setTerrainMode("aspect")}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
+            className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer whitespace-nowrap ${
               terrainMode === "aspect"
                 ? "bg-sky-500/30 text-sky-200 border border-sky-500/40 shadow-sm font-semibold"
                 : "text-slate-400 hover:text-sky-300 hover:bg-white/[0.05]"
@@ -217,7 +217,7 @@ export default function TerrainExplorerPage() {
           </button>
           <button
             onClick={() => setTerrainMode("tri")}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
+            className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer whitespace-nowrap ${
               terrainMode === "tri"
                 ? "bg-purple-500/30 text-purple-200 border border-purple-500/40 shadow-sm font-semibold"
                 : "text-slate-400 hover:text-purple-300 hover:bg-white/[0.05]"
@@ -227,53 +227,53 @@ export default function TerrainExplorerPage() {
           </button>
         </div>
 
-        {/* Quick Layer Toggles */}
-        <div className="flex items-center glass-surface rounded-full p-1 px-2 border border-white/10 shadow-2xl gap-1 text-xs">
+        {/* Quick Layer Toggles (Shrink-0, Never Wrapped or Cut-off) */}
+        <div className="flex items-center glass-surface rounded-full p-1 px-2 border border-white/10 shadow-2xl gap-1 text-xs shrink-0 flex-nowrap">
           <button
             onClick={() => setShowHotspots(!showHotspots)}
-            className={`px-2.5 py-1 rounded-full flex items-center gap-1.5 transition-all cursor-pointer ${
+            className={`px-3 py-1.5 rounded-full flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
               showHotspots
                 ? "bg-amber-500/20 text-amber-300 font-medium"
                 : "text-slate-500 hover:text-slate-300"
             }`}
             title={showHotspots ? "Hide 7,541 fire hotspots" : "Show 7,541 fire hotspots"}
           >
-            <Flame className="w-3 h-3" />
-            <span className="hidden md:inline">Hotspots</span>
+            <Flame className="w-3.5 h-3.5 text-amber-400" />
+            <span>Hotspots</span>
           </button>
 
           <button
             onClick={() => setShowGridLines(!showGridLines)}
-            className={`px-2.5 py-1 rounded-full flex items-center gap-1.5 transition-all cursor-pointer ${
+            className={`px-3 py-1.5 rounded-full flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
               showGridLines
                 ? "bg-sky-500/20 text-sky-300 font-medium"
                 : "text-slate-500 hover:text-slate-300"
             }`}
             title="Toggle 2,174 master grid cell boundaries"
           >
-            <Grid className="w-3 h-3" />
-            <span className="hidden md:inline">Grid (2,174)</span>
+            <Grid className="w-3.5 h-3.5 text-sky-400" />
+            <span>Grid (2,174)</span>
           </button>
 
           <button
             onClick={() => setShowBoundary(!showBoundary)}
-            className={`px-2.5 py-1 rounded-full flex items-center gap-1.5 transition-all cursor-pointer ${
+            className={`px-3 py-1.5 rounded-full flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
               showBoundary
                 ? "bg-teal-500/20 text-teal-300 font-medium"
                 : "text-slate-500 hover:text-slate-300"
             }`}
             title="Toggle Uttarakhand administrative boundary"
           >
-            <MapPin className="w-3 h-3" />
-            <span className="hidden md:inline">Boundary</span>
+            <MapPin className="w-3.5 h-3.5 text-teal-400" />
+            <span>Boundary</span>
           </button>
         </div>
       </div>
 
-      {/* Sector Information Card (Bottom-Left) */}
+      {/* Sector Information & Unified Dynamic Legend Card (Bottom-Left) */}
       <aside
         aria-label="Terrain Sector Overview"
-        className="absolute bottom-8 left-8 z-20 glass-surface rounded-2xl p-5 max-w-sm border border-white/10 shadow-2xl pointer-events-auto"
+        className="absolute bottom-8 left-3 sm:left-8 z-20 glass-surface rounded-2xl p-5 max-w-sm w-[92vw] sm:w-auto border border-white/10 shadow-2xl pointer-events-auto"
       >
         <div className="flex items-center gap-2 mb-2">
           <span className="w-2 h-2 rounded-full bg-amber-400" />
@@ -289,10 +289,154 @@ export default function TerrainExplorerPage() {
           revealing how steep slope chimneys, solar aspect insolation, and rugged relief
           concentrate 44.7% of all fires in the 1,000–2,000m Chir pine zone.
         </p>
-        <div className="flex items-center justify-between text-[11px] font-mono-telemetry pt-2 border-t border-white/10 text-slate-400">
+        <div className="flex items-center justify-between text-[11px] font-mono-telemetry pt-2 border-t border-white/10 text-slate-400 mb-2.5">
           <span>Active Detections:</span>
           <span className="text-amber-400 font-bold">7,541 Observations</span>
         </div>
+
+        {/* Dynamic Mode-Specific Topographic / Thermal Legend */}
+        {terrainMode === "satellite" && (
+          <div className="pt-2.5 border-t border-white/10 text-[10px] font-mono-telemetry">
+            <div className="text-slate-400 uppercase mb-1.5 flex items-center justify-between">
+              <span>Radiative Power (FRP):</span>
+              <span className="text-amber-400 font-semibold">MW Intensity</span>
+            </div>
+            <div className="grid grid-cols-4 gap-1.5 text-center">
+              <div className="p-1 rounded bg-white/[0.03] border border-white/5">
+                <div className="w-2 h-2 rounded-full bg-[#f59e0b] mx-auto mb-0.5 shadow-[0_0_6px_#f59e0b]" />
+                <span className="text-slate-300">&lt; 8 MW</span>
+              </div>
+              <div className="p-1 rounded bg-white/[0.03] border border-white/5">
+                <div className="w-2 h-2 rounded-full bg-[#f97316] mx-auto mb-0.5 shadow-[0_0_6px_#f97316]" />
+                <span className="text-slate-300">8–20</span>
+              </div>
+              <div className="p-1 rounded bg-white/[0.03] border border-white/5">
+                <div className="w-2 h-2 rounded-full bg-[#ef4444] mx-auto mb-0.5 shadow-[0_0_6px_#ef4444]" />
+                <span className="text-slate-300">20–60</span>
+              </div>
+              <div className="p-1 rounded bg-white/[0.03] border border-white/5">
+                <div className="w-2 h-2 rounded-full bg-[#a855f7] mx-auto mb-0.5 shadow-[0_0_6px_#a855f7]" />
+                <span className="text-slate-300">&gt; 60 MW</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {terrainMode === "elevation" && (
+          <div className="pt-2.5 border-t border-white/10 text-[10px] font-mono-telemetry">
+            <div className="text-slate-400 uppercase mb-1.5 flex items-center justify-between">
+              <span>Copernicus GLO-30 Elevation:</span>
+              <span className="text-emerald-400 font-semibold">129m – 7,804m</span>
+            </div>
+            <div className="grid grid-cols-5 gap-1 text-center text-[9px]">
+              <div className="p-1 rounded bg-white/[0.03] border border-white/5">
+                <span className="w-2 h-2 rounded block mx-auto mb-0.5 bg-[#059669]" />
+                <span className="text-slate-300">&lt; 500m</span>
+              </div>
+              <div className="p-1 rounded bg-white/[0.03] border border-white/5">
+                <span className="w-2 h-2 rounded block mx-auto mb-0.5 bg-[#10b981]" />
+                <span className="text-slate-300">1000m</span>
+              </div>
+              <div className="p-1 rounded bg-white/[0.03] border border-white/5">
+                <span className="w-2 h-2 rounded block mx-auto mb-0.5 bg-[#eab308]" />
+                <span className="text-slate-300">Pine</span>
+              </div>
+              <div className="p-1 rounded bg-white/[0.03] border border-white/5">
+                <span className="w-2 h-2 rounded block mx-auto mb-0.5 bg-[#f97316]" />
+                <span className="text-slate-300">Subalpine</span>
+              </div>
+              <div className="p-1 rounded bg-white/[0.03] border border-white/5">
+                <span className="w-2 h-2 rounded block mx-auto mb-0.5 bg-[#ffffff]" />
+                <span className="text-slate-300">Snow</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {terrainMode === "slope" && (
+          <div className="pt-2.5 border-t border-white/10 text-[10px] font-mono-telemetry">
+            <div className="text-slate-400 uppercase mb-1.5 flex items-center justify-between">
+              <span>Slope Gradient Chimneys:</span>
+              <span className="text-amber-400 font-semibold">0° – 64°</span>
+            </div>
+            <div className="grid grid-cols-5 gap-1 text-center text-[9px]">
+              <div className="p-1 rounded bg-white/[0.03] border border-white/5">
+                <span className="w-2 h-2 rounded block mx-auto mb-0.5 bg-[#3b82f6]" />
+                <span className="text-slate-300">0–5°</span>
+              </div>
+              <div className="p-1 rounded bg-white/[0.03] border border-white/5">
+                <span className="w-2 h-2 rounded block mx-auto mb-0.5 bg-[#10b981]" />
+                <span className="text-slate-300">5–15°</span>
+              </div>
+              <div className="p-1 rounded bg-white/[0.03] border border-white/5">
+                <span className="w-2 h-2 rounded block mx-auto mb-0.5 bg-[#eab308]" />
+                <span className="text-slate-300">15–25°</span>
+              </div>
+              <div className="p-1 rounded bg-white/[0.03] border border-white/5">
+                <span className="w-2 h-2 rounded block mx-auto mb-0.5 bg-[#f97316]" />
+                <span className="text-slate-300">25–35°</span>
+              </div>
+              <div className="p-1 rounded bg-white/[0.03] border border-white/5">
+                <span className="w-2 h-2 rounded block mx-auto mb-0.5 bg-[#dc2626]" />
+                <span className="text-slate-300">&gt; 35°</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {terrainMode === "aspect" && (
+          <div className="pt-2.5 border-t border-white/10 text-[10px] font-mono-telemetry">
+            <div className="text-slate-400 uppercase mb-1.5 flex items-center justify-between">
+              <span>Solar Aspect Insolation:</span>
+              <span className="text-sky-400 font-semibold">360° Compass</span>
+            </div>
+            <div className="grid grid-cols-4 gap-1 text-center text-[9px]">
+              <div className="p-1 rounded bg-white/[0.03] border border-white/5">
+                <span className="w-2 h-2 rounded block mx-auto mb-0.5 bg-[#38bdf8]" />
+                <span className="text-slate-300">North</span>
+              </div>
+              <div className="p-1 rounded bg-white/[0.03] border border-white/5">
+                <span className="w-2 h-2 rounded block mx-auto mb-0.5 bg-[#34d399]" />
+                <span className="text-slate-300">East</span>
+              </div>
+              <div className="p-1 rounded bg-white/[0.03] border border-white/5">
+                <span className="w-2 h-2 rounded block mx-auto mb-0.5 bg-[#f59e0b]" />
+                <span className="text-slate-300">South (Risk)</span>
+              </div>
+              <div className="p-1 rounded bg-white/[0.03] border border-white/5">
+                <span className="w-2 h-2 rounded block mx-auto mb-0.5 bg-[#f87171]" />
+                <span className="text-slate-300">West (Heat)</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {terrainMode === "tri" && (
+          <div className="pt-2.5 border-t border-white/10 text-[10px] font-mono-telemetry">
+            <div className="text-slate-400 uppercase mb-1.5 flex items-center justify-between">
+              <span>Terrain Ruggedness (TRI):</span>
+              <span className="text-purple-400 font-semibold">Riley Index</span>
+            </div>
+            <div className="grid grid-cols-4 gap-1 text-center text-[9px]">
+              <div className="p-1 rounded bg-white/[0.03] border border-white/5">
+                <span className="w-2 h-2 rounded block mx-auto mb-0.5 bg-[#1e293b]" />
+                <span className="text-slate-300">&lt; 10 Plain</span>
+              </div>
+              <div className="p-1 rounded bg-white/[0.03] border border-white/5">
+                <span className="w-2 h-2 rounded block mx-auto mb-0.5 bg-[#0284c7]" />
+                <span className="text-slate-300">10–30 Mod</span>
+              </div>
+              <div className="p-1 rounded bg-white/[0.03] border border-white/5">
+                <span className="w-2 h-2 rounded block mx-auto mb-0.5 bg-[#f59e0b]" />
+                <span className="text-slate-300">30–50 Rugged</span>
+              </div>
+              <div className="p-1 rounded bg-white/[0.03] border border-white/5">
+                <span className="w-2 h-2 rounded block mx-auto mb-0.5 bg-[#ef4444]" />
+                <span className="text-slate-300">&gt; 50 Extreme</span>
+              </div>
+            </div>
+          </div>
+        )}
       </aside>
 
       {/* Master Grid Cell Geomorphology Inspector */}

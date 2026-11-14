@@ -663,13 +663,13 @@ export default function GlobeMap({
         </button>
       </div>
 
-      {/* Cinematic Perspective Controls (Floating Minimal Capsule, Top Right) */}
-      <div className="absolute top-20 right-8 z-20 flex items-center glass-pill rounded-full p-1 text-xs shadow-2xl">
+      {/* Cinematic Perspective Controls (Floating Minimal Capsule, Bottom Right) */}
+      <div className="absolute bottom-8 right-6 sm:right-8 z-20 hidden sm:flex items-center glass-pill rounded-full p-1 text-xs shadow-2xl shrink-0">
         <button
           onClick={() => transitionCamera("orbital")}
           data-camera="orbital"
           aria-label="Orbit View"
-          className={`px-3.5 py-1.5 rounded-full transition-all text-xs font-medium cursor-pointer ${
+          className={`px-3.5 py-1.5 rounded-full transition-all text-xs font-medium cursor-pointer whitespace-nowrap ${
             cameraMode === "orbital"
               ? "bg-white/20 text-white shadow-sm font-semibold"
               : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.05]"
@@ -680,7 +680,7 @@ export default function GlobeMap({
         <button
           onClick={() => transitionCamera("sector")}
           data-camera="sector"
-          className={`px-3.5 py-1.5 rounded-full transition-all text-xs font-medium cursor-pointer ${
+          className={`px-3.5 py-1.5 rounded-full transition-all text-xs font-medium cursor-pointer whitespace-nowrap ${
             cameraMode === "sector"
               ? "bg-white/20 text-white shadow-sm font-semibold"
               : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.05]"
@@ -691,7 +691,7 @@ export default function GlobeMap({
         <button
           onClick={() => transitionCamera("ridge")}
           data-camera="ridge"
-          className={`px-3.5 py-1.5 rounded-full transition-all text-xs font-medium cursor-pointer ${
+          className={`px-3.5 py-1.5 rounded-full transition-all text-xs font-medium cursor-pointer whitespace-nowrap ${
             cameraMode === "ridge"
               ? "bg-white/20 text-white shadow-sm font-semibold"
               : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.05]"
@@ -701,124 +701,7 @@ export default function GlobeMap({
         </button>
       </div>
 
-      {/* Dynamic Geomorphology / FRP Legend (Bottom Left corner) */}
-      {terrainMode === "satellite" && (
-        <div className="absolute bottom-6 left-8 z-20 hidden sm:flex items-center gap-3.5 glass-pill rounded-full px-4 py-2 text-[11px] text-slate-300 shadow-xl">
-          <span className="text-slate-400 font-medium">Radiative Power (FRP):</span>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-[#f59e0b] shadow-[0_0_6px_#f59e0b]" />
-            <span className="text-slate-400">&lt; 8 MW</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-[#f97316] shadow-[0_0_6px_#f97316]" />
-            <span className="text-slate-400">8–20 MW</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-[#ef4444] shadow-[0_0_6px_#ef4444]" />
-            <span className="text-slate-400">20–60 MW</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-[#a855f7] shadow-[0_0_6px_#a855f7]" />
-            <span className="text-slate-400">&gt; 60 MW</span>
-          </div>
-        </div>
-      )}
 
-      {terrainMode === "elevation" && (
-        <div className="absolute bottom-6 left-8 z-20 hidden sm:flex items-center gap-3.5 glass-pill rounded-full px-4 py-2 text-[11px] text-slate-300 shadow-xl">
-          <span className="text-slate-400 font-medium">Copernicus DEM Elevation:</span>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded bg-[#059669]" />
-            <span className="text-slate-400">&lt; 500m</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded bg-[#10b981]" />
-            <span className="text-slate-400">1000m</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded bg-[#eab308]" />
-            <span className="text-slate-400">1800m Pine</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded bg-[#f97316]" />
-            <span className="text-slate-400">2500m Subalpine</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded bg-[#ffffff]" />
-            <span className="text-slate-400">&gt; 4000m Snow</span>
-          </div>
-        </div>
-      )}
-
-      {terrainMode === "slope" && (
-        <div className="absolute bottom-6 left-8 z-20 hidden sm:flex items-center gap-3.5 glass-pill rounded-full px-4 py-2 text-[11px] text-slate-300 shadow-xl">
-          <span className="text-slate-400 font-medium">Slope Gradient:</span>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded bg-[#3b82f6]" />
-            <span className="text-slate-400">0–5° Valley</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded bg-[#10b981]" />
-            <span className="text-slate-400">5–15°</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded bg-[#eab308]" />
-            <span className="text-slate-400">15–25°</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded bg-[#f97316]" />
-            <span className="text-slate-400">25–35° Fire Chimney</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded bg-[#dc2626]" />
-            <span className="text-slate-400">&gt; 35° Cliff</span>
-          </div>
-        </div>
-      )}
-
-      {terrainMode === "aspect" && (
-        <div className="absolute bottom-6 left-8 z-20 hidden sm:flex items-center gap-3.5 glass-pill rounded-full px-4 py-2 text-[11px] text-slate-300 shadow-xl">
-          <span className="text-slate-400 font-medium">Solar Aspect Orientation:</span>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded bg-[#38bdf8]" />
-            <span className="text-slate-400">North (Cool/Shade)</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded bg-[#34d399]" />
-            <span className="text-slate-400">East (Morning)</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded bg-[#f59e0b]" />
-            <span className="text-slate-400">South (High Solar Risk)</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded bg-[#f87171]" />
-            <span className="text-slate-400">West (Afternoon Heat)</span>
-          </div>
-        </div>
-      )}
-
-      {terrainMode === "tri" && (
-        <div className="absolute bottom-6 left-8 z-20 hidden sm:flex items-center gap-3.5 glass-pill rounded-full px-4 py-2 text-[11px] text-slate-300 shadow-xl">
-          <span className="text-slate-400 font-medium">Terrain Ruggedness (TRI):</span>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded bg-[#1e293b]" />
-            <span className="text-slate-400">&lt; 10 Level</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded bg-[#0284c7]" />
-            <span className="text-slate-400">10–30 Moderate</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded bg-[#f59e0b]" />
-            <span className="text-slate-400">30–50 Rugged</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded bg-[#ef4444]" />
-            <span className="text-slate-400">&gt; 50 Extreme</span>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
