@@ -17,7 +17,12 @@ import {
   TrendingUp,
   Layers,
   Thermometer,
-  Info
+  Info,
+  Database,
+  Radio,
+  BookOpen,
+  Compass,
+  Cpu
 } from "lucide-react";
 
 export default function HistoricalAnalyticsPage() {
@@ -104,24 +109,24 @@ export default function HistoricalAnalyticsPage() {
   ];
 
   return (
-    <main className="min-h-screen w-full bg-[#020408] text-white p-6 sm:p-10 md:p-14 overflow-y-auto">
+    <main className="min-h-screen w-full bg-[#020408] text-white p-5 sm:p-8 md:p-12 overflow-y-auto selection:bg-cyan-500/30">
       {/* Top Header Navigation */}
-      <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-white/10 pb-6 mb-8">
+      <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-white/[0.08] pb-6 mb-8">
         <div className="flex items-center gap-3">
           <Link
             href="/"
-            className="p-2.5 rounded-full glass-pill hover:bg-white/10 text-slate-300 hover:text-white transition-colors flex items-center gap-2 text-xs"
-            title="Return to Living Earth"
+            className="p-2.5 rounded-full bg-[#040810]/80 backdrop-blur-xl border border-white/10 hover:bg-white/10 text-slate-300 hover:text-white transition-colors flex items-center gap-2 text-xs"
+            title="Return to Planetary Orbit"
           >
             <ArrowLeft className="w-4 h-4" />
             <span className="hidden sm:inline font-mono-telemetry">Orbit</span>
           </Link>
           <div>
-            <div className="flex items-center gap-2 text-xs font-mono-telemetry uppercase text-amber-400">
-              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-              <span>Historical Analytics // Complete 2025 Baseline</span>
+            <div className="flex items-center gap-2 text-[10px] font-mono-telemetry uppercase text-cyan-400 font-bold tracking-widest">
+              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+              <span>NASA SPACE APPS 2026 // ENVIRONMENTAL RESEARCH LAB</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-white mt-0.5">
               Himalayan Wildfire Regimes &amp; Radiative Telemetry
             </h1>
           </div>
@@ -130,7 +135,7 @@ export default function HistoricalAnalyticsPage() {
         <nav className="flex flex-wrap items-center gap-2">
           <Link
             href="/"
-            className="glass-pill px-3.5 py-1.5 rounded-full text-xs text-slate-300 hover:text-white hover:bg-white/10 transition-colors flex items-center gap-1.5"
+            className="bg-[#040810]/80 backdrop-blur-xl border border-white/10 px-3.5 py-1.5 rounded-full text-xs text-slate-300 hover:text-white hover:bg-white/10 transition-colors flex items-center gap-1.5"
           >
             <Orbit className="w-3.5 h-3.5 text-cyan-400" />
             <span>Home</span>
@@ -138,7 +143,7 @@ export default function HistoricalAnalyticsPage() {
 
           <Link
             href="/fires"
-            className="glass-pill px-3.5 py-1.5 rounded-full text-xs text-amber-300 hover:text-amber-200 hover:bg-amber-500/20 border-amber-500/30 transition-all font-medium flex items-center gap-1.5"
+            className="bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/30 px-3.5 py-1.5 rounded-full text-xs text-amber-300 hover:text-amber-200 transition-all font-medium flex items-center gap-1.5"
           >
             <Flame className="w-3.5 h-3.5 text-amber-400" />
             <span>Fire Lab</span>
@@ -146,15 +151,23 @@ export default function HistoricalAnalyticsPage() {
 
           <Link
             href="/terrain"
-            className="glass-pill px-3.5 py-1.5 rounded-full text-xs text-sky-300 hover:text-sky-200 hover:bg-sky-500/20 border-sky-500/30 transition-all font-medium flex items-center gap-1.5"
+            className="bg-[#040810]/80 backdrop-blur-xl border border-white/10 px-3.5 py-1.5 rounded-full text-xs text-sky-300 hover:text-sky-200 hover:bg-sky-500/20 transition-all font-medium flex items-center gap-1.5"
           >
             <Mountain className="w-3.5 h-3.5 text-sky-400" />
             <span>Terrain Explorer</span>
           </Link>
 
           <Link
+            href="/data"
+            className="bg-[#040810]/80 backdrop-blur-xl border border-white/10 px-3.5 py-1.5 rounded-full text-xs text-cyan-300 hover:text-cyan-200 hover:bg-cyan-500/20 transition-all font-medium flex items-center gap-1.5"
+          >
+            <Database className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Data Explorer</span>
+          </Link>
+
+          <Link
             href="/methodology"
-            className="glass-pill px-3.5 py-1.5 rounded-full text-xs text-slate-300 hover:text-white hover:bg-white/10 transition-colors flex items-center gap-1.5"
+            className="bg-[#040810]/80 backdrop-blur-xl border border-white/10 px-3.5 py-1.5 rounded-full text-xs text-emerald-300 hover:text-white hover:bg-white/10 transition-colors flex items-center gap-1.5"
           >
             <FileText className="w-3.5 h-3.5 text-emerald-400" />
             <span>Methodology</span>
@@ -162,60 +175,77 @@ export default function HistoricalAnalyticsPage() {
         </nav>
       </header>
 
+      {/* Editorial Research Publication Abstract Banner */}
+      <section className="bg-[#040810]/85 backdrop-blur-xl p-5 sm:p-6 rounded-2xl border border-cyan-500/20 mb-8 shadow-[0_16px_40px_rgba(0,0,0,0.6)]">
+        <div className="flex items-center gap-2 text-[10px] font-mono-telemetry uppercase text-cyan-400 font-bold tracking-wider mb-2">
+          <BookOpen className="w-3.5 h-3.5 text-cyan-400" />
+          <span>Scientific Monograph // Western Himalayan Thermal Telemetry</span>
+        </div>
+        <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-light mb-3">
+          This empirical study quantifies the spatial, temporal, and topographic drivers of wildfire activity across Uttarakhand, India for the complete 2025 observation cycle. Synthesizing 7,541 boundary-validated radiometric observations from NASA FIRMS (MODIS Terra/Aqua &amp; VIIRS Suomi-NPP) with the Copernicus GLO-30 Digital Elevation Model, the findings demonstrate pronounced altitudinal confinement, steep slope convective chimney acceleration, and acute bimodal burning seasonality.
+        </p>
+        <div className="flex flex-wrap items-center gap-4 text-[11px] font-mono-telemetry text-slate-400 pt-3 border-t border-white/[0.06]">
+          <span>Data Ingestion: <strong className="text-slate-200">NASA FIRMS 2025 Archive</strong></span>
+          <span>Topography: <strong className="text-slate-200">Copernicus GLO-30 DEM (30m)</strong></span>
+          <span>Boundary: <strong className="text-slate-200">Survey of India (SOI) Verified</strong></span>
+          <span>Detections: <strong className="text-amber-400">7,541 Observations</strong></span>
+        </div>
+      </section>
+
       {/* Scientific Definition Notice */}
-      <div className="glass-surface p-4 rounded-xl border border-white/10 mb-8 flex items-start gap-3 text-xs text-slate-300">
-        <Info className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
-        <div className="leading-relaxed">
-          <strong className="text-white">Observational Unit Definition:</strong> All 7,541 records represent radiometric satellite pixel hotspot detections (thermal anomalies) captured by NASA MODIS (Terra &amp; Aqua) and VIIRS (Suomi-NPP) instruments. They do not constitute discrete wildfire incident perimeters, as a single severe fire can produce multiple contiguous pixel detections across consecutive overpasses.
+      <div className="bg-[#040810]/60 p-4 rounded-xl border border-white/[0.08] mb-8 flex items-start gap-3 text-xs text-slate-300">
+        <Info className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+        <div className="leading-relaxed font-light">
+          <strong className="text-white font-medium">Observational Unit Definition:</strong> All 7,541 records represent radiometric satellite pixel hotspot detections (thermal anomalies) captured by NASA MODIS (Terra &amp; Aqua) and VIIRS (Suomi-NPP) instruments. They do not constitute discrete wildfire incident perimeters, as a single severe fire can produce multiple contiguous pixel detections across consecutive overpasses.
         </div>
       </div>
 
       {/* KPI Overview Banner */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <div className="glass-surface p-5 rounded-2xl border border-white/10">
-          <div className="text-[11px] font-mono-telemetry text-slate-400 mb-1">Total Verified Observations</div>
-          <div className="text-3xl font-bold font-mono-telemetry text-white">7,541</div>
-          <div className="text-xs text-emerald-400 mt-1 flex items-center gap-1">
+        <div className="bg-[#040810]/85 backdrop-blur-xl p-5 rounded-2xl border border-white/[0.08] shadow-lg">
+          <div className="text-[10px] font-mono-telemetry text-slate-400 uppercase tracking-wider mb-1">Total Verified Observations</div>
+          <div className="text-3xl font-extrabold font-mono-telemetry text-white">7,541</div>
+          <div className="text-xs text-emerald-400 mt-1 flex items-center gap-1 font-mono-telemetry">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
             <span>100% Boundary Validated (SOI)</span>
           </div>
         </div>
 
-        <div className="glass-surface p-5 rounded-2xl border border-white/10">
-          <div className="text-[11px] font-mono-telemetry text-slate-400 mb-1">VIIRS Suomi-NPP (375m nadir)</div>
-          <div className="text-3xl font-bold font-mono-telemetry text-amber-400">6,623</div>
+        <div className="bg-[#040810]/85 backdrop-blur-xl p-5 rounded-2xl border border-white/[0.08] shadow-lg">
+          <div className="text-[10px] font-mono-telemetry text-slate-400 uppercase tracking-wider mb-1">VIIRS Suomi-NPP (375m nadir)</div>
+          <div className="text-3xl font-extrabold font-mono-telemetry text-amber-400">6,623</div>
           <div className="text-xs text-slate-400 mt-1 font-mono-telemetry">
             87.83% of total · 7.21× observation density
           </div>
         </div>
 
-        <div className="glass-surface p-5 rounded-2xl border border-white/10">
-          <div className="text-[11px] font-mono-telemetry text-slate-400 mb-1">MODIS Terra &amp; Aqua (1km nadir)</div>
-          <div className="text-3xl font-bold font-mono-telemetry text-sky-400">918</div>
+        <div className="bg-[#040810]/85 backdrop-blur-xl p-5 rounded-2xl border border-white/[0.08] shadow-lg">
+          <div className="text-[10px] font-mono-telemetry text-slate-400 uppercase tracking-wider mb-1">MODIS Terra &amp; Aqua (1km nadir)</div>
+          <div className="text-3xl font-extrabold font-mono-telemetry text-sky-400">918</div>
           <div className="text-xs text-slate-400 mt-1 font-mono-telemetry">
             12.17% of total · Mean FRP 15.27 MW
           </div>
         </div>
 
-        <div className="glass-surface p-5 rounded-2xl border border-white/10">
-          <div className="text-[11px] font-mono-telemetry text-slate-400 mb-1">Peak Radiative Power (FRP)</div>
-          <div className="text-3xl font-bold font-mono-telemetry text-rose-400">
+        <div className="bg-[#040810]/85 backdrop-blur-xl p-5 rounded-2xl border border-white/[0.08] shadow-lg">
+          <div className="text-[10px] font-mono-telemetry text-slate-400 uppercase tracking-wider mb-1">Peak Radiative Power (FRP)</div>
+          <div className="text-3xl font-extrabold font-mono-telemetry text-rose-400">
             169.9 <span className="text-sm font-normal text-slate-300">MW</span>
           </div>
-          <div className="text-xs text-slate-400 mt-1">
+          <div className="text-xs text-slate-400 mt-1 font-mono-telemetry">
             Terra MODIS (Feb 11, 2025 · 30.38°N, 79.43°E)
           </div>
         </div>
       </div>
 
       {/* Analytics Dimension Navigation Tabs */}
-      <div className="flex flex-wrap items-center gap-2 mb-6 border-b border-white/10 pb-4">
+      <div className="flex flex-wrap items-center gap-2 mb-6 border-b border-white/[0.08] pb-4">
         <button
           onClick={() => setActiveTab("monthly")}
-          className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-2 ${
+          className={`px-4 py-2 rounded-xl text-xs font-semibold font-mono-telemetry transition-all cursor-pointer flex items-center gap-2 ${
             activeTab === "monthly"
               ? "bg-amber-400 text-slate-950 shadow-[0_0_15px_rgba(251,191,36,0.4)]"
-              : "glass-pill text-slate-300 hover:text-white"
+              : "bg-[#040810]/80 border border-white/10 text-slate-300 hover:text-white hover:bg-white/[0.05]"
           }`}
         >
           <Calendar className="w-3.5 h-3.5" />
@@ -224,10 +254,10 @@ export default function HistoricalAnalyticsPage() {
 
         <button
           onClick={() => setActiveTab("elevation")}
-          className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-2 ${
+          className={`px-4 py-2 rounded-xl text-xs font-semibold font-mono-telemetry transition-all cursor-pointer flex items-center gap-2 ${
             activeTab === "elevation"
               ? "bg-emerald-400 text-slate-950 shadow-[0_0_15px_rgba(52,211,153,0.4)]"
-              : "glass-pill text-slate-300 hover:text-white"
+              : "bg-[#040810]/80 border border-white/10 text-slate-300 hover:text-white hover:bg-white/[0.05]"
           }`}
         >
           <Mountain className="w-3.5 h-3.5" />
@@ -236,10 +266,10 @@ export default function HistoricalAnalyticsPage() {
 
         <button
           onClick={() => setActiveTab("slope")}
-          className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-2 ${
+          className={`px-4 py-2 rounded-xl text-xs font-semibold font-mono-telemetry transition-all cursor-pointer flex items-center gap-2 ${
             activeTab === "slope"
               ? "bg-sky-400 text-slate-950 shadow-[0_0_15px_rgba(56,189,248,0.4)]"
-              : "glass-pill text-slate-300 hover:text-white"
+              : "bg-[#040810]/80 border border-white/10 text-slate-300 hover:text-white hover:bg-white/[0.05]"
           }`}
         >
           <TrendingUp className="w-3.5 h-3.5" />
@@ -248,10 +278,10 @@ export default function HistoricalAnalyticsPage() {
 
         <button
           onClick={() => setActiveTab("frp")}
-          className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-2 ${
+          className={`px-4 py-2 rounded-xl text-xs font-semibold font-mono-telemetry transition-all cursor-pointer flex items-center gap-2 ${
             activeTab === "frp"
               ? "bg-rose-400 text-slate-950 shadow-[0_0_15px_rgba(251,113,133,0.4)]"
-              : "glass-pill text-slate-300 hover:text-white"
+              : "bg-[#040810]/80 border border-white/10 text-slate-300 hover:text-white hover:bg-white/[0.05]"
           }`}
         >
           <Activity className="w-3.5 h-3.5" />
@@ -260,10 +290,10 @@ export default function HistoricalAnalyticsPage() {
 
         <button
           onClick={() => setActiveTab("seasonal")}
-          className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-2 ${
+          className={`px-4 py-2 rounded-xl text-xs font-semibold font-mono-telemetry transition-all cursor-pointer flex items-center gap-2 ${
             activeTab === "seasonal"
               ? "bg-purple-400 text-slate-950 shadow-[0_0_15px_rgba(192,132,252,0.4)]"
-              : "glass-pill text-slate-300 hover:text-white"
+              : "bg-[#040810]/80 border border-white/10 text-slate-300 hover:text-white hover:bg-white/[0.05]"
           }`}
         >
           <Layers className="w-3.5 h-3.5" />
@@ -273,18 +303,21 @@ export default function HistoricalAnalyticsPage() {
 
       {/* Tab 1: Monthly Trends */}
       {activeTab === "monthly" && (
-        <section className="glass-surface p-6 sm:p-8 rounded-2xl border border-white/10 mb-8 animate-in fade-in duration-200">
+        <section className="bg-[#040810]/85 backdrop-blur-xl p-6 sm:p-8 rounded-2xl border border-cyan-500/20 mb-8 shadow-xl animate-in fade-in duration-200">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
             <div>
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+              <div className="text-[10px] font-mono-telemetry uppercase text-amber-400 font-bold tracking-wider mb-1">
+                Figure 1.0 // Chronological Frequency Distribution
+              </div>
+              <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-amber-400" />
                 <span>Monthly Thermal Observation Frequency (Complete 2025 Empirical Series)</span>
               </h2>
-              <p className="text-xs text-slate-400 mt-1">
+              <p className="text-xs text-slate-400 mt-1 font-light">
                 Showing acute pre-monsoon burning peak in April (2,255 observations) and secondary winter post-monsoon clearing in December (1,678 observations).
               </p>
             </div>
-            <div className="text-xs font-mono-telemetry text-amber-400 bg-amber-500/10 px-3 py-1.5 rounded-full border border-amber-500/30 self-start sm:self-auto">
+            <div className="text-xs font-mono-telemetry text-amber-400 bg-amber-500/10 px-3 py-1.5 rounded-full border border-amber-500/30 self-start sm:self-auto font-semibold">
               April Peak: 2,255 (29.90%)
             </div>
           </div>
@@ -296,7 +329,7 @@ export default function HistoricalAnalyticsPage() {
               return (
                 <div key={m.month} className="flex flex-col items-center gap-1.5 h-full justify-end group relative">
                   {/* Tooltip on Hover */}
-                  <div className="absolute -top-16 opacity-0 group-hover:opacity-100 transition-opacity bg-black/90 border border-white/20 p-2 rounded-lg text-[10px] font-mono-telemetry pointer-events-none z-20 whitespace-nowrap shadow-xl">
+                  <div className="absolute -top-16 opacity-0 group-hover:opacity-100 transition-opacity bg-black/95 border border-cyan-500/30 p-2.5 rounded-xl text-[10px] font-mono-telemetry pointer-events-none z-20 whitespace-nowrap shadow-2xl">
                     <div className="font-bold text-white">{m.month}: {m.count.toLocaleString()} ({m.pct}%)</div>
                     <div className="text-amber-300">VIIRS: {m.viirs} · MODIS: {m.modis}</div>
                     <div className="text-slate-400">Peak FRP: {m.peak_frp} MW</div>
@@ -307,11 +340,11 @@ export default function HistoricalAnalyticsPage() {
                   </div>
                   <div
                     style={{ height: `${heightPct}%` }}
-                    className={`w-full rounded-t-md transition-all ${
+                    className={`w-full rounded-t-lg transition-all duration-300 ${
                       m.is_peak
                         ? "bg-amber-400 shadow-[0_0_20px_rgba(251,191,36,0.6)]"
                         : m.count > 1000
-                        ? "bg-sky-500/80 group-hover:bg-sky-400"
+                        ? "bg-sky-500/80 group-hover:bg-sky-400 shadow-[0_0_10px_rgba(56,189,248,0.3)]"
                         : "bg-white/20 group-hover:bg-white/40"
                     }`}
                   />
@@ -325,7 +358,7 @@ export default function HistoricalAnalyticsPage() {
             <div className="flex items-center gap-4">
               <span className="flex items-center gap-1.5">
                 <span className="w-3 h-3 rounded bg-amber-400" />
-                <span>Primary Annual Peak (April)</span>
+                <span>Primary Annual Peak (April: 2,255)</span>
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="w-3 h-3 rounded bg-sky-500/80" />
@@ -343,13 +376,16 @@ export default function HistoricalAnalyticsPage() {
 
       {/* Tab 2: Elevation Distribution */}
       {activeTab === "elevation" && (
-        <section className="glass-surface p-6 sm:p-8 rounded-2xl border border-white/10 mb-8 animate-in fade-in duration-200">
+        <section className="bg-[#040810]/85 backdrop-blur-xl p-6 sm:p-8 rounded-2xl border border-cyan-500/20 mb-8 shadow-xl animate-in fade-in duration-200">
           <div className="mb-6">
-            <h2 className="text-lg font-bold text-white flex items-center gap-2">
+            <div className="text-[10px] font-mono-telemetry uppercase text-emerald-400 font-bold tracking-wider mb-1">
+              Figure 2.0 // Hypsometric Stratification
+            </div>
+            <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
               <Mountain className="w-4 h-4 text-emerald-400" />
               <span>Elevation Stratification of Hotspot Detections (Copernicus GLO-30 DEM)</span>
             </h2>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-slate-400 mt-1 font-light">
               Topographic analysis reveals that <strong className="text-amber-400">44.74% of all fire detections</strong> concentrate in the Chir pine belt (1,000 m to 2,000 m), where flammable needle litter and resin-rich biomass maximize flammability.
             </p>
           </div>
@@ -391,13 +427,16 @@ export default function HistoricalAnalyticsPage() {
 
       {/* Tab 3: Slope Distribution */}
       {activeTab === "slope" && (
-        <section className="glass-surface p-6 sm:p-8 rounded-2xl border border-white/10 mb-8 animate-in fade-in duration-200">
+        <section className="bg-[#040810]/85 backdrop-blur-xl p-6 sm:p-8 rounded-2xl border border-cyan-500/20 mb-8 shadow-xl animate-in fade-in duration-200">
           <div className="mb-6">
-            <h2 className="text-lg font-bold text-white flex items-center gap-2">
+            <div className="text-[10px] font-mono-telemetry uppercase text-sky-400 font-bold tracking-wider mb-1">
+              Figure 3.0 // Orographic Combustion Accelerators
+            </div>
+            <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-sky-400" />
               <span>Slope Incline &amp; Topographic Chimney Effect</span>
             </h2>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-slate-400 mt-1 font-light">
               Slope calculated via Horn&apos;s algorithm on Copernicus GLO-30 DEM. More than half of all detections occur on steep slopes (25°–35°).
             </p>
           </div>
@@ -442,13 +481,16 @@ export default function HistoricalAnalyticsPage() {
 
       {/* Tab 4: FRP Intensity Bands */}
       {activeTab === "frp" && (
-        <section className="glass-surface p-6 sm:p-8 rounded-2xl border border-white/10 mb-8 animate-in fade-in duration-200">
+        <section className="bg-[#040810]/85 backdrop-blur-xl p-6 sm:p-8 rounded-2xl border border-cyan-500/20 mb-8 shadow-xl animate-in fade-in duration-200">
           <div className="mb-6">
-            <h2 className="text-lg font-bold text-white flex items-center gap-2">
+            <div className="text-[10px] font-mono-telemetry uppercase text-rose-400 font-bold tracking-wider mb-1">
+              Figure 4.0 // Radiative Combustion Energy Spectrum
+            </div>
+            <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
               <Activity className="w-4 h-4 text-rose-400" />
               <span>Fire Radiative Power (FRP) Energy Distribution</span>
             </h2>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-slate-400 mt-1 font-light">
               FRP is measured in Megawatts (MW) and quantifies the rate of radiant combustion energy release.
             </p>
           </div>
@@ -482,17 +524,17 @@ export default function HistoricalAnalyticsPage() {
           </div>
 
           <div className="mt-6 pt-4 border-t border-white/10 grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-mono-telemetry">
-            <div className="p-3 rounded-lg bg-black/40 border border-white/5">
+            <div className="p-3 rounded-xl bg-black/40 border border-white/5">
               <span className="text-slate-400 block mb-1">Minimum FRP Detected:</span>
               <span className="text-base font-bold text-white">0.15 MW</span>
               <span className="text-slate-500 text-[10px] block">VIIRS 375m I-band</span>
             </div>
-            <div className="p-3 rounded-lg bg-black/40 border border-white/5">
+            <div className="p-3 rounded-xl bg-black/40 border border-white/5">
               <span className="text-slate-400 block mb-1">Mean FRP (VIIRS):</span>
               <span className="text-base font-bold text-amber-300">3.97 MW</span>
               <span className="text-slate-500 text-[10px] block">Resolves small smoldering</span>
             </div>
-            <div className="p-3 rounded-lg bg-black/40 border border-white/5">
+            <div className="p-3 rounded-xl bg-black/40 border border-white/5">
               <span className="text-slate-400 block mb-1">Mean FRP (MODIS):</span>
               <span className="text-base font-bold text-sky-300">15.27 MW</span>
               <span className="text-slate-500 text-[10px] block">Requires larger flaming core</span>
@@ -503,20 +545,23 @@ export default function HistoricalAnalyticsPage() {
 
       {/* Tab 5: Seasonal Regimes */}
       {activeTab === "seasonal" && (
-        <section className="glass-surface p-6 sm:p-8 rounded-2xl border border-white/10 mb-8 animate-in fade-in duration-200">
+        <section className="bg-[#040810]/85 backdrop-blur-xl p-6 sm:p-8 rounded-2xl border border-cyan-500/20 mb-8 shadow-xl animate-in fade-in duration-200">
           <div className="mb-6">
-            <h2 className="text-lg font-bold text-white flex items-center gap-2">
+            <div className="text-[10px] font-mono-telemetry uppercase text-purple-400 font-bold tracking-wider mb-1">
+              Figure 5.0 // Bimodal Combustion Cycles
+            </div>
+            <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
               <Layers className="w-4 h-4 text-purple-400" />
               <span>Macro-Seasonal Combustion Cycles of the Western Himalayas</span>
             </h2>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-slate-400 mt-1 font-light">
               Comparison across the three distinct biophysical wildfire seasons in Uttarakhand.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {seasons.map((s: any) => (
-              <div key={s.season} className="p-5 rounded-2xl bg-black/40 border border-white/10 flex flex-col justify-between">
+              <div key={s.season} className="p-5 rounded-2xl bg-black/60 border border-white/[0.08] flex flex-col justify-between shadow-lg">
                 <div>
                   <div className="text-[11px] font-mono-telemetry text-amber-400 font-semibold uppercase mb-1">
                     {s.period}
@@ -545,12 +590,15 @@ export default function HistoricalAnalyticsPage() {
 
       {/* Sensor Breakdown & Diurnal Characteristics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="glass-surface p-6 rounded-2xl border border-white/10">
+        <div className="bg-[#040810]/85 backdrop-blur-xl p-6 rounded-2xl border border-white/[0.08] shadow-xl">
+          <div className="text-[10px] font-mono-telemetry uppercase text-sky-400 font-bold tracking-wider mb-1">
+            Orbital Radiometry Telemetry
+          </div>
           <h3 className="text-base font-bold text-white mb-2 flex items-center gap-2">
             <Orbit className="w-4 h-4 text-sky-400" />
             <span>Diurnal Pass Breakdown (Day vs Night)</span>
           </h3>
-          <p className="text-xs text-slate-400 mb-6 leading-relaxed">
+          <p className="text-xs text-slate-400 mb-6 leading-relaxed font-light">
             Satellite thermal anomalies captured during daytime overpasses vs nighttime cool-background passes.
           </p>
           <div className="space-y-4 font-mono-telemetry text-xs">
@@ -563,7 +611,7 @@ export default function HistoricalAnalyticsPage() {
                 <span className="font-bold text-white">4,911 (65.12%)</span>
               </div>
               <div className="w-full bg-white/10 h-2.5 rounded-full overflow-hidden">
-                <div className="h-full bg-amber-400 rounded-full" style={{ width: "65.12%" }} />
+                <div className="h-full bg-amber-400 rounded-full shadow-[0_0_8px_#f59e0b]" style={{ width: "65.12%" }} />
               </div>
             </div>
 
@@ -576,18 +624,21 @@ export default function HistoricalAnalyticsPage() {
                 <span className="font-bold text-white">2,630 (34.88%)</span>
               </div>
               <div className="w-full bg-white/10 h-2.5 rounded-full overflow-hidden">
-                <div className="h-full bg-sky-400 rounded-full" style={{ width: "34.88%" }} />
+                <div className="h-full bg-sky-400 rounded-full shadow-[0_0_8px_#38bdf8]" style={{ width: "34.88%" }} />
               </div>
             </div>
           </div>
         </div>
 
-        <div className="glass-surface p-6 rounded-2xl border border-white/10">
+        <div className="bg-[#040810]/85 backdrop-blur-xl p-6 rounded-2xl border border-white/[0.08] shadow-xl">
+          <div className="text-[10px] font-mono-telemetry uppercase text-emerald-400 font-bold tracking-wider mb-1">
+            Data Quality &amp; Peer Verification
+          </div>
           <h3 className="text-base font-bold text-white mb-2 flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-emerald-400" />
             <span>Scientific Provenance &amp; Data Pipeline Standards</span>
           </h3>
-          <p className="text-xs text-slate-400 mb-4 leading-relaxed">
+          <p className="text-xs text-slate-400 mb-4 leading-relaxed font-light">
             Every statistic shown is deterministically calculated from official NASA FIRMS archives and Copernicus DEM mosaics.
           </p>
           <ul className="space-y-2.5 text-xs text-slate-300 font-mono-telemetry">

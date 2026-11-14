@@ -344,18 +344,18 @@ export default function DataExplorerPage() {
 
       <div className="pt-24 sm:pt-28 pb-16 px-4 sm:px-6 md:px-10 max-w-7xl mx-auto space-y-8">
         {/* 2. Hero Header & Mission Breadcrumb */}
-        <section className="space-y-4">
+        <section className="bg-[#040810]/85 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-cyan-500/20 shadow-[0_16px_40px_rgba(0,0,0,0.6)] space-y-5">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="space-y-1.5">
-              <div className="flex items-center gap-2.5 text-xs font-mono-telemetry uppercase text-cyan-400">
+              <div className="flex items-center gap-2.5 text-xs font-mono-telemetry uppercase text-cyan-400 font-bold tracking-wider">
                 <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-                <span>Phase 8 Data Explorer &amp; Export Engine // Mission Baseline</span>
+                <span>NASA SPACE APPS 2026 // SATELLITE DATA RESEARCH TERMINAL</span>
               </div>
               <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white flex items-center gap-3">
                 <Database className="w-8 h-8 text-cyan-400" />
                 <span>NASA FIRMS Observation Explorer</span>
               </h1>
-              <p className="text-sm sm:text-base text-slate-300 max-w-3xl leading-relaxed">
+              <p className="text-sm sm:text-base text-slate-300 max-w-3xl leading-relaxed font-light">
                 Empirical active fire radiometric observations for Uttarakhand, India (2025 baseline).
                 Independently inspect, filter with decoupled sensor semantics, and export verified datasets in CSV, JSON, and GeoJSON.
               </p>
@@ -363,11 +363,11 @@ export default function DataExplorerPage() {
 
             {/* Quick Action Badges */}
             <div className="flex flex-wrap items-center gap-2">
-              <div className="glass-pill rounded-full px-3.5 py-1.5 text-xs font-mono-telemetry text-slate-300 flex items-center gap-2">
+              <div className="bg-white/[0.03] border border-white/10 rounded-full px-3.5 py-1.5 text-xs font-mono-telemetry text-slate-300 flex items-center gap-2">
                 <MapPin className="w-3.5 h-3.5 text-emerald-400" />
                 <span>Survey of India Validated (53,483 km²)</span>
               </div>
-              <div className="glass-pill rounded-full px-3.5 py-1.5 text-xs font-mono-telemetry text-amber-300 flex items-center gap-2">
+              <div className="bg-amber-500/10 border border-amber-500/30 rounded-full px-3.5 py-1.5 text-xs font-mono-telemetry text-amber-300 flex items-center gap-2">
                 <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
                 <span>7,541 Boundary Validated Records</span>
               </div>
@@ -375,15 +375,15 @@ export default function DataExplorerPage() {
           </div>
 
           {/* Scientific Notice Banner */}
-          <div className="glass-surface rounded-2xl p-4 sm:p-5 border border-amber-500/30 bg-amber-950/15 text-xs sm:text-sm text-slate-300 leading-relaxed space-y-2">
+          <div className="rounded-2xl p-4 sm:p-5 border border-amber-500/30 bg-amber-950/20 text-xs sm:text-sm text-slate-300 leading-relaxed space-y-2">
             <div className="flex items-center gap-2 text-amber-400 font-semibold uppercase tracking-wider text-xs font-mono-telemetry">
               <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
               <span>Scientific Remote Sensing Guardrails &amp; Semantics</span>
             </div>
-            <p>
-              <strong className="text-white">Observational Unit Semantics:</strong> Each record represents an automated satellite thermal pixel detection (MODIS 1 km, VIIRS 375 m), not a confirmed unique wildfire incident.
-              <strong className="text-white ml-2">Radiative Energetics:</strong> FRP is instantaneous Fire Radiative Power in Megawatts (MW), not burned area.
-              <strong className="text-white ml-2">Decoupled Confidence:</strong> MODIS confidence is continuous (0–100%), whereas VIIRS confidence is categorical (low/nominal/high) — they are mathematically distinct and never merged.
+            <p className="font-light">
+              <strong className="text-white font-medium">Observational Unit Semantics:</strong> Each record represents an automated satellite thermal pixel detection (MODIS 1 km, VIIRS 375 m), not a confirmed unique wildfire incident.
+              <strong className="text-white font-medium ml-2">Radiative Energetics:</strong> FRP is instantaneous Fire Radiative Power in Megawatts (MW), not burned area.
+              <strong className="text-white font-medium ml-2">Decoupled Confidence:</strong> MODIS confidence is continuous (0–100%), whereas VIIRS confidence is categorical (low/nominal/high) — they are mathematically distinct and never merged.
             </p>
           </div>
         </section>
@@ -391,7 +391,7 @@ export default function DataExplorerPage() {
         {/* 3. Live Filter Summary HUD Cards */}
         <section aria-label="Filtered Data Summary" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Card 1: Total Observations */}
-          <div className="glass-surface rounded-2xl p-5 border border-white/10 space-y-2">
+          <div className="bg-[#040810]/85 backdrop-blur-xl rounded-2xl p-5 border border-white/[0.08] shadow-lg space-y-2">
             <div className="flex items-center justify-between text-xs font-mono-telemetry text-slate-400">
               <span className="uppercase">Matching Detections</span>
               <Flame className="w-4 h-4 text-amber-400" />
@@ -412,18 +412,18 @@ export default function DataExplorerPage() {
           </div>
 
           {/* Card 2: Sensor Breakdown */}
-          <div className="glass-surface rounded-2xl p-5 border border-white/10 space-y-2">
+          <div className="bg-[#040810]/85 backdrop-blur-xl rounded-2xl p-5 border border-white/[0.08] shadow-lg space-y-2">
             <div className="flex items-center justify-between text-xs font-mono-telemetry text-slate-400">
               <span className="uppercase">Sensors (VIIRS / MODIS)</span>
               <Orbit className="w-4 h-4 text-emerald-400" />
             </div>
             <div className="flex items-baseline gap-2 font-mono-telemetry">
-              <span className="text-2xl font-bold text-emerald-400">
+              <span className="text-2xl font-bold text-amber-400">
                 {isLoadingSummary ? "--" : summary?.viirs_count.toLocaleString()}
               </span>
               <span className="text-xs text-slate-500">VIIRS</span>
               <span className="text-slate-600">/</span>
-              <span className="text-xl font-bold text-amber-400">
+              <span className="text-xl font-bold text-sky-400">
                 {isLoadingSummary ? "--" : summary?.modis_count.toLocaleString()}
               </span>
               <span className="text-xs text-slate-500">MODIS</span>
@@ -438,7 +438,7 @@ export default function DataExplorerPage() {
           </div>
 
           {/* Card 3: Radiative Energetics */}
-          <div className="glass-surface rounded-2xl p-5 border border-white/10 space-y-2">
+          <div className="bg-[#040810]/85 backdrop-blur-xl rounded-2xl p-5 border border-white/[0.08] shadow-lg space-y-2">
             <div className="flex items-center justify-between text-xs font-mono-telemetry text-slate-400">
               <span className="uppercase">Radiative Power (MW)</span>
               <Sparkles className="w-4 h-4 text-cyan-400" />
@@ -457,7 +457,7 @@ export default function DataExplorerPage() {
           </div>
 
           {/* Card 4: Diurnal & Window */}
-          <div className="glass-surface rounded-2xl p-5 border border-white/10 space-y-2">
+          <div className="bg-[#040810]/85 backdrop-blur-xl rounded-2xl p-5 border border-white/[0.08] shadow-lg space-y-2">
             <div className="flex items-center justify-between text-xs font-mono-telemetry text-slate-400">
               <span className="uppercase">Diurnal Split &amp; Time</span>
               <Sun className="w-4 h-4 text-amber-400" />
@@ -479,7 +479,7 @@ export default function DataExplorerPage() {
         </section>
 
         {/* 4. Interactive Filter Panel */}
-        <section aria-label="Data Filter Controls" className="glass-surface rounded-3xl p-6 border border-white/10 space-y-6">
+        <section aria-label="Data Filter Controls" className="bg-[#040810]/85 backdrop-blur-xl rounded-3xl p-6 border border-cyan-500/20 shadow-xl space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-4">
             <div className="flex items-center gap-2 text-sm font-semibold text-white uppercase tracking-wider font-mono-telemetry">
               <Filter className="w-4 h-4 text-cyan-400" />
@@ -777,7 +777,7 @@ export default function DataExplorerPage() {
         </section>
 
         {/* 5. Export Action Hub */}
-        <section aria-label="Dataset Export Hub" className="glass-surface rounded-3xl p-6 border border-white/10 space-y-4">
+        <section aria-label="Dataset Export Hub" className="bg-[#040810]/85 backdrop-blur-xl rounded-3xl p-6 border border-cyan-500/20 shadow-xl space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2 text-xs font-mono-telemetry uppercase text-emerald-400">
@@ -887,7 +887,7 @@ export default function DataExplorerPage() {
         </section>
 
         {/* 6. Polished Paginated Observation Table */}
-        <section aria-label="Observation Data Table" className="glass-surface rounded-3xl p-6 border border-white/10 space-y-5">
+        <section aria-label="Observation Data Table" className="bg-[#040810]/85 backdrop-blur-xl rounded-3xl p-6 border border-cyan-500/20 shadow-xl space-y-5">
           {/* Table Controls Header */}
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">

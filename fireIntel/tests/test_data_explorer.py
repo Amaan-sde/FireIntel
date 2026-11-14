@@ -238,3 +238,4 @@ def test_export_geojson_feature_collection():
         assert "obs_id" in props
         assert "sensor" in props
         assert "frp_mw" in props
+
