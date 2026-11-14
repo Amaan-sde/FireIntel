@@ -1,0 +1,41 @@
+{
+  "archive_date": "2026-11-15T04:20:00Z",
+  "purpose": "Pre-Phase 9 Safe Legacy Backup",
+  "files": [
+    {
+      "filename": "uttarakhand_fires_2025.geojson",
+      "size_bytes": 2916719,
+      "sha256": "a06d9688213c90279683be6667d4dc907874b139d6ce4d4f801395b387baea5d"
+    },
+    {
+      "filename": "sample_fires_for_web.json",
+      "size_bytes": 2916719,
+      "sha256": "a06d9688213c90279683be6667d4dc907874b139d6ce4d4f801395b387baea5d"
+    },
+    {
+      "filename": "uttarakhand_modis_boundary.csv",
+      "size_bytes": 103485,
+      "sha256": "2370a1fe811fcfe42b279c0a8872df13a5da9b3b71d6227e1655440fa98f73ee"
+    },
+    {
+      "filename": "uttarakhand_fires_boundary.parquet",
+      "size_bytes": 243897,
+      "sha256": "7d09b03922a79290b2d42174bead729edfcce4d4f7d84579f8f5f6d6aad2b5a4"
+    },
+    {
+      "filename": "uttarakhand_fires_boundary.csv",
+      "size_bytes": 847392,
+      "sha256": "d1be5f63f2dc6ff4dc9b92973b0f683f173b131b04c3f4bfe4dcd23d4ce64a08"
+    },
+    {
+      "filename": "uttarakhand_viirs_boundary.csv",
+      "size_bytes": 744055,
+      "sha256": "1cbc7f2891829c9b73efd65ef5137e72caae62581d73ba6a3397717416a418f9"
+    },
+    {
+      "filename": "mission_control_summary.json",
+      "size_bytes": 21994,
+      "sha256": "106e9566597f3a645c74e6c15451a86c29db5f67a85fafb73d1f7d3a11e11df3"
+    }
+  ]
+}
