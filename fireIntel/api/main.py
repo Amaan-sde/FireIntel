@@ -32,7 +32,31 @@ app.include_router(benchmarks.router, prefix="/api")
 app.include_router(data_explorer.router, prefix="/api/v1")
 app.include_router(data_explorer.router, prefix="/api")
 
+@app.get("/")
+def root():
+    return {
+        "service": "FIREINTEL Mission Control REST API",
+        "status": "ONLINE",
+        "version": "1.0.0",
+        "documentation": "/docs",
+        "openapi_spec": "/openapi.json",
+        "endpoints": {
+            "health": "/api/health",
+            "fires": "/api/fires",
+            "terrain": "/api/terrain",
+            "benchmarks": "/api/benchmarks",
+            "summary": "/api/v1/data/summary",
+            "observations": "/api/v1/data/observations",
+            "export": "/api/v1/data/export"
+        },
+        "study_area": "Uttarakhand, India (28.70°N to 31.46°N, 77.57°E to 81.04°E)",
+        "spatial_coverage_km2": 53483,
+        "satellite_instruments": ["MODIS (Terra/Aqua)", "VIIRS (Suomi-NPP)"]
+    }
+
 @app.get("/api/health")
+@app.head("/api/health")
+@app.get("/health")
 def health_check():
     return {
         "status": "HEALTHY",
