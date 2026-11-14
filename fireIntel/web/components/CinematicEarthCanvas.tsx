@@ -178,6 +178,14 @@ export default function CinematicEarthCanvas({
     hoveredSatelliteRef.current = hoveredSatellite;
   }, [hoveredSatellite]);
 
+  // Live Geodetic Coordinate Tracking HUD ref & state
+  const coordHudRef = useRef<HTMLDivElement>(null);
+  const [cursorCoordinates, setCursorCoordinates] = useState<{ lat: number; lon: number } | null>(null);
+
+  // References to dynamic 3D layers
+  const firesPointsRef = useRef<THREE.Points | null>(null);
+  const graticuleLinesRef = useRef<THREE.LineBasicMaterial[]>([]);
+
   const animFrameRef = useRef<number | null>(null);
 
   // Camera distance / zoom state (initial orbital distance = 5.2, range [2.4, 8.5])
@@ -289,6 +297,7 @@ export default function CinematicEarthCanvas({
     });
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+    renderer.setClearColor(0x000000, 0); // fully transparent background - space environment shows through
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.12;
     containerRef.current.appendChild(renderer.domElement);
@@ -297,50 +306,8 @@ export default function CinematicEarthCanvas({
     const dom = renderer.domElement;
     dom.style.touchAction = "none";
 
-    // 3. Deep Space Multi-Depth Starfield (3,200 stellar objects with cosmic temperature gradient)
-    const starGeometry = new THREE.BufferGeometry();
-    const starPositions = new Float32Array(3200 * 3);
-    const starColors = new Float32Array(3200 * 3);
-
-    for (let i = 0; i < 3200; i++) {
-      const radius = 350 + Math.random() * 850;
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.acos(Math.random() * 2 - 1);
-
-      starPositions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
-      starPositions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
-      starPositions[i * 3 + 2] = radius * Math.cos(phi);
-
-      const colorType = Math.random();
-      if (colorType > 0.88) {
-        // Hot blue giant (O/B type)
-        starColors[i * 3] = 0.62;
-        starColors[i * 3 + 1] = 0.82;
-        starColors[i * 3 + 2] = 1.0;
-      } else if (colorType > 0.72) {
-        // Warm yellow star (G type)
-        starColors[i * 3] = 1.0;
-        starColors[i * 3 + 1] = 0.90;
-        starColors[i * 3 + 2] = 0.70;
-      } else {
-        // White/neutral star
-        const lum = 0.65 + Math.random() * 0.35;
-        starColors[i * 3] = lum;
-        starColors[i * 3 + 1] = lum;
-        starColors[i * 3 + 2] = lum;
-      }
-    }
-    starGeometry.setAttribute("position", new THREE.BufferAttribute(starPositions, 3));
-    starGeometry.setAttribute("color", new THREE.BufferAttribute(starColors, 3));
-
-    const starMaterial = new THREE.PointsMaterial({
-      size: 1.35,
-      vertexColors: true,
-      transparent: true,
-      opacity: 0.85,
-    });
-    const starField = new THREE.Points(starGeometry, starMaterial);
-    scene.add(starField);
+    // 3. Deep Space Starfield removed - handled by dedicated SpaceEnvironmentBackground component
+    // which renders at z-0 behind this Earth canvas (z-10), eliminating double-rendering.
 
     // 4. Earth Planetary Group (Handles 23.44° Axial Obliquity)
     const earthGroup = new THREE.Group();
@@ -383,6 +350,7 @@ export default function CinematicEarthCanvas({
         specularMap: { value: specularTexture },
         cloudTexture: { value: cloudsTexture },
         sunDirection: { value: sunWorldDir },
+        uThermalMode: { value: 0.0 },
       },
       vertexShader: `
         varying vec2 vUv;
@@ -406,6 +374,7 @@ export default function CinematicEarthCanvas({
         uniform sampler2D specularMap;
         uniform sampler2D cloudTexture;
         uniform vec3 sunDirection;
+        uniform float uThermalMode;
 
         varying vec2 vUv;
         varying vec3 vWorldNormal;
@@ -454,7 +423,15 @@ export default function CinematicEarthCanvas({
           float horizonFresnel = pow(1.0 - max(0.0, dot(N, V)), 3.4);
           vec3 horizonHaze = vec3(0.14, 0.58, 1.0) * horizonFresnel * (max(0.0, NdotL + 0.15) * 0.75);
 
-          vec3 finalColor = mix(nightLit, dayLit, dayFactor) + oceanSpecular + horizonHaze;
+          vec3 standardColor = mix(nightLit, dayLit, dayFactor) + oceanSpecular + horizonHaze;
+
+          // Multispectral Thermal Infrared Matrix Mode (NASA FIRMS Style)
+          vec3 thermalLand = mix(vec3(0.012, 0.045, 0.10), vec3(0.06, 0.20, 0.45), diffuse) * (1.0 - specMask);
+          vec3 thermalOcean = vec3(0.008, 0.02, 0.06) + vec3(0.02, 0.08, 0.20) * specMask;
+          vec3 thermalHaze = vec3(0.08, 0.38, 0.85) * horizonFresnel * 0.9;
+          vec3 thermalColor = thermalLand + thermalOcean + thermalHaze;
+
+          vec3 finalColor = mix(standardColor, thermalColor, uThermalMode);
 
           gl_FragColor = vec4(finalColor, 1.0);
         }
@@ -470,6 +447,7 @@ export default function CinematicEarthCanvas({
       uniforms: {
         cloudTexture: { value: cloudsTexture },
         sunDirection: { value: sunWorldDir },
+        uThermalMode: { value: 0.0 },
       },
       vertexShader: `
         varying vec2 vUv;
@@ -483,6 +461,7 @@ export default function CinematicEarthCanvas({
       fragmentShader: `
         uniform sampler2D cloudTexture;
         uniform vec3 sunDirection;
+        uniform float uThermalMode;
         varying vec2 vUv;
         varying vec3 vWorldNormal;
 
@@ -499,7 +478,7 @@ export default function CinematicEarthCanvas({
           float twilightFactor = smoothstep(-0.25, 0.02, NdotL) * (1.0 - smoothstep(0.02, 0.28, NdotL));
           
           vec3 cloudColor = mix(vec3(0.015, 0.025, 0.04), dayCloud, dayFactor) + twilightCloud * twilightFactor * 0.45;
-          float alpha = cloudDensity * (0.08 + 0.64 * dayFactor);
+          float alpha = cloudDensity * (0.08 + 0.64 * dayFactor) * (1.0 - uThermalMode * 0.65);
 
           gl_FragColor = vec4(cloudColor, alpha);
         }
@@ -634,6 +613,154 @@ export default function CinematicEarthCanvas({
     beaconHit.position.set(bx, by, bz);
     beaconHitRef.current = beaconHit;
     earthGroup.add(beaconHit);
+
+    // 11b. 7,541 High-Resolution Satellite Fire Observations (MODIS + VIIRS)
+    fetch("/data/sample_fires_for_web.json")
+      .then((res) => res.json())
+      .then((data) => {
+        const features = data.features || (Array.isArray(data) ? data : []);
+        if (!features.length || !earthGroupRef.current) return;
+
+        const count = features.length;
+        const positions = new Float32Array(count * 3);
+        const frpAttr = new Float32Array(count);
+        const fRad = earthRadius * 1.004;
+
+        for (let i = 0; i < count; i++) {
+          const item = features[i];
+          const coords = item.geometry ? item.geometry.coordinates : [item.longitude, item.latitude];
+          const lon = coords[0];
+          const lat = coords[1];
+          const frp = (item.properties && item.properties.frp) ?? item.frp ?? 12.0;
+
+          const p = (90 - lat) * (Math.PI / 180);
+          const t = (lon + 180) * (Math.PI / 180);
+
+          positions[i * 3] = -fRad * Math.sin(p) * Math.cos(t);
+          positions[i * 3 + 1] = fRad * Math.cos(p);
+          positions[i * 3 + 2] = fRad * Math.sin(p) * Math.sin(t);
+          frpAttr[i] = Math.min(180.0, frp);
+        }
+
+        const fireGeo = new THREE.BufferGeometry();
+        fireGeo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+        fireGeo.setAttribute("aFrp", new THREE.BufferAttribute(frpAttr, 1));
+
+        const fireMat = new THREE.ShaderMaterial({
+          uniforms: {
+            uTime: { value: 0 },
+            uThermalMode: { value: 0 },
+            uCameraDistance: { value: 5.2 },
+          },
+          vertexShader: `
+            attribute float aFrp;
+            uniform float uTime;
+            uniform float uThermalMode;
+            uniform float uCameraDistance;
+            varying float vFrp;
+            varying float vPulse;
+
+            void main() {
+              vFrp = aFrp;
+              float pulse = 0.85 + 0.15 * sin(uTime * 3.2 + aFrp * 0.2);
+              vPulse = pulse;
+              vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
+              // Scale size with camera distance and only appear when uThermalMode > 0
+              float zoomScale = clamp((6.0 - uCameraDistance) / 3.5, 0.4, 1.5);
+              float size = (1.5 + min(aFrp * 0.015, 1.5)) * zoomScale * uThermalMode;
+              gl_PointSize = max(0.0, size * pulse * (120.0 / -mvPos.z));
+              gl_Position = projectionMatrix * mvPos;
+            }
+          `,
+          fragmentShader: `
+            uniform float uThermalMode;
+            uniform float uCameraDistance;
+            varying float vFrp;
+            varying float vPulse;
+
+            void main() {
+              if (uThermalMode <= 0.001) discard;
+
+              vec2 coord = gl_PointCoord - vec2(0.5);
+              float d = length(coord);
+              if (d > 0.5) discard;
+
+              float core = 1.0 - smoothstep(0.0, 0.25, d);
+              float halo = 1.0 - smoothstep(0.25, 0.5, d);
+
+              vec3 emberCol = mix(vec3(1.0, 0.40, 0.10), vec3(1.0, 0.85, 0.35), clamp(vFrp / 60.0, 0.0, 1.0));
+              vec3 col = mix(emberCol, vec3(1.0, 1.0, 0.95), core);
+
+              // Scale alpha with camera zoom so global view remains disciplined and close-up reveals intricate thermal details
+              float zoomAlpha = clamp((6.0 - uCameraDistance) / 3.5, 0.04, 0.50);
+              float alpha = (core * 0.45 + halo * 0.15) * vPulse * uThermalMode * zoomAlpha * 0.08;
+              gl_FragColor = vec4(col, alpha);
+            }
+          `,
+          transparent: true,
+          depthWrite: false,
+          blending: THREE.AdditiveBlending,
+        });
+
+        const firePoints = new THREE.Points(fireGeo, fireMat);
+        firesPointsRef.current = firePoints;
+        earthGroupRef.current.add(firePoints);
+      })
+      .catch((err) => console.warn("Could not load sample fires for 3D Earth:", err));
+
+    // 11c. Holographic WGS-84 Coordinate Graticule (Parallels & Meridians)
+    const graticuleGroup = new THREE.Group();
+    const graticuleMats: THREE.LineBasicMaterial[] = [];
+    const gRadius = earthRadius * 1.0025;
+
+    for (let lat = -75; lat <= 75; lat += 15) {
+      const pPts = [];
+      const pPhi = (90 - lat) * (Math.PI / 180);
+      const pRad = gRadius * Math.sin(pPhi);
+      const pY = gRadius * Math.cos(pPhi);
+      const isEquator = lat === 0;
+
+      for (let i = 0; i <= 96; i++) {
+        const a = (i / 96) * Math.PI * 2;
+        pPts.push(new THREE.Vector3(pRad * Math.cos(a), pY, pRad * Math.sin(a)));
+      }
+      const pGeo = new THREE.BufferGeometry().setFromPoints(pPts);
+      const pMat = new THREE.LineBasicMaterial({
+        color: isEquator ? 0x22d3ee : 0x0284c7,
+        transparent: true,
+        opacity: 0.0,
+        blending: THREE.AdditiveBlending,
+      });
+      graticuleMats.push(pMat);
+      graticuleGroup.add(new THREE.Line(pGeo, pMat));
+    }
+
+    for (let lon = 0; lon < 360; lon += 30) {
+      const mPts = [];
+      const mTheta = (lon * Math.PI) / 180;
+      for (let i = 0; i <= 64; i++) {
+        const lat = -90 + (i / 64) * 180;
+        const pPhi = (90 - lat) * (Math.PI / 180);
+        mPts.push(
+          new THREE.Vector3(
+            -gRadius * Math.sin(pPhi) * Math.cos(mTheta),
+            gRadius * Math.cos(pPhi),
+            gRadius * Math.sin(pPhi) * Math.sin(mTheta)
+          )
+        );
+      }
+      const mGeo = new THREE.BufferGeometry().setFromPoints(mPts);
+      const mMat = new THREE.LineBasicMaterial({
+        color: 0x0284c7,
+        transparent: true,
+        opacity: 0.0,
+        blending: THREE.AdditiveBlending,
+      });
+      graticuleMats.push(mMat);
+      graticuleGroup.add(new THREE.Line(mGeo, mMat));
+    }
+    earthGroup.add(graticuleGroup);
+    graticuleLinesRef.current = graticuleMats;
 
     // 12. 3D SATELLITE CONSTELLATION WITH NADIR SENSOR SCAN FOOTPRINTS
     function buildSpacecraft(colorHex: number, isDualWing = true): { group: THREE.Group; scanCone: THREE.Mesh } {
@@ -830,6 +957,33 @@ export default function CinematicEarthCanvas({
           }
         }
 
+        // Live Tactical Coordinate Tracking HUD
+        if (earthMeshRef.current && earthGroupRef.current && coordHudRef.current) {
+          const eHits = raycaster.intersectObject(earthMeshRef.current);
+          if (eHits.length > 0) {
+            const p = earthGroupRef.current.worldToLocal(eHits[0].point.clone()).normalize();
+            const lat = 90 - Math.acos(Math.max(-1, Math.min(1, p.y))) * (180 / Math.PI);
+            const lon = ((Math.atan2(p.z, -p.x) * 180) / Math.PI) - 180;
+            const normLon = ((lon + 540) % 360) - 180;
+
+            const latDir = lat >= 0 ? "N" : "S";
+            const lonDir = normLon >= 0 ? "E" : "W";
+            const isUttarakhand = Math.abs(lat - 30.15) < 3.2 && Math.abs(normLon - 79.25) < 3.2;
+
+            coordHudRef.current.innerHTML = `
+              <div class="px-2.5 py-1 rounded-md bg-black/70 border ${isUttarakhand ? 'border-amber-400/60 shadow-[0_0_15px_rgba(245,158,11,0.4)]' : 'border-cyan-400/30 shadow-[0_0_12px_rgba(56,189,248,0.25)]'} backdrop-blur-md text-[10px] font-mono-telemetry flex items-center gap-2 select-none pointer-events-none">
+                <span class="w-1.5 h-1.5 rounded-full ${isUttarakhand ? 'bg-amber-400 animate-ping' : 'bg-cyan-400'}"></span>
+                <span class="font-bold text-white tracking-wider">${Math.abs(lat).toFixed(2)}°${latDir}, ${Math.abs(normLon).toFixed(2)}°${lonDir}</span>
+                ${isUttarakhand ? '<span class="text-amber-300 font-semibold">[TARGET: UTTARAKHAND]</span>' : '<span class="text-slate-400">[WGS-84]</span>'}
+              </div>
+            `;
+            coordHudRef.current.style.opacity = "1";
+            coordHudRef.current.style.transform = `translate3d(${clientX + 14}px, ${clientY - 28}px, 0)`;
+          } else {
+            coordHudRef.current.style.opacity = "0";
+          }
+        }
+
         dom.style.cursor = "grab";
       }
 
@@ -976,6 +1130,7 @@ export default function CinematicEarthCanvas({
 
     // 14. Expose Runtime Debug Object
     (window as any).__FIREINTEL_DEBUG__ = {
+      getScene: () => sceneRef.current,
       getCameraDistance: () => currentDistanceRef.current,
       getTargetDistance: () => targetDistanceRef.current,
       setCameraDistance: (d: number) => {
@@ -1234,23 +1389,29 @@ export default function CinematicEarthCanvas({
       earthGeo.dispose();
       cloudGeo.dispose();
       atmosphereGeo.dispose();
-      starGeometry.dispose();
     };
   }, []);
 
   return (
-    <div className="relative w-full h-full overflow-hidden bg-[#020408]">
+    <div className="relative w-full h-full overflow-hidden bg-transparent">
       {/* Three.js 3D Earth Canvas */}
       <div
         ref={containerRef}
         className="w-full h-full cursor-grab active:cursor-grabbing select-none"
       />
 
-      {/* Cinematic Vignette */}
-      <div className="pointer-events-none absolute inset-0 bg-radial-[at_50%_50%] from-transparent via-transparent to-black/85" />
+      {/* Cinematic Vignette (Preserving depth of space background) */}
+      <div className="pointer-events-none absolute inset-0 bg-radial-[at_50%_50%] from-transparent via-transparent to-black/45" />
 
       {/* Atmospheric Horizon Rim */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-90" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-50" />
+
+      {/* Live Tactical Crosshair & Geodetic Coordinate Tooltip */}
+      <div
+        ref={coordHudRef}
+        style={{ left: 0, top: 0, opacity: 0 }}
+        className="fixed z-40 transition-opacity duration-150 pointer-events-none select-none"
+      />
 
       {/* 3D SATELLITE PLATFORM LABELS WITH DIRECT DOM TRANSFORM (ZERO REACT RE-RENDERS) */}
       {!isDescending && (
@@ -1260,16 +1421,14 @@ export default function CinematicEarthCanvas({
             ref={terraLabelRef}
             data-satellite-label="terra"
             style={{ left: -50, top: -24 }}
-            className={`absolute transition-transform duration-75 select-none ${
-              hoveredSatellite === "terra" ? "scale-110" : "scale-100"
-            }`}
+            className={`absolute transition-transform duration-75 select-none ${hoveredSatellite === "terra" ? "scale-110" : "scale-100"
+              }`}
           >
             <div
-              className={`pointer-events-auto cursor-pointer px-2.5 py-1 rounded-full border text-[10px] font-mono-telemetry tracking-wider uppercase transition-all backdrop-blur-md flex items-center gap-1.5 shadow-lg ${
-                hoveredSatellite === "terra"
-                  ? "bg-white/20 border-white text-white shadow-[0_0_15px_rgba(255,255,255,0.4)]"
-                  : "bg-black/60 border-white/20 text-slate-300 hover:text-white"
-              }`}
+              className={`pointer-events-auto cursor-pointer px-2.5 py-1 rounded-full border text-[10px] font-mono-telemetry tracking-wider uppercase transition-all backdrop-blur-md flex items-center gap-1.5 shadow-lg ${hoveredSatellite === "terra"
+                ? "bg-white/20 border-white text-white shadow-[0_0_15px_rgba(255,255,255,0.4)]"
+                : "bg-black/60 border-white/20 text-slate-300 hover:text-white"
+                }`}
               onClick={() => onSatelliteSelectRef.current && onSatelliteSelectRef.current(SATELLITE_CATALOG.terra)}
             >
               <span className="w-1.5 h-1.5 rounded-full bg-[#38bdf8] animate-pulse" />
@@ -1283,16 +1442,14 @@ export default function CinematicEarthCanvas({
             ref={aquaLabelRef}
             data-satellite-label="aqua"
             style={{ left: -50, top: -24 }}
-            className={`absolute transition-transform duration-75 select-none ${
-              hoveredSatellite === "aqua" ? "scale-110" : "scale-100"
-            }`}
+            className={`absolute transition-transform duration-75 select-none ${hoveredSatellite === "aqua" ? "scale-110" : "scale-100"
+              }`}
           >
             <div
-              className={`pointer-events-auto cursor-pointer px-2.5 py-1 rounded-full border text-[10px] font-mono-telemetry tracking-wider uppercase transition-all backdrop-blur-md flex items-center gap-1.5 shadow-lg ${
-                hoveredSatellite === "aqua"
-                  ? "bg-white/20 border-white text-white shadow-[0_0_15px_rgba(255,255,255,0.4)]"
-                  : "bg-black/60 border-white/20 text-slate-300 hover:text-white"
-              }`}
+              className={`pointer-events-auto cursor-pointer px-2.5 py-1 rounded-full border text-[10px] font-mono-telemetry tracking-wider uppercase transition-all backdrop-blur-md flex items-center gap-1.5 shadow-lg ${hoveredSatellite === "aqua"
+                ? "bg-white/20 border-white text-white shadow-[0_0_15px_rgba(255,255,255,0.4)]"
+                : "bg-black/60 border-white/20 text-slate-300 hover:text-white"
+                }`}
               onClick={() => onSatelliteSelectRef.current && onSatelliteSelectRef.current(SATELLITE_CATALOG.aqua)}
             >
               <span className="w-1.5 h-1.5 rounded-full bg-[#fbbf24] animate-pulse" />
@@ -1306,16 +1463,14 @@ export default function CinematicEarthCanvas({
             ref={snppLabelRef}
             data-satellite-label="snpp"
             style={{ left: -50, top: -24 }}
-            className={`absolute transition-transform duration-75 select-none ${
-              hoveredSatellite === "snpp" ? "scale-110" : "scale-100"
-            }`}
+            className={`absolute transition-transform duration-75 select-none ${hoveredSatellite === "snpp" ? "scale-110" : "scale-100"
+              }`}
           >
             <div
-              className={`pointer-events-auto cursor-pointer px-2.5 py-1 rounded-full border text-[10px] font-mono-telemetry tracking-wider uppercase transition-all backdrop-blur-md flex items-center gap-1.5 shadow-lg ${
-                hoveredSatellite === "snpp"
-                  ? "bg-white/20 border-white text-white shadow-[0_0_15px_rgba(255,255,255,0.4)]"
-                  : "bg-black/60 border-white/20 text-slate-300 hover:text-white"
-              }`}
+              className={`pointer-events-auto cursor-pointer px-2.5 py-1 rounded-full border text-[10px] font-mono-telemetry tracking-wider uppercase transition-all backdrop-blur-md flex items-center gap-1.5 shadow-lg ${hoveredSatellite === "snpp"
+                ? "bg-white/20 border-white text-white shadow-[0_0_15px_rgba(255,255,255,0.4)]"
+                : "bg-black/60 border-white/20 text-slate-300 hover:text-white"
+                }`}
               onClick={() => onSatelliteSelectRef.current && onSatelliteSelectRef.current(SATELLITE_CATALOG.snpp)}
             >
               <span className="w-1.5 h-1.5 rounded-full bg-[#34d399] animate-pulse" />
@@ -1346,11 +1501,10 @@ export default function CinematicEarthCanvas({
           {/* Target Lock Button */}
           <button
             onClick={focusUttarakhand}
-            className={`p-2.5 rounded-full glass-pill transition-all cursor-pointer ${
-              isTargetLocked
-                ? "bg-sky-500/20 text-sky-300 border-sky-500/40 shadow-[0_0_15px_rgba(56,189,248,0.3)]"
-                : "text-slate-300 hover:text-white hover:bg-white/10"
-            }`}
+            className={`p-2.5 rounded-full glass-pill transition-all cursor-pointer ${isTargetLocked
+              ? "bg-sky-500/20 text-sky-300 border-sky-500/40 shadow-[0_0_15px_rgba(56,189,248,0.3)]"
+              : "text-slate-300 hover:text-white hover:bg-white/10"
+              }`}
             title="Focus camera on Uttarakhand (30.15°N, 79.25°E)"
             aria-label="Lock Himalayan Target"
             data-orbit-control="target-lock"
@@ -1361,11 +1515,10 @@ export default function CinematicEarthCanvas({
           {/* Auto-Rotation Toggle */}
           <button
             onClick={() => setAutoRotate((prev) => !prev)}
-            className={`p-2.5 rounded-full glass-pill transition-all cursor-pointer ${
-              autoRotate
-                ? "text-emerald-300 bg-emerald-500/10 border-emerald-500/30"
-                : "text-slate-400 hover:text-white hover:bg-white/10"
-            }`}
+            className={`p-2.5 rounded-full glass-pill transition-all cursor-pointer ${autoRotate
+              ? "text-emerald-300 bg-emerald-500/10 border-emerald-500/30"
+              : "text-slate-400 hover:text-white hover:bg-white/10"
+              }`}
             title={autoRotate ? "Pause planetary spin (Space)" : "Resume planetary spin (Space)"}
             aria-label="Toggle Auto Rotation"
             data-orbit-control="toggle-autorotate"
