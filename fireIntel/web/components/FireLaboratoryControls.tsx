@@ -93,7 +93,7 @@ export default function FireLaboratoryControls({
             <div className="flex justify-between items-center text-slate-400 text-[11px] mb-1.5">
               <span>Platform / Sensor</span>
               <span className="text-slate-500 font-mono-telemetry text-[10px]">
-                {selectedSensor === "VIIRS" ? "VIIRS 375m" : selectedSensor === "MODIS" ? "MODIS 1km" : "Dual Constellation"}
+                {selectedSensor === "VIIRS" ? "VIIRS 375m (Suomi-NPP)" : selectedSensor === "MODIS" ? "MODIS 1km (Terra/Aqua)" : "Dual Constellation (7,541)"}
               </span>
             </div>
             <div className="grid grid-cols-3 gap-1 p-1 bg-black/40 rounded-xl border border-white/5">

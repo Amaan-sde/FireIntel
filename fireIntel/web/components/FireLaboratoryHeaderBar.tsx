@@ -56,14 +56,14 @@ export default function FireLaboratoryHeaderBar({
       {/* Sensor Breakdown Micro-Grid */}
       <div className="grid grid-cols-3 gap-2 pt-2.5 border-t border-white/5 text-[11px]">
         <div>
-          <span className="text-slate-500 text-[10px]">VIIRS 375m:</span>
+          <span className="text-slate-500 text-[10px]">VIIRS 375m (nadir):</span>
           <div className="font-mono-telemetry font-bold text-amber-300">
             {filteredStats.viirs.toLocaleString()}
           </div>
         </div>
 
         <div>
-          <span className="text-slate-500 text-[10px]">MODIS 1km:</span>
+          <span className="text-slate-500 text-[10px]">MODIS 1km (nadir):</span>
           <div className="font-mono-telemetry font-bold text-sky-300">
             {filteredStats.modis.toLocaleString()}
           </div>

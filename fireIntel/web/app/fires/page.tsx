@@ -27,6 +27,15 @@ export default function FireLaboratoryPage() {
   const [isTelemetryDrawerOpen, setIsTelemetryDrawerOpen] = useState<boolean>(false);
   const [previewModule, setPreviewModule] = useState<string | null>(null);
 
+  // Expose programmatic selector for automated inspection & testing
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      (window as any).__SELECT_HOTSPOT = (hotspot: FireFeatureProperties) => {
+        setSelectedHotspot(hotspot);
+      };
+    }
+  }, []);
+
   // Load telemetry data for monthly distributions and metadata
   useEffect(() => {
     async function loadTelemetry() {

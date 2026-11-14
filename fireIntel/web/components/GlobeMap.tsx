@@ -2,24 +2,36 @@
 
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import maplibregl from "maplibre-gl";
-import { Plus, Minus, Compass, Layers, Globe } from "lucide-react";
+import { Plus, Minus, Compass, Layers, Globe, Eye, EyeOff, Mountain } from "lucide-react";
+
+export type TerrainMode = "satellite" | "elevation" | "slope" | "aspect" | "tri";
 
 interface GlobeMapProps {
   onHotspotSelect?: (hotspot: any) => void;
+  onCellSelect?: (cell: any) => void;
   selectedMonth?: number | null;
   selectedSensor?: string | null;
   cameraMode?: "orbital" | "sector" | "ridge";
   onCameraModeChange?: (mode: "orbital" | "sector" | "ridge") => void;
   targetCoords?: [number, number] | null;
+  terrainMode?: TerrainMode;
+  showHotspots?: boolean;
+  showBoundary?: boolean;
+  showGridLines?: boolean;
 }
 
 export default function GlobeMap({
   onHotspotSelect,
+  onCellSelect,
   selectedMonth,
   selectedSensor,
   cameraMode = "sector",
   onCameraModeChange,
   targetCoords,
+  terrainMode = "satellite",
+  showHotspots = true,
+  showBoundary = true,
+  showGridLines = false,
 }: GlobeMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
@@ -88,6 +100,112 @@ export default function GlobeMap({
         console.warn("Could not set 3D terrain:", err);
       }
 
+      // Add Master Grid Source (2,174 cells with Copernicus GLO-30 DEM geomorphometry)
+      try {
+        const gridRes = await fetch("/data/terrain_grid_web.json");
+        const gridData = await gridRes.json();
+
+        map.addSource("terrain-grid", {
+          type: "geojson",
+          data: gridData,
+        });
+
+        // 1. Terrain Grid Dynamic Fill (Elevation, Slope, Aspect, TRI)
+        map.addLayer({
+          id: "terrain-grid-fill",
+          type: "fill",
+          source: "terrain-grid",
+          paint: {
+            "fill-color": [
+              "interpolate",
+              ["linear"],
+              ["get", "elev_mean"],
+              200, "#059669",
+              800, "#10b981",
+              1500, "#eab308",
+              2200, "#f97316",
+              3500, "#cbd5e1",
+              5500, "#ffffff",
+            ],
+            "fill-opacity": 0, // initially 0 for satellite mode
+          },
+        });
+
+        // 2. Terrain Grid Line Boundaries
+        map.addLayer({
+          id: "terrain-grid-lines",
+          type: "line",
+          source: "terrain-grid",
+          paint: {
+            "line-color": "#38bdf8",
+            "line-width": 0.5,
+            "line-opacity": 0,
+          },
+        });
+
+        // 3. Highlight outline for selected grid cell
+        map.addSource("selected-cell-source", {
+          type: "geojson",
+          data: {
+            type: "FeatureCollection",
+            features: [],
+          },
+        });
+
+        map.addLayer({
+          id: "selected-cell-line",
+          type: "line",
+          source: "selected-cell-source",
+          paint: {
+            "line-color": "#38bdf8",
+            "line-width": 2.5,
+            "line-opacity": 0.95,
+          },
+        });
+
+        // Click handler for grid cells
+        map.on("click", "terrain-grid-fill", (e) => {
+          // If a fire hotspot node was clicked directly, prioritize the fire hotspot
+          const fireFeatures = map.queryRenderedFeatures(e.point, {
+            layers: ["fire-nodes"],
+          });
+          if (fireFeatures && fireFeatures.length > 0) return;
+
+          if (!e.features || !e.features[0]) return;
+          const feat = e.features[0];
+          const props = feat.properties as any;
+          const geometry = feat.geometry as any;
+
+          // Update cell highlight
+          const cellSource = map.getSource("selected-cell-source") as maplibregl.GeoJSONSource;
+          if (cellSource) {
+            cellSource.setData({
+              type: "FeatureCollection",
+              features: [
+                {
+                  type: "Feature",
+                  geometry: geometry,
+                  properties: {},
+                },
+              ],
+            });
+          }
+
+          if (onCellSelect) {
+            onCellSelect(props);
+          }
+        });
+
+        map.on("mouseenter", "terrain-grid-fill", () => {
+          map.getCanvas().style.cursor = "pointer";
+        });
+        map.on("mouseleave", "terrain-grid-fill", () => {
+          map.getCanvas().style.cursor = "";
+        });
+      } catch (err) {
+        console.warn("Could not load terrain grid:", err);
+      }
+
       // Add Uttarakhand Administrative Boundary
       try {
         const boundaryRes = await fetch("/data/uttarakhand_boundary.geojson");
@@ -142,18 +260,21 @@ export default function GlobeMap({
           source: "fire-hotspots",
           paint: {
             "circle-radius": [
-              "interpolate", ["linear"], ["get", "frp"],
+              "interpolate",
+              ["linear"],
+              ["get", "frp"],
               1, 3.5,
               15, 6.5,
               50, 12,
-              150, 18
+              150, 18,
             ],
             "circle-color": [
-              "step", ["get", "frp"],
+              "step",
+              ["get", "frp"],
               "#f59e0b",
               8, "#f97316",
               20, "#ef4444",
-              60, "#a855f7"
+              60, "#a855f7",
             ],
             "circle-opacity": 0.35,
             "circle-blur": 1.0,
@@ -167,18 +288,21 @@ export default function GlobeMap({
           source: "fire-hotspots",
           paint: {
             "circle-radius": [
-              "interpolate", ["linear"], ["get", "frp"],
+              "interpolate",
+              ["linear"],
+              ["get", "frp"],
               1, 2.0,
               15, 3.8,
               50, 6.0,
-              150, 9.0
+              150, 9.0,
             ],
             "circle-color": [
-              "step", ["get", "frp"],
+              "step",
+              ["get", "frp"],
               "#fef08a",
               8, "#fed7aa",
               20, "#fca5a5",
-              60, "#f5d0fe"
+              60, "#f5d0fe",
             ],
             "circle-stroke-width": 0.8,
             "circle-stroke-color": "#ffffff",
@@ -257,6 +381,89 @@ export default function GlobeMap({
       map.remove();
     };
   }, []);
+
+  // Update Geomorphology Layer Fill & Grid Lines based on terrainMode and showGridLines
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded || !map.getLayer("terrain-grid-fill")) return;
+
+    if (terrainMode === "satellite") {
+      map.setPaintProperty("terrain-grid-fill", "fill-opacity", 0);
+    } else if (terrainMode === "elevation") {
+      map.setPaintProperty("terrain-grid-fill", "fill-color", [
+        "interpolate",
+        ["linear"],
+        ["get", "elev_mean"],
+        200, "#059669",
+        800, "#10b981",
+        1500, "#eab308",
+        2200, "#f97316",
+        3500, "#cbd5e1",
+        5500, "#ffffff",
+      ]);
+      map.setPaintProperty("terrain-grid-fill", "fill-opacity", 0.65);
+    } else if (terrainMode === "slope") {
+      map.setPaintProperty("terrain-grid-fill", "fill-color", [
+        "interpolate",
+        ["linear"],
+        ["get", "slope_mean"],
+        0, "#3b82f6",
+        10, "#10b981",
+        20, "#eab308",
+        30, "#f97316",
+        40, "#dc2626",
+      ]);
+      map.setPaintProperty("terrain-grid-fill", "fill-opacity", 0.65);
+    } else if (terrainMode === "aspect") {
+      map.setPaintProperty("terrain-grid-fill", "fill-color", [
+        "interpolate",
+        ["linear"],
+        ["get", "aspect_mean"],
+        0, "#38bdf8",
+        90, "#34d399",
+        180, "#f59e0b",
+        270, "#f87171",
+        360, "#38bdf8",
+      ]);
+      map.setPaintProperty("terrain-grid-fill", "fill-opacity", 0.65);
+    } else if (terrainMode === "tri") {
+      map.setPaintProperty("terrain-grid-fill", "fill-color", [
+        "interpolate",
+        ["linear"],
+        ["get", "tri_mean"],
+        5, "#1e293b",
+        20, "#0284c7",
+        35, "#f59e0b",
+        55, "#ef4444",
+        80, "#a855f7",
+      ]);
+      map.setPaintProperty("terrain-grid-fill", "fill-opacity", 0.65);
+    }
+
+    // Grid lines visibility
+    const lineOpacity = showGridLines || terrainMode !== "satellite" ? 0.35 : 0;
+    if (map.getLayer("terrain-grid-lines")) {
+      map.setPaintProperty("terrain-grid-lines", "line-opacity", lineOpacity);
+    }
+  }, [terrainMode, showGridLines, mapLoaded]);
+
+  // Toggle Hotspots visibility
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded || !map.getLayer("fire-nodes")) return;
+    const visibility = showHotspots !== false ? "visible" : "none";
+    map.setLayoutProperty("fire-nodes", "visibility", visibility);
+    map.setLayoutProperty("fire-glow", "visibility", visibility);
+  }, [showHotspots, mapLoaded]);
+
+  // Toggle Boundary visibility
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded || !map.getLayer("uttarakhand-line")) return;
+    const visibility = showBoundary !== false ? "visible" : "none";
+    map.setLayoutProperty("uttarakhand-line", "visibility", visibility);
+    map.setLayoutProperty("uttarakhand-line-glow", "visibility", visibility);
+  }, [showBoundary, mapLoaded]);
 
   // Filter map layers by month and sensor (with integer month attribute)
   useEffect(() => {
@@ -442,7 +649,7 @@ export default function GlobeMap({
           title={terrainEnabled ? "3D Terrain: Active (Click to disable)" : "3D Terrain: Disabled (Click to enable)"}
           aria-label="Toggle 3D Terrain"
         >
-          <Layers className="w-4 h-4" />
+          <Mountain className="w-4 h-4" />
         </button>
 
         <button
@@ -494,26 +701,124 @@ export default function GlobeMap({
         </button>
       </div>
 
-      {/* Minimal FRP Legend (Bottom Left corner) */}
-      <div className="absolute bottom-6 left-8 z-20 hidden sm:flex items-center gap-3.5 glass-pill rounded-full px-4 py-2 text-[11px] text-slate-300 shadow-xl">
-        <span className="text-slate-400 font-medium">Radiative Power (FRP)</span>
-        <div className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-[#f59e0b] shadow-[0_0_6px_#f59e0b]" />
-          <span className="text-slate-400">&lt; 8 MW</span>
+      {/* Dynamic Geomorphology / FRP Legend (Bottom Left corner) */}
+      {terrainMode === "satellite" && (
+        <div className="absolute bottom-6 left-8 z-20 hidden sm:flex items-center gap-3.5 glass-pill rounded-full px-4 py-2 text-[11px] text-slate-300 shadow-xl">
+          <span className="text-slate-400 font-medium">Radiative Power (FRP):</span>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-[#f59e0b] shadow-[0_0_6px_#f59e0b]" />
+            <span className="text-slate-400">&lt; 8 MW</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-[#f97316] shadow-[0_0_6px_#f97316]" />
+            <span className="text-slate-400">8–20 MW</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-[#ef4444] shadow-[0_0_6px_#ef4444]" />
+            <span className="text-slate-400">20–60 MW</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-[#a855f7] shadow-[0_0_6px_#a855f7]" />
+            <span className="text-slate-400">&gt; 60 MW</span>
+          </div>
         </div>
-        <div className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-[#f97316] shadow-[0_0_6px_#f97316]" />
-          <span className="text-slate-400">8–20 MW</span>
+      )}
+
+      {terrainMode === "elevation" && (
+        <div className="absolute bottom-6 left-8 z-20 hidden sm:flex items-center gap-3.5 glass-pill rounded-full px-4 py-2 text-[11px] text-slate-300 shadow-xl">
+          <span className="text-slate-400 font-medium">Copernicus DEM Elevation:</span>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded bg-[#059669]" />
+            <span className="text-slate-400">&lt; 500m</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded bg-[#10b981]" />
+            <span className="text-slate-400">1000m</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded bg-[#eab308]" />
+            <span className="text-slate-400">1800m Pine</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded bg-[#f97316]" />
+            <span className="text-slate-400">2500m Subalpine</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded bg-[#ffffff]" />
+            <span className="text-slate-400">&gt; 4000m Snow</span>
+          </div>
         </div>
-        <div className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-[#ef4444] shadow-[0_0_6px_#ef4444]" />
-          <span className="text-slate-400">20–60 MW</span>
+      )}
+
+      {terrainMode === "slope" && (
+        <div className="absolute bottom-6 left-8 z-20 hidden sm:flex items-center gap-3.5 glass-pill rounded-full px-4 py-2 text-[11px] text-slate-300 shadow-xl">
+          <span className="text-slate-400 font-medium">Slope Gradient:</span>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded bg-[#3b82f6]" />
+            <span className="text-slate-400">0–5° Valley</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded bg-[#10b981]" />
+            <span className="text-slate-400">5–15°</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded bg-[#eab308]" />
+            <span className="text-slate-400">15–25°</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded bg-[#f97316]" />
+            <span className="text-slate-400">25–35° Fire Chimney</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded bg-[#dc2626]" />
+            <span className="text-slate-400">&gt; 35° Cliff</span>
+          </div>
         </div>
-        <div className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-[#a855f7] shadow-[0_0_6px_#a855f7]" />
-          <span className="text-slate-400">&gt; 60 MW</span>
+      )}
+
+      {terrainMode === "aspect" && (
+        <div className="absolute bottom-6 left-8 z-20 hidden sm:flex items-center gap-3.5 glass-pill rounded-full px-4 py-2 text-[11px] text-slate-300 shadow-xl">
+          <span className="text-slate-400 font-medium">Solar Aspect Orientation:</span>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded bg-[#38bdf8]" />
+            <span className="text-slate-400">North (Cool/Shade)</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded bg-[#34d399]" />
+            <span className="text-slate-400">East (Morning)</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded bg-[#f59e0b]" />
+            <span className="text-slate-400">South (High Solar Risk)</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded bg-[#f87171]" />
+            <span className="text-slate-400">West (Afternoon Heat)</span>
+          </div>
         </div>
-      </div>
+      )}
+
+      {terrainMode === "tri" && (
+        <div className="absolute bottom-6 left-8 z-20 hidden sm:flex items-center gap-3.5 glass-pill rounded-full px-4 py-2 text-[11px] text-slate-300 shadow-xl">
+          <span className="text-slate-400 font-medium">Terrain Ruggedness (TRI):</span>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded bg-[#1e293b]" />
+            <span className="text-slate-400">&lt; 10 Level</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded bg-[#0284c7]" />
+            <span className="text-slate-400">10–30 Moderate</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded bg-[#f59e0b]" />
+            <span className="text-slate-400">30–50 Rugged</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded bg-[#ef4444]" />
+            <span className="text-slate-400">&gt; 50 Extreme</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
