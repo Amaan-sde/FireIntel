@@ -96,3 +96,4 @@ async function runTerrainLayoutAudit() {
 runTerrainLayoutAudit().then(passed => {
   process.exit(passed ? 0 : 1);
 });
+
