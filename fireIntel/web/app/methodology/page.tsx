@@ -77,6 +77,13 @@ export default function MethodologyPage() {
             <BarChart3 className="w-3.5 h-3.5 text-emerald-400" />
             <span>Analytics</span>
           </Link>
+          <Link
+            href="/data"
+            className="glass-pill rounded-full px-3.5 py-2 text-xs text-cyan-300 hover:text-cyan-200 hover:bg-cyan-500/20 border-cyan-500/30 transition-all font-medium flex items-center gap-1.5"
+          >
+            <Database className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Data Explorer</span>
+          </Link>
         </nav>
       </header>
 

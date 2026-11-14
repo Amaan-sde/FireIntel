@@ -9,6 +9,7 @@ import {
   Mountain,
   BarChart3,
   FileText,
+  Database,
   Crosshair,
   Orbit,
   Globe2,
@@ -190,6 +191,14 @@ export default function CinematicHeroOverlay({
           >
             <BarChart3 className="w-3.5 h-3.5 text-emerald-400" />
             <span>Analytics</span>
+          </Link>
+
+          <Link
+            href="/data"
+            className="flex items-center gap-1.5 glass-pill rounded-full px-3.5 py-1.5 text-xs text-slate-300 hover:text-white hover:bg-white/10 transition-all font-medium cursor-pointer"
+          >
+            <Database className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Data</span>
           </Link>
 
           <Link

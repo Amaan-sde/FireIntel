@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { Activity, SlidersHorizontal, Menu, X, Orbit, Flame, Mountain, BarChart3, FileText } from "lucide-react";
+import { Activity, SlidersHorizontal, Menu, X, Orbit, Flame, Mountain, BarChart3, FileText, Database } from "lucide-react";
 
 interface NavigationHeaderProps {
   activeTab: string;
@@ -24,6 +24,7 @@ export default function NavigationHeader({
     { id: "fires", label: "Fire Intelligence", href: "/fires", badge: "Live Lab", icon: Flame },
     { id: "terrain", label: "3D Topography", href: "/terrain", badge: "3D DEM", icon: Mountain },
     { id: "analytics", label: "Analytics", href: "/analytics", icon: BarChart3 },
+    { id: "data", label: "Data Explorer", href: "/data", badge: "Export", icon: Database },
     { id: "methodology", label: "Methodology & Data", href: "/methodology", icon: FileText },
   ];
 
