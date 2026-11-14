@@ -1,0 +1,290 @@
+{
+  "project_metadata": {
+    "project": "FIREINTEL",
+    "phase": "Phase 5A: Environmental Data Acquisition Architecture & Pipeline Preparation",
+    "target_region": "Uttarakhand, India (IN-UT)",
+    "official_boundary_file": "fireIntel/data/boundaries/uttarakhand_boundary.geojson",
+    "geographic_crs": "EPSG:4326",
+    "metric_planar_crs": "EPSG:32644",
+    "bounding_box": {
+      "min_lon": 77.57230026174163,
+      "min_lat": 28.722894906447042,
+      "max_lon": 81.04528735631932,
+      "max_lat": 31.456126767118253
+    },
+    "study_period": {
+      "start_utc": "2025-01-01T00:00:00Z",
+      "end_utc": "2025-12-31T23:59:59Z",
+      "timezone_storage": "UTC",
+      "timezone_local": "Asia/Kolkata (IST, UTC+05:30)"
+    },
+    "common_analysis_grid": {
+      "step_deg": 0.05,
+      "approx_cell_km_at_30N": {
+        "lat_km": 5.566,
+        "lon_km": 4.820
+      },
+      "grid_origin_rule": "SW corner = floor(coord / 0.05) * 0.05",
+      "intersecting_cells": 2174,
+      "centroid_inside_cells": 2000
+    }
+  },
+  "primary_datasets": {
+    "meteorological": {
+      "dataset_id": "reanalysis-era5-land",
+      "official_name": "ERA5-Land hourly data from 1950 to present",
+      "provider": "ECMWF / Copernicus Climate Change Service (C3S)",
+      "catalog_url": "https://cds.climate.copernicus.eu/datasets/reanalysis-era5-land",
+      "api_endpoint": "https://cds.climate.copernicus.eu/api",
+      "client_library": "cdsapi",
+      "licence": "CC BY 4.0 (Creative Commons Attribution 4.0 International)",
+      "auth_type": "CDS_API_KEY",
+      "auth_env_vars": ["CDSAPI_URL", "CDSAPI_KEY"],
+      "auth_config_file": "~/.cdsapirc",
+      "spatial_coverage": {
+        "type": "bounding_box",
+        "north": 31.5,
+        "west": 77.5,
+        "south": 28.7,
+        "east": 81.1,
+        "native_grid_step_deg": 0.1,
+        "native_resolution_km": 9.0,
+        "intersecting_cells_uttarakhand": 582,
+        "centroid_inside_cells_uttarakhand": 500
+      },
+      "temporal_coverage": {
+        "start": "2025-01-01",
+        "end": "2025-12-31",
+        "native_cadence": "hourly",
+        "latency_mode": "final",
+        "typical_latency_days": 5
+      },
+      "native_format": "NetCDF4",
+      "target_file_pattern": "fireIntel/data/environmental/raw/era5_land/era5_land_{year}_{month:02d}.nc",
+      "variables": {
+        "2m_temperature": {
+          "standard_name": "air_temperature",
+          "native_units": "K",
+          "target_units": "degC",
+          "transformation": "celsius = kelvin - 273.15"
+        },
+        "2m_dewpoint_temperature": {
+          "standard_name": "dew_point_temperature",
+          "native_units": "K",
+          "target_units": "degC",
+          "transformation": "celsius = kelvin - 273.15; used to compute RH and VPD"
+        },
+        "10m_u_component_of_wind": {
+          "standard_name": "eastward_wind",
+          "native_units": "m s**-1",
+          "target_units": "m s**-1",
+          "transformation": "orthogonal component used for wind speed and direction"
+        },
+        "10m_v_component_of_wind": {
+          "standard_name": "northward_wind",
+          "native_units": "m s**-1",
+          "target_units": "m s**-1",
+          "transformation": "orthogonal component used for wind speed and direction"
+        },
+        "total_precipitation": {
+          "standard_name": "precipitation_amount",
+          "native_units": "m",
+          "target_units": "mm",
+          "transformation": "mm = metres * 1000.0; requires verification of 00:00 UTC accumulation convention before de-accumulation"
+        },
+        "volumetric_soil_water_layer_1": {
+          "standard_name": "volumetric_soil_water_layer_1",
+          "depth_range": "0 - 7 cm",
+          "native_units": "m**3 m**-3",
+          "target_units": "m**3 m**-3",
+          "transformation": "identity (preserve volumetric fraction)"
+        },
+        "volumetric_soil_water_layer_2": {
+          "standard_name": "volumetric_soil_water_layer_2",
+          "depth_range": "7 - 28 cm",
+          "native_units": "m**3 m**-3",
+          "target_units": "m**3 m**-3",
+          "transformation": "identity (preserve volumetric fraction)"
+        },
+        "volumetric_soil_water_layer_3": {
+          "standard_name": "volumetric_soil_water_layer_3",
+          "depth_range": "28 - 100 cm",
+          "native_units": "m**3 m**-3",
+          "target_units": "m**3 m**-3",
+          "transformation": "identity (preserve volumetric fraction)"
+        },
+        "volumetric_soil_water_layer_4": {
+          "standard_name": "volumetric_soil_water_layer_4",
+          "depth_range": "100 - 289 cm",
+          "native_units": "m**3 m**-3",
+          "target_units": "m**3 m**-3",
+          "transformation": "identity (preserve volumetric fraction)"
+        }
+      }
+    },
+    "vegetation_primary": {
+      "dataset_ids": ["MOD13Q1.061", "MYD13Q1.061"],
+      "official_name": "MODIS Terra/Aqua Vegetation Indices 16-Day L3 Global 250m SIN Grid V061",
+      "provider": "NASA LP DAAC / USGS",
+      "catalog_url": "https://lpdaac.usgs.gov/products/mod13q1v061/",
+      "api_endpoint": "https://appeears.earthdatacloud.nasa.gov/api",
+      "client_library": "requests / AppEEARS REST API",
+      "licence": "NASA Earth Science Data Systems Open Data Policy (public domain / unrestricted)",
+      "auth_type": "EARTHDATA_LOGIN_TOKEN",
+      "auth_env_vars": ["EARTHDATA_USERNAME", "EARTHDATA_PASSWORD"],
+      "auth_config_file": "~/.netrc",
+      "spatial_coverage": {
+        "type": "geojson_polygon",
+        "polygon_file": "fireIntel/data/boundaries/uttarakhand_boundary.geojson",
+        "native_projection": "Sinusoidal (sphere R=6371007.181m)",
+        "reproject_target": "EPSG:4326 (via AppEEARS server-side transformation)",
+        "native_resolution_m": 250.0
+      },
+      "temporal_coverage": {
+        "start": "2025-01-01",
+        "end": "2025-12-31",
+        "native_cadence": "16-day composite per sensor (staggered Terra + Aqua yields ~8-day updates)"
+      },
+      "native_format": "GeoTIFF (via AppEEARS extraction)",
+      "target_file_pattern": "fireIntel/data/environmental/raw/modis_vi/{product}_{date}_{layer}.tif",
+      "variables": {
+        "_250m_16_days_NDVI": {
+          "description": "Normalized Difference Vegetation Index",
+          "valid_range": [-2000, 10000],
+          "scale_factor": 0.0001,
+          "target_units": "unitless [-0.2, 1.0]"
+        },
+        "_250m_16_days_EVI": {
+          "description": "Enhanced Vegetation Index",
+          "valid_range": [-2000, 10000],
+          "scale_factor": 0.0001,
+          "target_units": "unitless [-0.2, 1.0]"
+        },
+        "_250m_16_days_VI_Quality": {
+          "description": "VI Quality Assessment bitmask",
+          "target_units": "bitmask",
+          "use": "mask cloud, shadow, aerosol, and snow/ice contamination"
+        },
+        "_250m_16_days_pixel_reliability": {
+          "description": "Summary quality flag",
+          "valid_values": {
+            "0": "Good data (use with confidence)",
+            "1": "Marginal data (useful, but check other flags)",
+            "2": "Snow / Ice (target covered with snow/ice)",
+            "3": "Cloudy (pixel cloudy)"
+          }
+        },
+        "_250m_16_days_composite_day_of_the_year": {
+          "description": "Day of Year for each pixel's actual acquisition date",
+          "target_units": "DOY [1, 366]",
+          "use": "temporal causality validation"
+        }
+      }
+    },
+    "vegetation_secondary": {
+      "dataset_id": "VNP13A1.002",
+      "official_name": "VIIRS Suomi NPP Vegetation Indices 16-Day L3 Global 500m SIN Grid V002",
+      "provider": "NASA LP DAAC / NOAA JPSS",
+      "catalog_url": "https://www.earthdata.nasa.gov/data/catalog/lpcloud-vnp13a1-002",
+      "api_endpoint": "https://appeears.earthdatacloud.nasa.gov/api",
+      "client_library": "requests / AppEEARS REST API",
+      "licence": "NASA Earth Science Data Systems Open Data Policy (public domain / unrestricted)",
+      "auth_type": "EARTHDATA_LOGIN_TOKEN",
+      "auth_env_vars": ["EARTHDATA_USERNAME", "EARTHDATA_PASSWORD"],
+      "spatial_coverage": {
+        "type": "geojson_polygon",
+        "polygon_file": "fireIntel/data/boundaries/uttarakhand_boundary.geojson",
+        "native_resolution_m": 500.0,
+        "reproject_target": "EPSG:4326"
+      },
+      "temporal_coverage": {
+        "start": "2025-01-01",
+        "end": "2025-12-31",
+        "native_cadence": "16-day composite"
+      },
+      "native_format": "GeoTIFF (via AppEEARS extraction)",
+      "target_file_pattern": "fireIntel/data/environmental/raw/viirs_vi/{product}_{date}_{layer}.tif",
+      "role": "Orbital drift cross-check for MODIS Terra/Aqua and post-2026 operational continuity bridge"
+    },
+    "terrain_primary": {
+      "dataset_id": "COP30",
+      "official_name": "Copernicus DEM GLO-30 (Global 30m Digital Surface Model)",
+      "provider": "ESA / Airbus Defence and Space & DLR",
+      "catalog_url": "https://spacedata.copernicus.eu/collections/copernicus-dem",
+      "api_endpoint": "https://portal.opentopography.org/API/globaldem?demtype=COP30",
+      "aws_s3_bucket": "s3://copernicus-dem-30m/",
+      "licence": "Copernicus DEM Licence (free, full, open access; requires © DLR e.V. and © Airbus Defence and Space GmbH attribution)",
+      "auth_type": "OPENTOPOGRAPHY_API_KEY_OR_ANONYMOUS_AWS",
+      "auth_env_vars": ["OPENTOPOGRAPHY_API_KEY"],
+      "spatial_coverage": {
+        "type": "bounding_box",
+        "west": 77.57,
+        "south": 28.72,
+        "east": 81.05,
+        "north": 31.46,
+        "native_resolution": "1 arc-second (~30 m)",
+        "vertical_datum": "EGM2008 orthometric"
+      },
+      "temporal_coverage": {
+        "type": "static",
+        "observation_window": "2011-2015 (TanDEM-X InSAR)"
+      },
+      "native_format": "Cloud-Optimized GeoTIFF (COG)",
+      "target_file_pattern": "fireIntel/data/environmental/raw/copernicus_dem/copernicus_dem_glo30_uttarakhand.tif",
+      "derived_terrain_products": [
+        "elevation_mean_m",
+        "elevation_std_m",
+        "elevation_min_m",
+        "elevation_max_m",
+        "slope_mean_deg (computed in EPSG:32644)",
+        "slope_max_deg",
+        "aspect_sin_mean (circular mean component in EPSG:32644)",
+        "aspect_cos_mean (circular mean component in EPSG:32644)",
+        "south_southwest_facing_fraction"
+      ]
+    },
+    "terrain_alternative": {
+      "dataset_id": "SRTMGL1.003",
+      "official_name": "NASA Shuttle Radar Topography Mission Global 1 Arc Second V003",
+      "provider": "NASA LP DAAC / USGS",
+      "catalog_url": "https://lpdaac.usgs.gov/products/srtmgl1v003/",
+      "api_endpoint": "https://portal.opentopography.org/API/globaldem?demtype=SRTMGL1",
+      "licence": "NASA / USGS Public Domain",
+      "auth_type": "OPENTOPOGRAPHY_API_KEY",
+      "spatial_coverage": {
+        "native_resolution": "1 arc-second (~30 m)",
+        "vertical_datum": "EGM96 orthometric"
+      },
+      "temporal_coverage": {
+        "type": "static",
+        "mission_date": "2000-02-11 to 2000-02-22"
+      },
+      "role": "Public-domain fallback and historical elevation baseline"
+    }
+  },
+  "validation_datasets": {
+    "gpm_imerg": {
+      "dataset_id": "GPM_3IMERGDF_07",
+      "official_name": "GPM Level 3 IMERG Final Daily 0.1° V07",
+      "provider": "NASA GES DISC / JAXA",
+      "catalog_url": "https://disc.gsfc.nasa.gov/",
+      "spatial_resolution_deg": 0.1,
+      "temporal_resolution": "Daily",
+      "primary_variable": "precipitation (mm/day)",
+      "licence": "CC BY 4.0 / NASA Open Data Policy",
+      "role": "Satellite gauge-adjusted precipitation cross-check for high-elevation monsoon/dry spells"
+    },
+    "chirps": {
+      "dataset_id": "CHIRPS_v2.0",
+      "official_name": "Climate Hazards Group InfraRed Precipitation with Station Data V2.0",
+      "provider": "UCSB Climate Hazards Center (CHC) & USGS",
+      "catalog_url": "https://www.chc.ucsb.edu/data/chirps",
+      "spatial_resolution_deg": 0.05,
+      "temporal_resolution": "Daily",
+      "primary_variable": "precipitation (mm/day)",
+      "licence": "CC0 1.0 Universal / Public Domain",
+      "role": "0.05° spatial resolution rainfall benchmark (1:1 grid spacing match with FIREINTEL master grid)"
+    }
+  }
+}
+

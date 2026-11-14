@@ -1,0 +1,190 @@
+{
+  "boundary": {
+    "shape_name": "Uttar\u0101khand",
+    "shape_iso": "IN-UT",
+    "boundary_id": "IND-ADM1-1811400",
+    "source": "DataMeet India community, Election Commission of India",
+    "license_name": "Creative Commons Attribution 2.5 India (CC BY 2.5 IN)",
+    "source_url": "https://github.com/wmgeolab/geoBoundaries/raw/9469f09/releaseData/gbOpen/IND/ADM1/geoBoundaries-IND-ADM1.geojson",
+    "original_crs": "EPSG:4326",
+    "target_crs": "EPSG:4326",
+    "geometry_type": "Polygon",
+    "feature_count": 1,
+    "originally_valid": true,
+    "validity_reason": "Valid Geometry",
+    "repair_applied": false,
+    "valid_after_check": true,
+    "vertex_count": 18790,
+    "area_km2_utm44n": 53417.95,
+    "bounds": [
+      77.5723,
+      28.722895,
+      81.045287,
+      31.456127
+    ]
+  },
+  "validation_stats": {
+    "MODIS": {
+      "dataset": "MODIS",
+      "original_observations": 1540,
+      "inside_uttarakhand": 918,
+      "outside_uttarakhand": 622,
+      "retained_pct": 59.61,
+      "excluded_pct": 40.39,
+      "original_bounds": {
+        "min_lat": 28.7263,
+        "max_lat": 31.4391,
+        "min_lon": 77.5701,
+        "max_lon": 80.9965
+      },
+      "retained_bounds": {
+        "min_lat": 28.7322,
+        "max_lat": 31.2079,
+        "min_lon": 77.733,
+        "max_lon": 80.7225
+      },
+      "excluded_bounds": {
+        "min_lat": 28.7263,
+        "max_lat": 31.4391,
+        "min_lon": 77.5701,
+        "max_lon": 80.9965
+      },
+      "active_grid_cells_original": 744,
+      "active_grid_cells_retained": 458,
+      "retained_by_month": {
+        "1": 84,
+        "2": 109,
+        "3": 62,
+        "4": 254,
+        "5": 104,
+        "6": 23,
+        "7": 5,
+        "8": 1,
+        "10": 77,
+        "11": 49,
+        "12": 150
+      },
+      "excluded_by_month": {
+        "1": 61,
+        "2": 73,
+        "3": 123,
+        "4": 187,
+        "5": 107,
+        "6": 2,
+        "7": 2,
+        "9": 1,
+        "10": 15,
+        "11": 19,
+        "12": 32
+      }
+    },
+    "VIIRS": {
+      "dataset": "VIIRS",
+      "original_observations": 10985,
+      "inside_uttarakhand": 6623,
+      "outside_uttarakhand": 4362,
+      "retained_pct": 60.29,
+      "excluded_pct": 39.71,
+      "original_bounds": {
+        "min_lat": 28.72012,
+        "max_lat": 31.4461,
+        "min_lon": 77.57019,
+        "max_lon": 81.02911
+      },
+      "retained_bounds": {
+        "min_lat": 28.73072,
+        "max_lat": 31.2063,
+        "min_lon": 77.71218,
+        "max_lon": 80.81789
+      },
+      "excluded_bounds": {
+        "min_lat": 28.72012,
+        "max_lat": 31.4461,
+        "min_lon": 77.57019,
+        "max_lon": 81.02911
+      },
+      "active_grid_cells_original": 1967,
+      "active_grid_cells_retained": 1135,
+      "retained_by_month": {
+        "1": 582,
+        "2": 739,
+        "3": 405,
+        "4": 2001,
+        "5": 524,
+        "6": 100,
+        "9": 3,
+        "10": 366,
+        "11": 375,
+        "12": 1528
+      },
+      "excluded_by_month": {
+        "1": 433,
+        "2": 449,
+        "3": 609,
+        "4": 1324,
+        "5": 733,
+        "6": 21,
+        "7": 3,
+        "9": 1,
+        "10": 77,
+        "11": 221,
+        "12": 491
+      }
+    },
+    "COMBINED": {
+      "dataset": "COMBINED",
+      "original_observations": 12525,
+      "inside_uttarakhand": 7541,
+      "outside_uttarakhand": 4984,
+      "retained_pct": 60.21,
+      "excluded_pct": 39.79,
+      "original_bounds": {
+        "min_lat": 28.72012,
+        "max_lat": 31.4461,
+        "min_lon": 77.5701,
+        "max_lon": 81.02911
+      },
+      "retained_bounds": {
+        "min_lat": 28.73072,
+        "max_lat": 31.2079,
+        "min_lon": 77.71218,
+        "max_lon": 80.81789
+      },
+      "excluded_bounds": {
+        "min_lat": 28.72012,
+        "max_lat": 31.4461,
+        "min_lon": 77.5701,
+        "max_lon": 81.02911
+      },
+      "active_grid_cells_original": 2019,
+      "active_grid_cells_retained": 1168,
+      "retained_by_month": {
+        "1": 666,
+        "2": 848,
+        "3": 467,
+        "4": 2255,
+        "5": 628,
+        "6": 123,
+        "7": 5,
+        "8": 1,
+        "9": 3,
+        "10": 443,
+        "11": 424,
+        "12": 1678
+      },
+      "excluded_by_month": {
+        "1": 494,
+        "2": 522,
+        "3": 732,
+        "4": 1511,
+        "5": 840,
+        "6": 23,
+        "7": 5,
+        "9": 2,
+        "10": 92,
+        "11": 240,
+        "12": 523
+      }
+    }
+  }
+}

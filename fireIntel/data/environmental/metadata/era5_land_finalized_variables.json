@@ -1,0 +1,113 @@
+{
+  "dataset": "reanalysis-era5-land",
+  "provider": "ECMWF / Copernicus Climate Change Service (C3S)",
+  "licence": "CC BY 4.0",
+  "configuration_status": "FINALIZED",
+  "phase": "5B.2",
+  "total_variables": 9,
+  "temporal_resolution": "hourly",
+  "native_spatial_resolution_deg": 0.1,
+  "native_spatial_resolution_km": 9.0,
+  "variables": [
+    {
+      "cds_param_name": "2m_temperature",
+      "short_name": "t2m",
+      "standard_name": "air_temperature",
+      "native_units": "K",
+      "target_units": "degC",
+      "transformation": "celsius = kelvin - 273.15",
+      "valid_range": [-30.0, 50.0],
+      "justification": "Primary thermodynamic driver of vegetation desiccation, fine dead fuel equilibrium moisture content, and atmospheric fire weather severity."
+    },
+    {
+      "cds_param_name": "2m_dewpoint_temperature",
+      "short_name": "d2m",
+      "standard_name": "dew_point_temperature",
+      "native_units": "K",
+      "target_units": "degC",
+      "transformation": "celsius = kelvin - 273.15",
+      "valid_range": [-40.0, 35.0],
+      "justification": "Required together with 2m_temperature to calculate relative humidity (RH) and vapor pressure deficit (VPD) via August-Roche-Magnus approximation. VPD is the single most predictive atmospheric moisture stress indicator for live fuel flammability."
+    },
+    {
+      "cds_param_name": "10m_u_component_of_wind",
+      "short_name": "u10",
+      "standard_name": "eastward_wind",
+      "native_units": "m s**-1",
+      "target_units": "m s**-1",
+      "transformation": "identity; orthogonal zonal component",
+      "valid_range": [-50.0, 50.0],
+      "justification": "Orthogonal eastward wind component; combined with v10 to compute scalar horizontal wind speed (m/s) and meteorological wind direction azimuth (deg) along mountain valleys."
+    },
+    {
+      "cds_param_name": "10m_v_component_of_wind",
+      "short_name": "v10",
+      "standard_name": "northward_wind",
+      "native_units": "m s**-1",
+      "target_units": "m s**-1",
+      "transformation": "identity; orthogonal meridional component",
+      "valid_range": [-50.0, 50.0],
+      "justification": "Orthogonal northward wind component; combined with u10 to determine wind velocity vectors that dictate rate of forward fire spread and smoke advection."
+    },
+    {
+      "cds_param_name": "total_precipitation",
+      "short_name": "tp",
+      "standard_name": "precipitation_amount",
+      "native_units": "m",
+      "target_units": "mm",
+      "transformation": "mm = delta_m * 1000.0 (subject to diagnostic verification of 00:00 UTC accumulation cycle)",
+      "valid_range": [0.0, 300.0],
+      "justification": "Direct ground moisture replenishment and fire extinction mechanism; critical for calculating antecedent drought indices (1-day, 3-day, 7-day, 14-day cumulative rainfall)."
+    },
+    {
+      "cds_param_name": "volumetric_soil_water_layer_1",
+      "short_name": "swvl1",
+      "standard_name": "volumetric_soil_water_layer_1",
+      "depth_range": "0 - 7 cm",
+      "native_units": "m**3 m**-3",
+      "target_units": "m**3 m**-3",
+      "transformation": "identity (volumetric fraction)",
+      "valid_range": [0.0, 0.7],
+      "justification": "Surface litter and duff layer moisture memory; directly controls ignitability of pine needle litter (Chir Pine / Pinus roxburghii) and fine dead herbaceous matter."
+    },
+    {
+      "cds_param_name": "volumetric_soil_water_layer_2",
+      "short_name": "swvl2",
+      "standard_name": "volumetric_soil_water_layer_2",
+      "depth_range": "7 - 28 cm",
+      "native_units": "m**3 m**-3",
+      "target_units": "m**3 m**-3",
+      "transformation": "identity (volumetric fraction)",
+      "valid_range": [0.0, 0.7],
+      "justification": "Shallow rooting zone; controls physiological hydration and wilting point of understory vegetation, grasses, and shrubs that act as ladder fuels."
+    },
+    {
+      "cds_param_name": "volumetric_soil_water_layer_3",
+      "short_name": "swvl3",
+      "standard_name": "volumetric_soil_water_layer_3",
+      "depth_range": "28 - 100 cm",
+      "native_units": "m**3 m**-3",
+      "target_units": "m**3 m**-3",
+      "transformation": "identity (volumetric fraction)",
+      "valid_range": [0.0, 0.7],
+      "justification": "Deep root zone; establishes seasonal drought legacy for mature forest canopy (e.g., Shorea robusta / Sal forests), preventing or exacerbating crown fires during pre-monsoon heatwaves."
+    },
+    {
+      "cds_param_name": "volumetric_soil_water_layer_4",
+      "short_name": "swvl4",
+      "standard_name": "volumetric_soil_water_layer_4",
+      "depth_range": "100 - 289 cm",
+      "native_units": "m**3 m**-3",
+      "target_units": "m**3 m**-3",
+      "transformation": "identity (volumetric fraction)",
+      "valid_range": [0.0, 0.7],
+      "justification": "Subsoil hydrological reservoir; maintains multi-month regional hydrological memory and baseflow sustaining riparian moisture buffers."
+    }
+  ],
+  "excluded_variables_rationale": {
+    "surface_pressure": "Excluded from CDS request because in rugged mountain terrain (129m to 7804m), surface pressure is overwhelmingly (>98%) a monotonic barometric function of terrain elevation. Static 30m DEM elevation captures this topographic control with 300x higher spatial resolution than 0.1° ERA5-Land without wasting download bandwidth or CDS quota.",
+    "surface_net_solar_radiation": "Excluded from CDS request because 0.1° (~9 km) radiation fails to resolve ridge shadowing, aspect-dependent insolation, and steep slope lighting in Himalayan valleys. Topographic solar exposure is calculated directly from 30m DEM slope and circular aspect.",
+    "boundary_layer_height": "Excluded because boundary layer estimations in steep valleys have high reanalysis uncertainty and provide marginal incremental predictive power compared to VPD and 10m wind."
+  }
+}
+

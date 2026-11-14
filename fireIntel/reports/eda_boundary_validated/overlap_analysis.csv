@@ -1,0 +1,7 @@
+distance_threshold_km,time_threshold_minutes,candidate_cross_sensor_pairs,modis_total,modis_matched,modis_only,modis_matched_pct,viirs_total,viirs_matched,viirs_only,viirs_matched_pct,aqua_matched,aqua_matched_pct,terra_matched,terra_matched_pct,median_pair_distance_km,median_pair_time_delta_min,is_primary_threshold
+0.5,30,17,918,11,907,1.2,6623,17,6606,0.26,11,1.61,0,0.0,0.34,18.0,False
+1.0,60,256,918,131,787,14.27,6623,227,6396,3.43,131,19.15,0,0.0,0.592,43.0,True
+1.0,120,471,918,237,681,25.82,6623,405,6218,6.12,237,34.65,0,0.0,0.585,57.0,False
+1.5,90,460,918,205,713,22.33,6623,388,6235,5.86,205,29.97,0,0.0,0.718,52.0,False
+2.0,180,766,918,309,609,33.66,6623,586,6037,8.85,299,43.71,10,4.27,0.777,60.0,False
+2.0,360,1093,918,395,523,43.03,6623,769,5854,11.61,299,43.71,96,41.03,0.783,92.0,False

@@ -1,0 +1,27 @@
+{
+  "dataset_name": "copernicus_dem_glo30_terrain_features",
+  "phase": "5B.2",
+  "target_region": "Uttarakhand, India",
+  "generated_at": "2026-11-13T16:53:30Z",
+  "summary": {
+    "total_grid_cells": 2174,
+    "cells_processed": 2174,
+    "cells_with_valid_dem": 2174,
+    "cells_with_missing_dem": 0,
+    "elevation_min_overall_m": 181.5,
+    "elevation_max_overall_m": 7804.02,
+    "elevation_mean_overall_m": 2254.498482060718,
+    "slope_mean_overall_deg": 24.41908463661454,
+    "slope_max_overall_deg": 81.17,
+    "tri_mean_overall_m": 36.973988040478375,
+    "tri_max_overall_m": 417.31,
+    "duration_seconds": 8.94,
+    "output_parquet": "fireIntel/data/environmental/processed/dem_terrain_features_005deg.parquet",
+    "output_csv": "fireIntel/data/environmental/processed/dem_terrain_features_005deg.csv",
+    "vrt_source": "fireIntel/data/environmental/processed/copernicus_dem_uttarakhand.vrt"
+  },
+  "checksums": {
+    "parquet_sha256": "5c1916ad8a78f6b87fd2013c3599a89f1fd77a48e96a30c7cf60d8caeb722f05",
+    "csv_sha256": "04949f170c9817b83b2bea565995cbfbad8c63769782c501034f390004e45b20"
+  }
+}

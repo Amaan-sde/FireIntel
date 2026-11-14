@@ -1,0 +1,4 @@
+dataset,original_observations,inside_uttarakhand,outside_uttarakhand,retained_pct,excluded_pct,active_grid_cells_original,active_grid_cells_retained
+COMBINED,12525,7541,4984,60.21,39.79,2019,1168
+MODIS,1540,918,622,59.61,40.39,744,458
+VIIRS,10985,6623,4362,60.29,39.71,1967,1135

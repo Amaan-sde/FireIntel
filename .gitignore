@@ -1,0 +1,94 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Testing and coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+
+# Sensitive credentials and secrets (CRITICAL: never commit)
+.env
+.env.*
+!.env.example
+.cdsapirc
+.netrc
+*.key
+*.pem
+*.token
+*credentials*
+*secret*
+
+# Large environmental data binaries and downloads (preserve structure with .gitkeep)
+fireIntel/data/environmental/raw/*
+!fireIntel/data/environmental/raw/.gitkeep
+fireIntel/data/environmental/intermediate/*
+!fireIntel/data/environmental/intermediate/.gitkeep
+fireIntel/data/environmental/processed/*
+!fireIntel/data/environmental/processed/.gitkeep
+*.nc
+*.nc4
+*.grib
+*.grib2
+*.tif
+*.tiff
+*.hdf
+*.h5
+*.part
+*.download
+*.tmp
+
+# Next.js & Node
+node_modules/
+.next/
+out/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Playwright test artifacts
+fireIntel/web/tests/screenshots/
+fireIntel/web/tests/transition_frames/
+fireIntel/web/tests/ascent_frames/
+
+
+
+

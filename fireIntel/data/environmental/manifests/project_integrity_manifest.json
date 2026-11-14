@@ -1,0 +1,61 @@
+{
+  "audit_timestamp": "2026-11-13T17:34:30Z",
+  "project_root": "fireIntel",
+  "sections": {
+    "raw_datasets": {
+      "section_name": "raw_datasets",
+      "status": "PASSED",
+      "details": {
+        "modis_raw_rows": 1540,
+        "viirs_raw_rows": 10986,
+        "modis_sha256": "22fcc803bb5e95a6341cefa74e3a83fc8172291d56e165b355eaf2846af03485",
+        "viirs_sha256": "f48196b5a8c09971e20deacc574d9384e48e7a345120a478e0f15024fb114dc8",
+        "raw_datasets_untouched": true
+      }
+    },
+    "processed_fire_datasets": {
+      "section_name": "processed_fire_datasets",
+      "status": "PASSED",
+      "details": {
+        "bbox_filtered_total": 12525,
+        "bbox_filtered_modis": 1540,
+        "bbox_filtered_viirs": 10985,
+        "boundary_validated_total": 7541,
+        "boundary_validated_modis": 918,
+        "boundary_validated_viirs": 6623,
+        "spillover_filtered_count": 4984,
+        "spillover_filtered_pct": 39.79,
+        "counts_consistent": true
+      }
+    },
+    "master_grid_and_dem": {
+      "section_name": "master_grid_and_dem",
+      "status": "PASSED",
+      "details": {
+        "master_grid_cells": 2174,
+        "terrain_feature_cells": 2174,
+        "cells_match": true,
+        "zero_nulls_in_terrain": true,
+        "vrt_dimensions": "18000x14400",
+        "vrt_crs": "EPSG:4326",
+        "elevation_min_m": 181.5,
+        "elevation_max_m": 7804.02,
+        "slope_mean_deg": 24.41908463661454,
+        "tri_mean_m": 36.973988040478375
+      }
+    },
+    "cds_authentication": {
+      "section_name": "cds_authentication",
+      "status": "WARNING",
+      "details": {
+        "cdsapirc_file_exists": true,
+        "key_configured": false,
+        "key_length": 0,
+        "is_36_char_uuid": false,
+        "readiness_status": "INVALID_KEY_LENGTH",
+        "remediation": "Requires 36-character Personal Access Token from https://cds.climate.copernicus.eu/profile"
+      }
+    }
+  },
+  "overall_health": "HEALTHY_AWAITING_CDS_REGISTRATION"
+}

@@ -1,0 +1,27 @@
+metric,value,unit
+total_observations,12525,observations
+modis_observations,1540,observations
+viirs_observations,10985,observations
+viirs_share_pct,87.7,percent
+modis_share_pct,12.3,percent
+utc_start,2025-01-01 07:43:00+00:00,timestamp
+utc_end,2025-12-31 21:28:00+00:00,timestamp
+calendar_span_days,365,days
+active_detection_days,257,days
+zero_detection_days,108,days
+mean_obs_per_calendar_day,34.32,obs/day
+mean_obs_per_active_day,48.74,obs/day
+missing_values_combined,0,cells
+unique_exact_coordinates,12525,points
+unique_0_01deg_cells,7964,cells
+latitude_min,28.7201,deg_N
+latitude_max,31.4461,deg_N
+longitude_min,77.5701,deg_E
+longitude_max,81.0291,deg_E
+brightness_median_combined,330.21,K
+brightness_mean_combined,325.4687,K
+frp_median_combined,3.4,MW
+frp_mean_combined,5.8016,MW
+frp_max_combined,263.4,MW
+daytime_observations,8741,observations
+nighttime_observations,3784,observations

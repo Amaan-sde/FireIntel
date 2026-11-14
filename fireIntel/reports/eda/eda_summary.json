@@ -1,0 +1,1011 @@
+{
+  "dataset_overview": {
+    "total_observations": 12525,
+    "sensor_counts": {
+      "MODIS": 1540,
+      "VIIRS": 10985
+    },
+    "sensor_shares_pct": {
+      "MODIS": 12.3,
+      "VIIRS": 87.7
+    },
+    "date_coverage": {
+      "utc_start": "2025-01-01 07:43:00+00:00",
+      "utc_end": "2025-12-31 21:28:00+00:00",
+      "date_start": "2025-01-01",
+      "date_end": "2025-12-31",
+      "calendar_span_days": 365,
+      "active_detection_days": 257,
+      "zero_detection_days": 108,
+      "mean_obs_per_calendar_day": 34.32,
+      "mean_obs_per_active_day": 48.74
+    },
+    "missing_values_total": {
+      "combined": 0,
+      "modis": 0,
+      "viirs": 0
+    },
+    "missing_values_by_column": {
+      "combined": {
+        "latitude": 0,
+        "longitude": 0,
+        "brightness": 0,
+        "scan": 0,
+        "track": 0,
+        "acq_date": 0,
+        "acq_time": 0,
+        "satellite": 0,
+        "instrument": 0,
+        "confidence": 0,
+        "version": 0,
+        "bright_t31": 0,
+        "frp": 0,
+        "daynight": 0,
+        "type": 0,
+        "sensor": 0,
+        "acq_datetime": 0
+      },
+      "modis": {
+        "latitude": 0,
+        "longitude": 0,
+        "brightness": 0,
+        "scan": 0,
+        "track": 0,
+        "acq_date": 0,
+        "acq_time": 0,
+        "satellite": 0,
+        "instrument": 0,
+        "confidence": 0,
+        "version": 0,
+        "bright_t31": 0,
+        "frp": 0,
+        "daynight": 0,
+        "type": 0,
+        "sensor": 0,
+        "acq_datetime": 0
+      },
+      "viirs": {
+        "latitude": 0,
+        "longitude": 0,
+        "brightness": 0,
+        "scan": 0,
+        "track": 0,
+        "acq_date": 0,
+        "acq_time": 0,
+        "satellite": 0,
+        "instrument": 0,
+        "confidence": 0,
+        "version": 0,
+        "bright_t31": 0,
+        "frp": 0,
+        "daynight": 0,
+        "type": 0,
+        "sensor": 0,
+        "acq_datetime": 0
+      }
+    },
+    "unique_coordinates": {
+      "exact_combined": 12525,
+      "exact_modis": 1540,
+      "exact_viirs": 10985,
+      "rounded_2dp_approx_1km_combined": 7964,
+      "rounded_1dp_approx_11km_combined": 695
+    },
+    "coordinate_ranges": {
+      "latitude": {
+        "count": 12525,
+        "min": 28.7201,
+        "q25": 29.0084,
+        "median": 29.5504,
+        "mean": 29.6383,
+        "q75": 30.0346,
+        "p95": 30.9894,
+        "max": 31.4461,
+        "std": 0.6829
+      },
+      "longitude": {
+        "count": 12525,
+        "min": 77.5701,
+        "q25": 78.3574,
+        "median": 79.1856,
+        "mean": 79.1647,
+        "q75": 79.9208,
+        "p95": 80.6973,
+        "max": 81.0291,
+        "std": 0.9328
+      }
+    },
+    "brightness": {
+      "combined": {
+        "count": 12525,
+        "min": 208.0,
+        "q25": 308.63,
+        "median": 330.21,
+        "mean": 325.4687,
+        "q75": 337.47,
+        "p95": 349.33,
+        "max": 395.4,
+        "std": 16.9653
+      },
+      "MODIS": {
+        "count": 1540,
+        "min": 300.0,
+        "q25": 307.4,
+        "median": 315.4,
+        "mean": 316.6813,
+        "q75": 323.6,
+        "p95": 337.0,
+        "max": 395.4,
+        "std": 11.5542
+      },
+      "VIIRS": {
+        "count": 10985,
+        "min": 208.0,
+        "q25": 309.16,
+        "median": 331.48,
+        "mean": 326.7006,
+        "q75": 338.49,
+        "p95": 349.868,
+        "max": 367.0,
+        "std": 17.2373
+      }
+    },
+    "bright_t31": {
+      "combined": {
+        "count": 12525,
+        "min": 259.48,
+        "q25": 290.0,
+        "median": 296.61,
+        "mean": 296.0358,
+        "q75": 303.39,
+        "p95": 311.1,
+        "max": 337.7,
+        "std": 9.998
+      },
+      "MODIS": {
+        "count": 1540,
+        "min": 270.5,
+        "q25": 292.9,
+        "median": 298.4,
+        "mean": 298.8034,
+        "q75": 304.925,
+        "p95": 311.305,
+        "max": 320.7,
+        "std": 7.8097
+      },
+      "VIIRS": {
+        "count": 10985,
+        "min": 259.48,
+        "q25": 289.26,
+        "median": 296.33,
+        "mean": 295.6478,
+        "q75": 303.07,
+        "p95": 311.09,
+        "max": 337.7,
+        "std": 10.2081
+      }
+    },
+    "frp": {
+      "combined": {
+        "count": 12525,
+        "min": 0.15,
+        "q25": 1.68,
+        "median": 3.4,
+        "mean": 5.8016,
+        "q75": 6.48,
+        "p95": 18.178,
+        "max": 263.4,
+        "std": 9.4005
+      },
+      "MODIS": {
+        "count": 1540,
+        "min": 2.2,
+        "q25": 7.5,
+        "median": 10.8,
+        "mean": 16.8812,
+        "q75": 18.025,
+        "p95": 48.455,
+        "max": 263.4,
+        "std": 19.268
+      },
+      "VIIRS": {
+        "count": 10985,
+        "min": 0.15,
+        "q25": 1.49,
+        "median": 2.91,
+        "mean": 4.2484,
+        "q75": 5.11,
+        "p95": 11.778,
+        "max": 118.12,
+        "std": 5.3961
+      }
+    },
+    "day_night": {
+      "combined": {
+        "D": 8741,
+        "N": 3784,
+        "day_pct": 69.79,
+        "night_pct": 30.21
+      },
+      "MODIS": {
+        "D": 1426,
+        "N": 114,
+        "day_pct": 92.6,
+        "night_pct": 7.4
+      },
+      "VIIRS": {
+        "D": 7315,
+        "N": 3670,
+        "day_pct": 66.59,
+        "night_pct": 33.41
+      }
+    },
+    "confidence_separate": {
+      "MODIS": {
+        "scale": "numeric_0_to_100",
+        "stats": {
+          "count": 1540,
+          "min": 0.0,
+          "q25": 51.0,
+          "median": 62.0,
+          "mean": 60.8461,
+          "q75": 72.0,
+          "p95": 87.0,
+          "max": 100.0,
+          "std": 17.1814
+        },
+        "firms_reference_bins": {
+          "low_lt_30": 80,
+          "nominal_30_to_79": 1264,
+          "high_ge_80": 196
+        }
+      },
+      "VIIRS": {
+        "scale": "categorical_l_n_h",
+        "counts": {
+          "l": 1037,
+          "n": 9789,
+          "h": 159
+        },
+        "percentages": {
+          "l": 9.44,
+          "n": 89.11,
+          "h": 1.45
+        }
+      }
+    }
+  },
+  "temporal_analysis": {
+    "years_present": [
+      2025
+    ],
+    "multi_year_available": false,
+    "yearly_counts": {
+      "2025": 12525
+    },
+    "monthly_mean": 1043.75,
+    "monthly_std": 1108.56,
+    "monthly_median": 912.0,
+    "iqr_upper_threshold": 3318.25,
+    "unusually_high_months": [
+      {
+        "month": 4,
+        "month_name": "Apr",
+        "total_observations": 3766,
+        "share_pct": 30.07,
+        "z_score": 2.46
+      },
+      {
+        "month": 12,
+        "month_name": "Dec",
+        "total_observations": 2201,
+        "share_pct": 17.57,
+        "z_score": 1.04
+      }
+    ],
+    "peak_month": {
+      "month": 4,
+      "month_name": "Apr",
+      "MODIS": 441,
+      "VIIRS": 3325,
+      "total_observations": 3766,
+      "share_pct": 30.07,
+      "modis_share_pct": 11.71,
+      "z_score": 2.46,
+      "above_mean_plus_1sd": true,
+      "above_iqr_fence": true
+    },
+    "quietest_month": {
+      "month": 8,
+      "month_name": "Aug",
+      "MODIS": 1,
+      "VIIRS": 0,
+      "total_observations": 1,
+      "share_pct": 0.01,
+      "modis_share_pct": 100.0,
+      "z_score": -0.94,
+      "above_mean_plus_1sd": false,
+      "above_iqr_fence": false
+    },
+    "daily_stats": {
+      "all_days_mean": 34.32,
+      "all_days_median": 12.0,
+      "active_days_mean": 48.74,
+      "active_days_median": 25.0,
+      "top_10_days": [
+        {
+          "date": "2025-04-26",
+          "MODIS": 98,
+          "VIIRS": 503,
+          "total": 601,
+          "rolling_7d_total": 235.14
+        },
+        {
+          "date": "2025-04-25",
+          "MODIS": 5,
+          "VIIRS": 392,
+          "total": 397,
+          "rolling_7d_total": 149.29
+        },
+        {
+          "date": "2025-04-27",
+          "MODIS": 26,
+          "VIIRS": 369,
+          "total": 395,
+          "rolling_7d_total": 290.43
+        },
+        {
+          "date": "2025-04-28",
+          "MODIS": 24,
+          "VIIRS": 258,
+          "total": 282,
+          "rolling_7d_total": 326.71
+        },
+        {
+          "date": "2025-04-24",
+          "MODIS": 51,
+          "VIIRS": 190,
+          "total": 241,
+          "rolling_7d_total": 94.71
+        },
+        {
+          "date": "2025-04-23",
+          "MODIS": 17,
+          "VIIRS": 197,
+          "total": 214,
+          "rolling_7d_total": 61.71
+        },
+        {
+          "date": "2025-04-06",
+          "MODIS": 51,
+          "VIIRS": 162,
+          "total": 213,
+          "rolling_7d_total": 151.71
+        },
+        {
+          "date": "2025-05-14",
+          "MODIS": 32,
+          "VIIRS": 180,
+          "total": 212,
+          "rolling_7d_total": 115.86
+        },
+        {
+          "date": "2025-04-04",
+          "MODIS": 46,
+          "VIIRS": 148,
+          "total": 194,
+          "rolling_7d_total": 120.14
+        },
+        {
+          "date": "2025-03-27",
+          "MODIS": 36,
+          "VIIRS": 148,
+          "total": 184,
+          "rolling_7d_total": 65.0
+        }
+      ]
+    },
+    "seasonal_summary": [
+      {
+        "season": "Winter (Dec-Feb)",
+        "MODIS": 509,
+        "VIIRS": 4222,
+        "total": 4731,
+        "share_pct": 37.77
+      },
+      {
+        "season": "Pre-Monsoon (Mar-May)",
+        "MODIS": 837,
+        "VIIRS": 5596,
+        "total": 6433,
+        "share_pct": 51.36
+      },
+      {
+        "season": "Monsoon (Jun-Sep)",
+        "MODIS": 34,
+        "VIIRS": 128,
+        "total": 162,
+        "share_pct": 1.29
+      },
+      {
+        "season": "Post-Monsoon (Oct-Nov)",
+        "MODIS": 160,
+        "VIIRS": 1039,
+        "total": 1199,
+        "share_pct": 9.57
+      }
+    ],
+    "day_night": {
+      "combined": {
+        "D": 8741,
+        "N": 3784,
+        "day_pct": 69.79,
+        "night_pct": 30.21
+      },
+      "MODIS": {
+        "D": 1426,
+        "N": 114,
+        "day_pct": 92.6,
+        "night_pct": 7.4
+      },
+      "VIIRS": {
+        "D": 7315,
+        "N": 3670,
+        "day_pct": 66.59,
+        "night_pct": 33.41
+      }
+    }
+  },
+  "spatial_analysis": {
+    "grid_step_deg": 0.05,
+    "active_grid_cells": 2019,
+    "cells_with_1_obs": 434,
+    "cells_with_ge_10_obs": 378,
+    "cells_with_ge_50_obs": 11,
+    "top_10_cells_share_pct": 4.73,
+    "top_20_cells_share_pct": 8.02,
+    "fine_grid_step_deg": 0.01,
+    "fine_grid_active_cells": 7910,
+    "fine_grid_max_obs_per_cell": 10,
+    "latitude_bands": {
+      "South (28.72-29.50 N)": 6025,
+      "Central (29.50-30.25 N)": 4142,
+      "North (30.25-31.46 N)": 2358
+    },
+    "longitude_bands": {
+      "West (77.57-78.75 E)": 4804,
+      "Central (78.75-79.90 E)": 4486,
+      "East (79.90-81.03 E)": 3235
+    },
+    "top_hotspots": [
+      {
+        "rank": 1,
+        "grid_lat": 28.85,
+        "grid_lon": 80.15,
+        "total_observations": 103,
+        "modis_observations": 22,
+        "viirs_observations": 81,
+        "active_days": 6,
+        "mean_frp": 15.19,
+        "max_frp": 60.72,
+        "mean_brightness": 341.33,
+        "cell_center_lat": 28.875,
+        "cell_center_lon": 80.175,
+        "share_of_total_pct": 0.82
+      },
+      {
+        "rank": 2,
+        "grid_lat": 28.85,
+        "grid_lon": 79.85,
+        "total_observations": 57,
+        "modis_observations": 6,
+        "viirs_observations": 51,
+        "active_days": 23,
+        "mean_frp": 5.33,
+        "max_frp": 16.1,
+        "mean_brightness": 333.17,
+        "cell_center_lat": 28.875,
+        "cell_center_lon": 79.875,
+        "share_of_total_pct": 0.46
+      },
+      {
+        "rank": 3,
+        "grid_lat": 28.85,
+        "grid_lon": 80.25,
+        "total_observations": 56,
+        "modis_observations": 9,
+        "viirs_observations": 47,
+        "active_days": 15,
+        "mean_frp": 14.17,
+        "max_frp": 117.13,
+        "mean_brightness": 329.88,
+        "cell_center_lat": 28.875,
+        "cell_center_lon": 80.275,
+        "share_of_total_pct": 0.45
+      },
+      {
+        "rank": 4,
+        "grid_lat": 28.95,
+        "grid_lon": 79.9,
+        "total_observations": 56,
+        "modis_observations": 6,
+        "viirs_observations": 50,
+        "active_days": 15,
+        "mean_frp": 9.08,
+        "max_frp": 52.7,
+        "mean_brightness": 332.01,
+        "cell_center_lat": 28.975,
+        "cell_center_lon": 79.925,
+        "share_of_total_pct": 0.45
+      },
+      {
+        "rank": 5,
+        "grid_lat": 28.9,
+        "grid_lon": 80.15,
+        "total_observations": 56,
+        "modis_observations": 7,
+        "viirs_observations": 49,
+        "active_days": 7,
+        "mean_frp": 9.35,
+        "max_frp": 66.8,
+        "mean_brightness": 329.87,
+        "cell_center_lat": 28.925,
+        "cell_center_lon": 80.175,
+        "share_of_total_pct": 0.45
+      },
+      {
+        "rank": 6,
+        "grid_lat": 28.8,
+        "grid_lon": 80.25,
+        "total_observations": 55,
+        "modis_observations": 12,
+        "viirs_observations": 43,
+        "active_days": 10,
+        "mean_frp": 23.81,
+        "max_frp": 182.5,
+        "mean_brightness": 336.32,
+        "cell_center_lat": 28.825,
+        "cell_center_lon": 80.275,
+        "share_of_total_pct": 0.44
+      },
+      {
+        "rank": 7,
+        "grid_lat": 28.95,
+        "grid_lon": 79.7,
+        "total_observations": 54,
+        "modis_observations": 10,
+        "viirs_observations": 44,
+        "active_days": 27,
+        "mean_frp": 8.0,
+        "max_frp": 40.5,
+        "mean_brightness": 335.96,
+        "cell_center_lat": 28.975,
+        "cell_center_lon": 79.725,
+        "share_of_total_pct": 0.43
+      },
+      {
+        "rank": 8,
+        "grid_lat": 28.75,
+        "grid_lon": 80.15,
+        "total_observations": 52,
+        "modis_observations": 9,
+        "viirs_observations": 43,
+        "active_days": 27,
+        "mean_frp": 9.62,
+        "max_frp": 57.69,
+        "mean_brightness": 336.13,
+        "cell_center_lat": 28.775,
+        "cell_center_lon": 80.175,
+        "share_of_total_pct": 0.42
+      },
+      {
+        "rank": 9,
+        "grid_lat": 28.85,
+        "grid_lon": 80.2,
+        "total_observations": 52,
+        "modis_observations": 8,
+        "viirs_observations": 44,
+        "active_days": 11,
+        "mean_frp": 18.04,
+        "max_frp": 110.9,
+        "mean_brightness": 342.62,
+        "cell_center_lat": 28.875,
+        "cell_center_lon": 80.225,
+        "share_of_total_pct": 0.42
+      },
+      {
+        "rank": 10,
+        "grid_lat": 28.75,
+        "grid_lon": 80.4,
+        "total_observations": 51,
+        "modis_observations": 6,
+        "viirs_observations": 45,
+        "active_days": 10,
+        "mean_frp": 8.17,
+        "max_frp": 57.6,
+        "mean_brightness": 337.49,
+        "cell_center_lat": 28.775,
+        "cell_center_lon": 80.425,
+        "share_of_total_pct": 0.41
+      }
+    ]
+  },
+  "sensor_comparison": {
+    "counts": {
+      "MODIS": 1540,
+      "VIIRS": 10985,
+      "viirs_to_modis_ratio": 7.13
+    },
+    "monthly_pearson_correlation": 0.9639,
+    "satellites": {
+      "MODIS": {
+        "Aqua": 1116,
+        "Terra": 424
+      },
+      "VIIRS": {
+        "SNPP": 10985
+      }
+    },
+    "day_night": {
+      "MODIS": {
+        "D": 1426,
+        "N": 114,
+        "day_pct": 92.6,
+        "night_pct": 7.4
+      },
+      "VIIRS": {
+        "D": 7315,
+        "N": 3670,
+        "day_pct": 66.59,
+        "night_pct": 33.41
+      }
+    },
+    "brightness": {
+      "MODIS": {
+        "count": 1540,
+        "min": 300.0,
+        "q25": 307.4,
+        "median": 315.4,
+        "mean": 316.6813,
+        "q75": 323.6,
+        "p95": 337.0,
+        "max": 395.4,
+        "std": 11.5542
+      },
+      "VIIRS": {
+        "count": 10985,
+        "min": 208.0,
+        "q25": 309.16,
+        "median": 331.48,
+        "mean": 326.7006,
+        "q75": 338.49,
+        "p95": 349.868,
+        "max": 367.0,
+        "std": 17.2373
+      }
+    },
+    "bright_t31": {
+      "MODIS": {
+        "count": 1540,
+        "min": 270.5,
+        "q25": 292.9,
+        "median": 298.4,
+        "mean": 298.8034,
+        "q75": 304.925,
+        "p95": 311.305,
+        "max": 320.7,
+        "std": 7.8097
+      },
+      "VIIRS": {
+        "count": 10985,
+        "min": 259.48,
+        "q25": 289.26,
+        "median": 296.33,
+        "mean": 295.6478,
+        "q75": 303.07,
+        "p95": 311.09,
+        "max": 337.7,
+        "std": 10.2081
+      }
+    },
+    "frp": {
+      "MODIS": {
+        "count": 1540,
+        "min": 2.2,
+        "q25": 7.5,
+        "median": 10.8,
+        "mean": 16.8812,
+        "q75": 18.025,
+        "p95": 48.455,
+        "max": 263.4,
+        "std": 19.268
+      },
+      "VIIRS": {
+        "count": 10985,
+        "min": 0.15,
+        "q25": 1.49,
+        "median": 2.91,
+        "mean": 4.2484,
+        "q75": 5.11,
+        "p95": 11.778,
+        "max": 118.12,
+        "std": 5.3961
+      },
+      "median_ratio_modis_to_viirs": 3.71
+    },
+    "regional_frequency": {
+      "latitude_bands": {
+        "MODIS": {
+          "South (28.72-29.50 N)": 824,
+          "Central (29.50-30.25 N)": 464,
+          "North (30.25-31.46 N)": 252
+        },
+        "VIIRS": {
+          "South (28.72-29.50 N)": 5201,
+          "Central (29.50-30.25 N)": 3678,
+          "North (30.25-31.46 N)": 2106
+        }
+      },
+      "longitude_bands": {
+        "MODIS": {
+          "West (77.57-78.75 E)": 554,
+          "Central (78.75-79.90 E)": 613,
+          "East (79.90-81.03 E)": 373
+        },
+        "VIIRS": {
+          "West (77.57-78.75 E)": 4250,
+          "Central (78.75-79.90 E)": 3873,
+          "East (79.90-81.03 E)": 2862
+        }
+      }
+    },
+    "confidence_separate_scales": {
+      "note": "MODIS numeric confidence (0-100) and VIIRS categorical confidence (l/n/h) are distinct retrieval scales and are never equated.",
+      "MODIS": {
+        "scale": "numeric_0_to_100",
+        "stats": {
+          "count": 1540,
+          "min": 0.0,
+          "q25": 51.0,
+          "median": 62.0,
+          "mean": 60.8461,
+          "q75": 72.0,
+          "p95": 87.0,
+          "max": 100.0,
+          "std": 17.1814
+        },
+        "firms_reference_bins": {
+          "low_lt_30": 80,
+          "nominal_30_to_79": 1264,
+          "high_ge_80": 196
+        }
+      },
+      "VIIRS": {
+        "scale": "categorical_l_n_h",
+        "counts": {
+          "l": 1037,
+          "n": 9789,
+          "h": 159
+        },
+        "percentages": {
+          "l": 9.44,
+          "n": 89.11,
+          "h": 1.45
+        }
+      }
+    }
+  },
+  "overlap_analysis": {
+    "primary_threshold": {
+      "distance_threshold_km": 1.0,
+      "time_threshold_minutes": 60,
+      "candidate_cross_sensor_pairs": 475,
+      "modis_total": 1540,
+      "modis_matched": 227,
+      "modis_only": 1313,
+      "modis_matched_pct": 14.74,
+      "viirs_total": 10985,
+      "viirs_matched": 404,
+      "viirs_only": 10581,
+      "viirs_matched_pct": 3.68,
+      "aqua_matched": 227,
+      "aqua_matched_pct": 20.34,
+      "terra_matched": 0,
+      "terra_matched_pct": 0.0,
+      "median_pair_distance_km": 0.592,
+      "median_pair_time_delta_min": 40.0
+    },
+    "sensitivity": [
+      {
+        "distance_threshold_km": 0.5,
+        "time_threshold_minutes": 30,
+        "candidate_cross_sensor_pairs": 48,
+        "modis_total": 1540,
+        "modis_matched": 29,
+        "modis_only": 1511,
+        "modis_matched_pct": 1.88,
+        "viirs_total": 10985,
+        "viirs_matched": 48,
+        "viirs_only": 10937,
+        "viirs_matched_pct": 0.44,
+        "aqua_matched": 29,
+        "aqua_matched_pct": 2.6,
+        "terra_matched": 0,
+        "terra_matched_pct": 0.0,
+        "median_pair_distance_km": 0.338,
+        "median_pair_time_delta_min": 18.0
+      },
+      {
+        "distance_threshold_km": 1.0,
+        "time_threshold_minutes": 60,
+        "candidate_cross_sensor_pairs": 475,
+        "modis_total": 1540,
+        "modis_matched": 227,
+        "modis_only": 1313,
+        "modis_matched_pct": 14.74,
+        "viirs_total": 10985,
+        "viirs_matched": 404,
+        "viirs_only": 10581,
+        "viirs_matched_pct": 3.68,
+        "aqua_matched": 227,
+        "aqua_matched_pct": 20.34,
+        "terra_matched": 0,
+        "terra_matched_pct": 0.0,
+        "median_pair_distance_km": 0.592,
+        "median_pair_time_delta_min": 40.0
+      },
+      {
+        "distance_threshold_km": 1.0,
+        "time_threshold_minutes": 120,
+        "candidate_cross_sensor_pairs": 930,
+        "modis_total": 1540,
+        "modis_matched": 410,
+        "modis_only": 1130,
+        "modis_matched_pct": 26.62,
+        "viirs_total": 10985,
+        "viirs_matched": 745,
+        "viirs_only": 10240,
+        "viirs_matched_pct": 6.78,
+        "aqua_matched": 410,
+        "aqua_matched_pct": 36.74,
+        "terra_matched": 0,
+        "terra_matched_pct": 0.0,
+        "median_pair_distance_km": 0.608,
+        "median_pair_time_delta_min": 58.0
+      },
+      {
+        "distance_threshold_km": 1.5,
+        "time_threshold_minutes": 90,
+        "candidate_cross_sensor_pairs": 1145,
+        "modis_total": 1540,
+        "modis_matched": 380,
+        "modis_only": 1160,
+        "modis_matched_pct": 24.68,
+        "viirs_total": 10985,
+        "viirs_matched": 757,
+        "viirs_only": 10228,
+        "viirs_matched_pct": 6.89,
+        "aqua_matched": 380,
+        "aqua_matched_pct": 34.05,
+        "terra_matched": 0,
+        "terra_matched_pct": 0.0,
+        "median_pair_distance_km": 0.791,
+        "median_pair_time_delta_min": 56.0
+      },
+      {
+        "distance_threshold_km": 2.0,
+        "time_threshold_minutes": 180,
+        "candidate_cross_sensor_pairs": 1889,
+        "modis_total": 1540,
+        "modis_matched": 538,
+        "modis_only": 1002,
+        "modis_matched_pct": 34.94,
+        "viirs_total": 10985,
+        "viirs_matched": 1106,
+        "viirs_only": 9879,
+        "viirs_matched_pct": 10.07,
+        "aqua_matched": 518,
+        "aqua_matched_pct": 46.42,
+        "terra_matched": 20,
+        "terra_matched_pct": 4.72,
+        "median_pair_distance_km": 0.945,
+        "median_pair_time_delta_min": 64.0
+      },
+      {
+        "distance_threshold_km": 2.0,
+        "time_threshold_minutes": 360,
+        "candidate_cross_sensor_pairs": 2471,
+        "modis_total": 1540,
+        "modis_matched": 675,
+        "modis_only": 865,
+        "modis_matched_pct": 43.83,
+        "viirs_total": 10985,
+        "viirs_matched": 1383,
+        "viirs_only": 9602,
+        "viirs_matched_pct": 12.59,
+        "aqua_matched": 518,
+        "aqua_matched_pct": 46.42,
+        "terra_matched": 157,
+        "terra_matched_pct": 37.03,
+        "median_pair_distance_km": 0.935,
+        "median_pair_time_delta_min": 75.0
+      }
+    ],
+    "methodology_and_limitations": [
+      "Great-circle Haversine spatial proximity combined with absolute UTC acquisition time difference.",
+      "MODIS Aqua (~13:30 local) orbits close to Suomi-NPP VIIRS (~13:30 local), whereas MODIS Terra (~10:30 local) is offset by ~3 hours and exhibits zero matches within +/-60 minutes.",
+      "Because MODIS has ~1 km pixels and VIIRS has ~375 m pixels, one MODIS detection frequently overlaps multiple VIIRS pixels (many-to-one geometry).",
+      "Spatial-temporal proximity alone does not confirm the same physical fire incident, nor does absence of a match imply false detection (cloud cover, swath edge, or fire duration between overpasses can prevent simultaneous detection)."
+    ]
+  },
+  "data_quality": {
+    "missing_values_total": 0,
+    "invalid_coordinates": {
+      "outside_global_lat_lon": 0,
+      "zero_zero_coords": 0,
+      "outside_uttarakhand_bbox": 0
+    },
+    "invalid_timestamps": {
+      "nat_acq_datetime": 0,
+      "invalid_4digit_acq_time": 0,
+      "acq_date_time_mismatch": 0
+    },
+    "duplicates": {
+      "exact_full_row_duplicates": 0,
+      "same_sensor_coord_datetime": 0,
+      "same_satellite_coord_date_time": 0
+    },
+    "unexpected_values": {
+      "non_positive_frp": 0,
+      "non_positive_scan_or_track": 0,
+      "unexpected_daynight_codes": [],
+      "type_distribution_modis": {
+        "0": 1515,
+        "2": 25
+      },
+      "type_distribution_viirs": {
+        "0": 10985
+      },
+      "brightness_lt_250K_viirs": 1,
+      "brightness_lt_bright_t31": {
+        "MODIS": 0,
+        "VIIRS": 3
+      }
+    },
+    "sensor_specific_inconsistencies": {
+      "viirs_instrument_column_values": [
+        "SNPP"
+      ],
+      "modis_instrument_column_values": [
+        "MODIS"
+      ],
+      "confidence_schema_difference": "MODIS uses numeric 0-100; VIIRS uses categorical l/n/h.",
+      "version_values": {
+        "MODIS": [
+          "61.03"
+        ],
+        "VIIRS": [
+          "2"
+        ]
+      },
+      "scan_track_ranges": {
+        "MODIS_scan": [
+          1.0,
+          4.7
+        ],
+        "VIIRS_scan": [
+          0.32,
+          0.8
+        ],
+        "MODIS_track": [
+          1.0,
+          2.0
+        ],
+        "VIIRS_track": [
+          0.36,
+          0.78
+        ]
+      }
+    }
+  }
+}

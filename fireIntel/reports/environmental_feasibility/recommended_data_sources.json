@@ -1,0 +1,246 @@
+{
+  "audit_metadata": {
+    "project": "FIREINTEL",
+    "phase": "Phase 4 — Environmental Data Source Feasibility Audit",
+    "target_region": "Uttarakhand, India (IN-UT)",
+    "study_period_utc": {
+      "start": "2025-01-01T00:00:00Z",
+      "end": "2025-12-31T23:59:59Z",
+      "observed_fire_span": {
+        "first_observation_utc": "2025-01-01T07:43:00Z",
+        "last_observation_utc": "2025-12-31T21:28:00Z",
+        "validated_observations": 7541,
+        "viirs_observations": 6623,
+        "modis_observations": 918,
+        "modis_type_2_static_anomalies": 14,
+        "active_0_05_deg_cells": 1168
+      }
+    },
+    "boundary_reference": {
+      "file": "fireIntel/data/boundaries/uttarakhand_boundary.geojson",
+      "geographic_crs": "EPSG:4326",
+      "metric_planar_crs": "EPSG:32644",
+      "bounding_box_epsg4326": [
+        77.57230026174163,
+        28.722894906447042,
+        81.04528735631932,
+        31.456126767118253
+      ],
+      "area_km2_epsg32644": 53417.95,
+      "source_citation": "geoBoundaries IND-ADM1-1811400 (DataMeet India community / Election Commission of India), CC BY 2.5 IN"
+    }
+  },
+  "recommended_stack": {
+    "primary_meteorological": {
+      "dataset_id": "reanalysis-era5-land",
+      "official_name": "ERA5-Land hourly data from 1950 to present",
+      "provider": "ECMWF / Copernicus Climate Change Service (C3S)",
+      "official_url": "https://cds.climate.copernicus.eu/datasets/reanalysis-era5-land",
+      "api_endpoint": "https://cds.climate.copernicus.eu/api",
+      "access_client": "cdsapi (Python)",
+      "spatial_resolution": "0.1° x 0.1° regular lat-lon (~11.1 km x 9.6 km at 30°N; native ~9 km TCo1279 grid)",
+      "uttarakhand_grid_coverage": {
+        "intersecting_cells": 582,
+        "centroid_inside_cells": 500
+      },
+      "temporal_resolution": "Hourly (UTC)",
+      "historical_coverage": "1950-01-01 to present",
+      "latency": "~5 days preliminary (ERA5-Land-T); final validated release ~2-3 months later",
+      "availability_2025": "Full 2025 finalized archive available",
+      "formats": ["NetCDF4", "GRIB"],
+      "licence": "CC BY 4.0 (Creative Commons Attribution 4.0 International)",
+      "auth_required": true,
+      "auth_mechanism": "Free CDS account, ~/.cdsapirc API key, and web UI dataset licence acceptance",
+      "variables_requested": [
+        "2m_temperature",
+        "2m_dewpoint_temperature",
+        "10m_u_component_of_wind",
+        "10m_v_component_of_wind",
+        "total_precipitation",
+        "volumetric_soil_water_layer_1",
+        "volumetric_soil_water_layer_2",
+        "volumetric_soil_water_layer_3"
+      ],
+      "critical_engineering_caveats": [
+        "total_precipitation accumulates continuously from 00:00 UTC each day and resets at 00:00 UTC; must de-accumulate into hourly increments before computing IST-day totals or antecedent windows.",
+        "Relative humidity (RH) and Vapor Pressure Deficit (VPD) are not directly stored in ERA5-Land; derive from 2m_temperature and 2m_dewpoint_temperature via Magnus-Tetens / Alduchov-Eskridge saturation vapor pressure equations.",
+        "Wind speed and meteorological direction must be derived from orthogonal 10m_u_component_of_wind and 10m_v_component_of_wind vectors.",
+        "High-altitude Himalayan border glaciers/snowpack and water masks require explicit NA/mask handling."
+      ],
+      "selection_rationale": "At 582 intersecting cells across Uttarakhand (~20x more cells than NASA POWER's 28 intersecting cells), ERA5-Land captures sub-regional meteorological, soil moisture, and diurnal drying contrasts across foothill, middle-Himalayan pine belt, and high-altitude zones while offering full hourly UTC alignment and CC BY 4.0 licensing."
+    },
+    "secondary_meteorological_validation": {
+      "dataset_id": "NASA_POWER_MERRA2",
+      "official_name": "NASA POWER (Prediction Of Worldwide Energy Resources) — MERRA-2 Meteorology",
+      "provider": "NASA Langley Research Center (LaRC) / NASA GMAO",
+      "official_url": "https://power.larc.nasa.gov/",
+      "api_endpoint": "https://power.larc.nasa.gov/api/temporal/",
+      "spatial_resolution": "0.5° lat x 0.625° lon (~55.7 km x 60.3 km at 30°N)",
+      "uttarakhand_grid_coverage": {
+        "intersecting_cells": 28,
+        "centroid_inside_cells": 17
+      },
+      "temporal_resolution": "Hourly, Daily, Monthly, Climatology",
+      "historical_coverage": "1981-01-01 to near real-time",
+      "latency": "~3-5 days (up to ~2 weeks for selected parameters)",
+      "availability_2025": "Full 2025 archive available",
+      "formats": ["JSON", "CSV", "NetCDF", "GeoJSON"],
+      "licence": "NASA Open Data (public domain; attribution requested)",
+      "auth_required": false,
+      "variables_for_validation": [
+        "T2M",
+        "T2M_MIN",
+        "T2M_MAX",
+        "RH2M",
+        "PRECTOTCORR",
+        "WS10M",
+        "WD10M",
+        "GWETTOP",
+        "GWETROOT"
+      ],
+      "selection_rationale": "Too coarse (17 cell centers inside Uttarakhand) for primary spatial modeling in extreme Himalayan terrain, but zero-auth API access and ready-computed RH2M make it ideal for independent sanity validation against ERA5-Land.",
+      "optional_precipitation_benchmarks": [
+        {
+          "dataset_id": "GPM_3IMERGDF_07",
+          "official_name": "GPM IMERG Final Precipitation L3 Daily 0.1° V07",
+          "spatial_resolution": "0.1° x 0.1°",
+          "temporal_resolution": "Daily (GPM_3IMERGHH offers 30-min)",
+          "licence": "CC BY 4.0 / NASA Open Data Policy",
+          "role": "Cross-check monsoon/dry-spell rainfall intensity and spatial structure against ERA5-Land"
+        },
+        {
+          "dataset_id": "CHIRPS_v2_0",
+          "official_name": "CHIRPS v2.0 Global Daily",
+          "spatial_resolution": "0.05° x 0.05° (exact spacing match to FIREINTEL 0.05° common grid)",
+          "temporal_resolution": "Daily",
+          "licence": "CC0 1.0 Universal / Public Domain",
+          "role": "High-resolution 0.05° precipitation benchmark (noting high-Himalayan gauge sparsity and post-Dec-2026 transition to CHIRPS v3)"
+        }
+      ]
+    },
+    "primary_vegetation": {
+      "dataset_id": "MOD13Q1_MYD13Q1_v061",
+      "official_name": "MODIS Terra (MOD13Q1 v061) + Aqua (MYD13Q1 v061) Vegetation Indices 16-Day L3 Global 250m SIN Grid",
+      "provider": "NASA LP DAAC / USGS",
+      "official_urls": [
+        "https://lpdaac.usgs.gov/products/mod13q1v061/",
+        "https://appeears.earthdatacloud.nasa.gov/api"
+      ],
+      "spatial_resolution": "250 m native Sinusoidal grid (sphere R = 6,371,007.181 m); reprojected to EPSG:4326 on AppEEARS",
+      "temporal_resolution": "16-day per platform; staggered Terra + Aqua phases provide ~8-day effective cadence",
+      "historical_coverage": "MOD13Q1: Feb 2000–present; MYD13Q1: Jul 2002–present",
+      "availability_2025": "Full 2025 archive available",
+      "formats": ["GeoTIFF", "NetCDF4"],
+      "licence": "NASA ESDS Open Data Policy (public domain / unrestricted; citation requested)",
+      "auth_required": true,
+      "auth_mechanism": "Free NASA Earthdata Login account (AppEEARS token)",
+      "variables_requested": [
+        "250m 16 days NDVI",
+        "250m 16 days EVI",
+        "250m 16 days VI Quality",
+        "250m 16 days pixel reliability",
+        "250m 16 days composite day of the year"
+      ],
+      "continuity_cross_check_partner": {
+        "dataset_id": "VNP13A1_v002",
+        "official_name": "Suomi NPP VIIRS Vegetation Indices 16-Day L3 Global 500m SIN Grid V002",
+        "official_url": "https://www.earthdata.nasa.gov/data/catalog/lpcloud-vnp13a1-002",
+        "spatial_resolution": "500 m native Sinusoidal",
+        "historical_coverage": "Jan 2012–present",
+        "role": "Cross-check Terra/Aqua orbital drift bias (constellation exit 2020–2021) and provide long-term continuity pathway beyond scheduled Terra/Aqua retirement (late 2026–2027)."
+      },
+      "selection_rationale": "250 m native pixels resolve narrow Himalayan valley and ridge forest cover far better than 500 m alternatives (~400 pixels per 0.05° cell), while staggered MOD13Q1 + MYD13Q1 yields 8-day fuel greenness updates."
+    },
+    "primary_terrain": {
+      "dataset_id": "COPERNICUS_DEM_GLO30",
+      "official_name": "Copernicus DEM GLO-30 (Global 30m Digital Surface Model / COP30)",
+      "provider": "ESA / DLR & Airbus Defence and Space",
+      "official_urls": [
+        "https://spacedata.copernicus.eu/collections/copernicus-dem",
+        "https://portal.opentopography.org/API/globaldem",
+        "https://registry.opendata.aws/copernicus-dem"
+      ],
+      "spatial_resolution": "1 arc-second (~30 m horizontal); EGM2008 orthometric vertical datum",
+      "temporal_coverage": "Static topography (TanDEM-X InSAR acquisition 2011–2015)",
+      "formats": ["Cloud-Optimized GeoTIFF (COG)", "GeoTIFF"],
+      "licence": "Copernicus DEM Licence (free, full, and open access; requires © DLR e.V. and © Airbus Defence and Space GmbH attribution)",
+      "auth_required": false,
+      "auth_note": "No auth via AWS Open Data S3 (copernicus-dem-30m); free API key required for OpenTopography REST subsetting",
+      "derived_features": [
+        "elevation_mean_m, elevation_std_m, elevation_min_m, elevation_max_m",
+        "slope_mean_deg, slope_max_deg (computed after reprojection to EPSG:32644)",
+        "aspect_sin_mean, aspect_cos_mean (circular components computed in EPSG:32644)",
+        "south_southwest_facing_fraction (solar desiccation exposure indicator)"
+      ],
+      "benchmark_fallback": {
+        "dataset_id": "NASA_SRTMGL1_v003",
+        "official_name": "NASA SRTM Global 1 Arc Second V003",
+        "official_url": "https://lpdaac.usgs.gov/products/srtmgl1v003/",
+        "notes": "February 2000 Shuttle mission (EGM96 datum), public domain; acceptable fallback if COP30 attribution is undesired, but older and more susceptible to high-Himalayan C-band void-fill artifacts."
+      }
+    },
+    "excluded_from_mvp_baseline": [
+      {
+        "dataset_id": "MOD11A1_MYD11A1_v061",
+        "reason": "Optional exploratory only. MODIS LST suffers severe cloud-cover gaps during Uttarakhand winter disturbances and pre-monsoon storms, measures surface skin temperature rather than 2m air temperature, and exhibits overpass-time thermal drift due to post-2020/2021 Terra/Aqua orbital drift."
+      }
+    ]
+  },
+  "variable_to_source_mapping": {
+    "air_temperature": {
+      "primary_source": "ERA5-Land (2m_temperature, K -> °C)",
+      "secondary_check": "NASA POWER (T2M, T2M_MAX, T2M_MIN, °C)"
+    },
+    "relative_humidity": {
+      "primary_source": "Derived from ERA5-Land (2m_temperature and 2m_dewpoint_temperature via saturation vapor pressure ratio; also yields VPD)",
+      "secondary_check": "NASA POWER (RH2M, %)"
+    },
+    "precipitation_rainfall": {
+      "primary_source": "ERA5-Land (total_precipitation, de-accumulated from 00:00 UTC reset -> mm/hr -> mm/IST-day and 3/7/14-day antecedents)",
+      "secondary_check": "NASA POWER (PRECTOTCORR), GPM_3IMERGDF v07, or CHIRPS v2.0"
+    },
+    "wind_speed": {
+      "primary_source": "Derived from ERA5-Land sqrt(u10^2 + v10^2) (10m_u_component_of_wind, 10m_v_component_of_wind)",
+      "secondary_check": "NASA POWER (WS10M, WS2M)"
+    },
+    "wind_direction": {
+      "primary_source": "Derived from ERA5-Land atan2(-u10, -v10) encoded cyclically as sin(theta), cos(theta) or u10/v10 components",
+      "secondary_check": "NASA POWER (WD10M, WD2M)"
+    },
+    "soil_moisture": {
+      "primary_source": "ERA5-Land volumetric_soil_water_layer_1 (0-7 cm), layer_2 (7-28 cm), layer_3 (28-100 cm) in m³/m³",
+      "secondary_check": "NASA POWER (GWETTOP 0-5 cm, GWETROOT unitless wetness)"
+    },
+    "ndvi": {
+      "primary_source": "MODIS MOD13Q1 v061 + MYD13Q1 v061 (250 m, 16-day staggered ~8-day, QA-masked)",
+      "continuity_check": "VIIRS VNP13A1 v002 (500 m, 16-day)"
+    },
+    "evi": {
+      "primary_source": "MODIS MOD13Q1 v061 + MYD13Q1 v061 (250 m, 16-day staggered ~8-day, QA-masked; reduces high-biomass saturation)",
+      "continuity_check": "VIIRS VNP13A1 v002 (500 m, 16-day)"
+    },
+    "elevation": {
+      "primary_source": "Copernicus DEM GLO-30 (30 m, EGM2008 zonal stats per 0.05° cell)",
+      "fallback": "NASA SRTMGL1 v003 (30 m, EGM96)"
+    },
+    "slope_and_aspect": {
+      "primary_source": "Derived from Copernicus DEM GLO-30 after reprojection to EPSG:32644 (UTM Zone 44N); aspect encoded via circular sin/cos means"
+    }
+  },
+  "spatial_and_temporal_contract": {
+    "common_grid": {
+      "cell_size_deg": 0.05,
+      "approximate_cell_size_at_30N_km": "5.57 km (lat) x 4.82 km (lon)",
+      "grid_origin_rule": "SW cell corner = floor(coord / 0.05) * 0.05 (matches existing FIREINTEL Phase 2/3 eda.py convention)",
+      "intersecting_cells_uttarakhand": 2174,
+      "centroid_inside_cells_uttarakhand": 2000,
+      "resampling_safeguard": "Each 0.05° cell inherits weather from its containing 0.1° ERA5-Land cell (whose coordinates denote cell centers, so cell boundaries +/-0.05° split cleanly into 2x2 sub-cells of 0.05°) with explicit resolution provenance metadata; never falsely claim sub-0.1° atmospheric precision from spatial interpolation alone."
+    },
+    "temporal_contract": {
+      "storage_timezone": "UTC (preserving existing FIRMS acq_datetime ISO-8601 UTC schema)",
+      "local_diurnal_aggregation_timezone": "IST (Asia/Kolkata, UTC+05:30)",
+      "strict_causality_rule": "At prediction issue timestamp T0, all weather antecedents, meteorological summaries, rolling precipitation totals, and 16-day MODIS/VIIRS vegetation composites must have composite end timestamps + latency strictly <= T0."
+    }
+  }
+}
+

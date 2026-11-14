@@ -1,0 +1,19 @@
+metric,MODIS,VIIRS,unit
+total_observations,918.0,6623.0,observations
+daytime_pct,93.03,61.26,percent
+nighttime_pct,6.97,38.74,percent
+brightness_min,300.1,295.0,K
+brightness_median,314.2,330.54,K
+brightness_mean,315.3821,324.8919,K
+brightness_max,372.3,367.0,K
+bright_t31_median,297.6,294.84,K
+frp_median,10.55,2.85,MW
+frp_mean,15.2717,3.9744,MW
+frp_p95,37.79,10.9,MW
+frp_max,169.9,51.1,MW
+lat_band_South (28.72-29.50 N),343.0,1913.0,observations
+lat_band_Central (29.50-30.25 N),367.0,3036.0,observations
+lat_band_North (30.25-31.46 N),208.0,1674.0,observations
+lon_band_West (77.57-78.75 E),299.0,2304.0,observations
+lon_band_Central (78.75-79.90 E),509.0,3254.0,observations
+lon_band_East (79.90-81.03 E),110.0,1065.0,observations

@@ -1,0 +1,14 @@
+{
+  "step_deg": 0.05,
+  "total_bounding_box_cells": 3920,
+  "intersecting_cells": 2174,
+  "centroid_inside_cells": 2000,
+  "total_state_area_km2": 53417.94778017831,
+  "grid_area_coverage_km2": 53417.967994900006,
+  "area_fraction_mean": 0.920332520699172,
+  "unique_era5_parent_cells": 581,
+  "boundary_file": "fireIntel/data/boundaries/uttarakhand_boundary.geojson",
+  "geographic_crs": "EPSG:4326",
+  "metric_crs": "EPSG:32644",
+  "generated_at_utc": "2026-11-13T16:14:03.428858+00:00"
+}

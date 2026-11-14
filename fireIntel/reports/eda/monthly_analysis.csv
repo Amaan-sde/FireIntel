@@ -1,0 +1,13 @@
+month,month_name,MODIS,VIIRS,total_observations,share_pct,modis_share_pct,z_score,above_mean_plus_1sd,above_iqr_fence
+1,Jan,145,1015,1160,9.26,12.5,0.1,False,False
+2,Feb,182,1188,1370,10.94,13.28,0.29,False,False
+3,Mar,185,1014,1199,9.57,15.43,0.14,False,False
+4,Apr,441,3325,3766,30.07,11.71,2.46,True,True
+5,May,211,1257,1468,11.72,14.37,0.38,False,False
+6,Jun,25,121,146,1.17,17.12,-0.81,False,False
+7,Jul,7,3,10,0.08,70.0,-0.93,False,False
+8,Aug,1,0,1,0.01,100.0,-0.94,False,False
+9,Sep,1,4,5,0.04,20.0,-0.94,False,False
+10,Oct,92,443,535,4.27,17.2,-0.46,False,False
+11,Nov,68,596,664,5.3,10.24,-0.34,False,False
+12,Dec,182,2019,2201,17.57,8.27,1.04,True,False
