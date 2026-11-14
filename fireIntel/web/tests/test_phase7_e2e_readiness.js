@@ -51,7 +51,7 @@ async function runPhase7ReadinessAudit() {
     await page.waitForTimeout(2500);
 
     const hasMapLibreCanvas = (await page.locator(".maplibregl-canvas").count()) > 0;
-    const hasAscendBtn = (await page.locator("button:has-text('Ascend to Orbit')").count()) > 0;
+    const hasAscendBtn = (await page.locator(":is(button, a):has-text('Ascend to Orbit')").count()) > 0;
     const hasGeomorphPill = (await page.locator("button:has-text('Elevation')").count()) > 0;
 
     await page.screenshot({ path: path.join(artifactScreenshotsDir, "phase7_02_terrain_satellite.png") });

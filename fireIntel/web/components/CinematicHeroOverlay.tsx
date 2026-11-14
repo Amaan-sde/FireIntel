@@ -22,6 +22,7 @@ interface CinematicHeroOverlayProps {
   onExploreScience: () => void;
   onSatelliteSelect?: (sat: SatelliteInfo) => void;
   onCameraPreset?: (preset: "orbit" | "india" | "uttarakhand" | "night") => void;
+  onSkipDescent?: () => void;
   isDescending: boolean;
   descentStage?: number; // 1 to 7
 }
@@ -31,6 +32,7 @@ export default function CinematicHeroOverlay({
   onExploreScience,
   onSatelliteSelect,
   onCameraPreset,
+  onSkipDescent,
   isDescending,
   descentStage = 1,
 }: CinematicHeroOverlayProps) {
@@ -125,7 +127,11 @@ export default function CinematicHeroOverlay({
   return (
     <div className="pointer-events-none absolute inset-0 z-20 flex flex-col justify-between p-6 sm:p-8 md:p-12 select-none overflow-hidden">
       {/* 1. TOP HEADER: MINIMALIST, HIGH-END EDITORIAL NAVIGATION */}
-      <header className="flex items-center justify-between w-full">
+      <header
+        className={`flex items-center justify-between w-full transition-opacity duration-300 ${
+          isDescending ? "opacity-0 pointer-events-none" : "opacity-100"
+        }`}
+      >
         {/* Brand Identity */}
         <div className="flex items-center gap-3 pointer-events-auto">
           <div className="relative flex items-center justify-center">
@@ -164,7 +170,7 @@ export default function CinematicHeroOverlay({
 
           <Link
             href="/terrain"
-            className="hidden sm:flex items-center gap-1.5 glass-pill rounded-full px-3.5 py-1.5 text-xs text-slate-300 hover:text-white hover:bg-white/10 transition-all font-medium cursor-pointer"
+            className="flex items-center gap-1.5 glass-pill rounded-full px-3.5 py-1.5 text-xs text-slate-300 hover:text-white hover:bg-white/10 transition-all font-medium cursor-pointer"
           >
             <Mountain className="w-3.5 h-3.5 text-sky-400" />
             <span>Terrain</span>
@@ -180,7 +186,7 @@ export default function CinematicHeroOverlay({
 
           <Link
             href="/analytics"
-            className="hidden md:flex items-center gap-1.5 glass-pill rounded-full px-3.5 py-1.5 text-xs text-slate-300 hover:text-white hover:bg-white/10 transition-all font-medium cursor-pointer"
+            className="flex items-center gap-1.5 glass-pill rounded-full px-3.5 py-1.5 text-xs text-slate-300 hover:text-white hover:bg-white/10 transition-all font-medium cursor-pointer"
           >
             <BarChart3 className="w-3.5 h-3.5 text-emerald-400" />
             <span>Analytics</span>
@@ -188,7 +194,7 @@ export default function CinematicHeroOverlay({
 
           <Link
             href="/methodology"
-            className="hidden lg:flex items-center gap-1.5 glass-pill rounded-full px-3.5 py-1.5 text-xs text-slate-300 hover:text-white hover:bg-white/10 transition-all font-medium cursor-pointer"
+            className="flex items-center gap-1.5 glass-pill rounded-full px-3.5 py-1.5 text-xs text-slate-300 hover:text-white hover:bg-white/10 transition-all font-medium cursor-pointer"
           >
             <FileText className="w-3.5 h-3.5 text-slate-400" />
             <span>Methodology</span>
@@ -310,11 +316,13 @@ export default function CinematicHeroOverlay({
                 <span className="text-slate-500">Descent trajectory in progress</span>
                 <button
                   onClick={() => {
-                    if (typeof window !== "undefined" && (window as any).__LIVING_EARTH_STATE?.skipDescent) {
+                    if (onSkipDescent) {
+                      onSkipDescent();
+                    } else if (typeof window !== "undefined" && (window as any).__LIVING_EARTH_STATE?.skipDescent) {
                       (window as any).__LIVING_EARTH_STATE.skipDescent();
                     }
                   }}
-                  className="text-cyan-400 hover:text-cyan-300 underline underline-offset-2 cursor-pointer"
+                  className="text-cyan-400 hover:text-cyan-300 underline underline-offset-2 cursor-pointer font-semibold"
                 >
                   Skip to Himalayas →
                 </button>

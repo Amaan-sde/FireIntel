@@ -104,16 +104,17 @@ export default function HistoricalAnalyticsPage() {
   ];
 
   return (
-    <main className="min-h-screen bg-[#020408] text-white p-6 sm:p-10 md:p-14 select-none">
+    <main className="min-h-screen w-full bg-[#020408] text-white p-6 sm:p-10 md:p-14 overflow-y-auto">
       {/* Top Header Navigation */}
       <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-white/10 pb-6 mb-8">
         <div className="flex items-center gap-3">
           <Link
             href="/"
-            className="p-2 rounded-full glass-pill hover:bg-white/10 text-slate-300 hover:text-white transition-colors"
+            className="p-2.5 rounded-full glass-pill hover:bg-white/10 text-slate-300 hover:text-white transition-colors flex items-center gap-2 text-xs"
             title="Return to Living Earth"
           >
             <ArrowLeft className="w-4 h-4" />
+            <span className="hidden sm:inline font-mono-telemetry">Orbit</span>
           </Link>
           <div>
             <div className="flex items-center gap-2 text-xs font-mono-telemetry uppercase text-amber-400">
@@ -126,7 +127,15 @@ export default function HistoricalAnalyticsPage() {
           </div>
         </div>
 
-        <nav className="flex items-center gap-2">
+        <nav className="flex flex-wrap items-center gap-2">
+          <Link
+            href="/"
+            className="glass-pill px-3.5 py-1.5 rounded-full text-xs text-slate-300 hover:text-white hover:bg-white/10 transition-colors flex items-center gap-1.5"
+          >
+            <Orbit className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Home</span>
+          </Link>
+
           <Link
             href="/fires"
             className="glass-pill px-3.5 py-1.5 rounded-full text-xs text-amber-300 hover:text-amber-200 hover:bg-amber-500/20 border-amber-500/30 transition-all font-medium flex items-center gap-1.5"

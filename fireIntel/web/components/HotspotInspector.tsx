@@ -53,7 +53,7 @@ export default function HotspotInspector({
   return (
     <aside 
       aria-label="Thermal Anomaly Inspector"
-      className="absolute top-20 right-8 z-30 w-80 glass-surface rounded-2xl p-5 shadow-2xl border border-white/10 animate-in fade-in slide-in-from-right-4 duration-200"
+      className="absolute top-20 right-3 sm:right-8 z-30 w-[92vw] sm:w-80 max-h-[calc(100vh-6.5rem)] overflow-y-auto glass-surface rounded-2xl p-5 shadow-2xl border border-white/10 animate-in fade-in slide-in-from-right-4 duration-200"
     >
       {/* Header */}
       <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-3.5">

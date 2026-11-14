@@ -116,65 +116,65 @@ export default function TerrainExplorerPage() {
       />
 
       {/* Top Navigation Bar */}
-      <header className="absolute top-6 left-8 right-8 z-30 flex items-center justify-between pointer-events-none">
-        <div className="flex items-center gap-3 pointer-events-auto">
-          <button
-            onClick={() => router.push("/")}
+      <header className="absolute top-4 sm:top-6 left-3 sm:left-8 right-3 sm:right-8 z-30 flex items-center justify-between pointer-events-none">
+        <div className="flex items-center gap-2 sm:gap-3 pointer-events-auto">
+          <Link
+            href="/"
             aria-label="Return to Planetary Orbit"
-            className="glass-pill rounded-full px-4 py-2 text-xs font-semibold text-slate-200 hover:text-white hover:bg-white/10 transition-all flex items-center gap-2 cursor-pointer shadow-2xl"
+            className="glass-pill rounded-full px-3 sm:px-4 py-2 text-xs font-semibold text-slate-200 hover:text-white hover:bg-white/10 transition-all flex items-center gap-1.5 sm:gap-2 cursor-pointer shadow-2xl"
             title="Ascend camera back to global planetary orbit"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Ascend to Orbit</span>
-          </button>
+          </Link>
 
-          <div className="glass-pill rounded-full px-4 py-2 text-xs flex items-center gap-2 text-slate-300">
+          <div className="glass-pill rounded-full px-3 sm:px-4 py-2 text-xs flex items-center gap-2 text-slate-300">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             <span className="font-semibold text-white">Western Himalayas</span>
-            <span className="text-slate-500 font-mono-telemetry">/</span>
-            <span className="text-slate-400 font-mono-telemetry">Copernicus GLO-30 DEM (30m)</span>
+            <span className="hidden md:inline text-slate-500 font-mono-telemetry">/</span>
+            <span className="hidden md:inline text-slate-400 font-mono-telemetry">Copernicus DEM (30m)</span>
           </div>
         </div>
 
-        <nav className="pointer-events-auto flex items-center gap-2">
+        <nav className="pointer-events-auto flex items-center gap-1.5 sm:gap-2">
           <Link
             href="/analytics"
-            className="hidden sm:flex items-center gap-1.5 glass-pill rounded-full px-3.5 py-2 text-xs text-emerald-300 hover:text-white hover:bg-emerald-500/20 border-emerald-500/20 transition-all font-medium"
+            className="flex items-center gap-1.5 glass-pill rounded-full px-2.5 sm:px-3.5 py-2 text-xs text-emerald-300 hover:text-white hover:bg-emerald-500/20 border-emerald-500/20 transition-all font-medium"
           >
             <BarChart3 className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Analytics</span>
+            <span className="hidden sm:inline">Analytics</span>
           </Link>
 
           <Link
             href="/methodology"
-            className="hidden sm:flex items-center gap-1.5 glass-pill rounded-full px-3.5 py-2 text-xs text-slate-300 hover:text-white hover:bg-white/10 transition-all font-medium"
+            className="flex items-center gap-1.5 glass-pill rounded-full px-2.5 sm:px-3.5 py-2 text-xs text-slate-300 hover:text-white hover:bg-white/10 transition-all font-medium"
           >
             <FileText className="w-3.5 h-3.5 text-slate-400" />
-            <span>Methodology</span>
+            <span className="hidden sm:inline">Methodology</span>
           </Link>
 
           <button
             onClick={() => setIsTelemetryOpen(true)}
-            className="glass-pill rounded-full px-3.5 py-2 text-xs text-slate-300 hover:text-white hover:bg-white/10 transition-all flex items-center gap-1.5 cursor-pointer"
+            className="glass-pill rounded-full px-2.5 sm:px-3.5 py-2 text-xs text-slate-300 hover:text-white hover:bg-white/10 transition-all flex items-center gap-1.5 cursor-pointer"
           >
             <SlidersHorizontal className="w-3.5 h-3.5 text-amber-400" />
-            <span className="hidden sm:inline">Telemetry</span>
+            <span className="hidden md:inline">Telemetry</span>
           </button>
 
           <Link
             href="/fires"
-            className="glass-pill rounded-full px-4 py-2 text-xs font-semibold text-amber-300 hover:text-amber-200 hover:bg-amber-500/20 border-amber-500/30 transition-all flex items-center gap-2 shadow-2xl"
+            className="glass-pill rounded-full px-3 sm:px-4 py-2 text-xs font-semibold text-amber-300 hover:text-amber-200 hover:bg-amber-500/20 border-amber-500/30 transition-all flex items-center gap-1.5 sm:gap-2 shadow-2xl"
           >
             <Flame className="w-3.5 h-3.5 text-amber-400" />
-            <span>Fire Intelligence</span>
-            <ArrowRight className="w-3.5 h-3.5" />
+            <span>Fire Lab</span>
+            <ArrowRight className="w-3.5 h-3.5 hidden sm:inline" />
           </Link>
         </nav>
       </header>
 
       {/* Geomorphology Controls Capsule (Top-Center) */}
-      <div className="absolute top-20 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 pointer-events-auto">
-        <div className="flex items-center glass-surface rounded-full p-1 border border-white/10 shadow-2xl">
+      <div className="absolute top-16 sm:top-20 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 pointer-events-auto max-w-[95vw] overflow-x-auto py-1 scrollbar-none">
+        <div className="flex items-center glass-surface rounded-full p-1 border border-white/10 shadow-2xl flex-nowrap shrink-0">
           <button
             onClick={() => setTerrainMode("satellite")}
             className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
@@ -299,7 +299,7 @@ export default function TerrainExplorerPage() {
       {selectedCell && (
         <aside
           aria-label="Master Grid Cell Geomorphology Inspector"
-          className="absolute top-24 right-8 z-30 glass-surface rounded-2xl p-5 border border-sky-500/30 shadow-2xl pointer-events-auto max-w-sm w-full animate-in fade-in slide-in-from-right-4 duration-300"
+          className="absolute top-20 sm:top-24 right-3 sm:right-8 z-30 glass-surface rounded-2xl p-4 sm:p-5 border border-sky-500/30 shadow-2xl pointer-events-auto max-w-sm w-[92vw] sm:w-full max-h-[calc(100vh-6.5rem)] overflow-y-auto animate-in fade-in slide-in-from-right-4 duration-300"
         >
           <div className="flex items-start justify-between mb-3 border-b border-white/10 pb-2.5">
             <div>

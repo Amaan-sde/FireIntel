@@ -13,13 +13,20 @@
     --accent-geodetic: rgba(56, 189, 248, 0.7);
   }
 
+  html {
+    scroll-behavior: smooth;
+    min-height: 100vh;
+  }
+
   body {
     background-color: var(--bg-deep-space);
     color: #f8fafc;
     font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
-    overflow: hidden;
+    overflow-x: hidden;
+    min-height: 100vh;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    -webkit-overflow-scrolling: touch;
   }
 }
 

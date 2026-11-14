@@ -45,12 +45,12 @@ export default function FireLaboratoryControls({
   return (
     <aside 
       aria-label="Fire cartography and confidence controls"
-      className="fixed top-20 right-6 z-20 w-[90%] max-w-xs glass-surface rounded-2xl shadow-2xl border border-white/10 overflow-hidden transition-all duration-200"
+      className="fixed top-20 right-4 sm:right-6 z-20 w-[92vw] sm:w-80 max-w-xs glass-surface rounded-2xl shadow-2xl border border-white/10 max-h-[calc(100vh-6rem)] flex flex-col transition-all duration-200"
     >
       {/* Header Bar */}
       <div 
         onClick={() => setIsExpanded(!isExpanded)}
-        className="p-3.5 px-4 flex items-center justify-between cursor-pointer hover:bg-white/[0.04] transition-colors border-b border-white/5"
+        className="p-3.5 px-4 flex items-center justify-between cursor-pointer hover:bg-white/[0.04] transition-colors border-b border-white/5 flex-shrink-0"
       >
         <div className="flex items-center gap-2">
           <SlidersHorizontal className="w-4 h-4 text-amber-400" />
@@ -87,7 +87,7 @@ export default function FireLaboratoryControls({
 
       {/* Expandable Control Panel */}
       {isExpanded && (
-        <div className="p-4 space-y-4 text-xs">
+        <div className="p-4 space-y-4 text-xs overflow-y-auto flex-1">
           {/* 1. Constellation Sensor Selector */}
           <div>
             <div className="flex justify-between items-center text-slate-400 text-[11px] mb-1.5">

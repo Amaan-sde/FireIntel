@@ -35,10 +35,12 @@ export default function LivingEarthHomePage() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       (window as any).__LIVING_EARTH_STATE = {
+        ...((window as any).__LIVING_EARTH_STATE || {}),
         viewState,
         isDescending,
         descentStage,
         selectedSatellite,
+        skipDescent: handleDescendComplete,
       };
       (window as any).__TRIGGER_DESCENT = () => {
         setIsDescending(true);
@@ -120,6 +122,7 @@ export default function LivingEarthHomePage() {
           onExploreHimalayas={handleExploreHimalayas}
           onExploreScience={() => setIsTelemetryOpen(true)}
           onSatelliteSelect={(sat) => setSelectedSatellite(sat)}
+          onSkipDescent={handleDescendComplete}
           isDescending={isDescending}
           descentStage={descentStage}
         />

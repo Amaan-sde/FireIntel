@@ -24,16 +24,17 @@ import {
 
 export default function MethodologyPage() {
   return (
-    <main className="min-h-screen bg-[#020408] text-white p-6 sm:p-10 md:p-14 select-none">
+    <main className="min-h-screen w-full bg-[#020408] text-white p-6 sm:p-10 md:p-14 overflow-y-auto">
       {/* Top Header Navigation */}
       <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-white/10 pb-6 mb-10">
         <div className="flex items-center gap-3">
           <Link
             href="/"
-            className="p-2 rounded-full glass-pill hover:bg-white/10 text-slate-300 hover:text-white transition-colors"
+            className="p-2.5 rounded-full glass-pill hover:bg-white/10 text-slate-300 hover:text-white transition-colors flex items-center gap-2 text-xs"
             title="Return to Planetary Orbit"
           >
             <ArrowLeft className="w-4 h-4" />
+            <span className="hidden sm:inline font-mono-telemetry">Orbit</span>
           </Link>
           <div>
             <div className="flex items-center gap-2 text-xs font-mono-telemetry uppercase text-sky-400">
@@ -47,24 +48,31 @@ export default function MethodologyPage() {
         </div>
 
         {/* Global Navigation Links */}
-        <nav className="flex items-center gap-2">
+        <nav className="flex flex-wrap items-center gap-2">
+          <Link
+            href="/"
+            className="glass-pill rounded-full px-3.5 py-2 text-xs text-slate-300 hover:text-white hover:bg-white/10 transition-all font-medium flex items-center gap-1.5"
+          >
+            <Orbit className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Home</span>
+          </Link>
           <Link
             href="/fires"
-            className="glass-pill rounded-full px-4 py-2 text-xs text-amber-300 hover:text-amber-200 hover:bg-amber-500/20 border-amber-500/30 transition-all font-medium flex items-center gap-1.5"
+            className="glass-pill rounded-full px-3.5 py-2 text-xs text-amber-300 hover:text-amber-200 hover:bg-amber-500/20 border-amber-500/30 transition-all font-medium flex items-center gap-1.5"
           >
             <Flame className="w-3.5 h-3.5 text-amber-400" />
             <span>Fire Lab</span>
           </Link>
           <Link
             href="/terrain"
-            className="glass-pill rounded-full px-4 py-2 text-xs text-sky-300 hover:text-sky-200 hover:bg-sky-500/20 border-sky-500/30 transition-all font-medium flex items-center gap-1.5"
+            className="glass-pill rounded-full px-3.5 py-2 text-xs text-sky-300 hover:text-sky-200 hover:bg-sky-500/20 border-sky-500/30 transition-all font-medium flex items-center gap-1.5"
           >
             <Mountain className="w-3.5 h-3.5 text-sky-400" />
             <span>Terrain Explorer</span>
           </Link>
           <Link
             href="/analytics"
-            className="glass-pill rounded-full px-4 py-2 text-xs text-emerald-300 hover:text-emerald-200 hover:bg-emerald-500/20 border-emerald-500/30 transition-all font-medium flex items-center gap-1.5"
+            className="glass-pill rounded-full px-3.5 py-2 text-xs text-emerald-300 hover:text-emerald-200 hover:bg-emerald-500/20 border-emerald-500/30 transition-all font-medium flex items-center gap-1.5"
           >
             <BarChart3 className="w-3.5 h-3.5 text-emerald-400" />
             <span>Analytics</span>
