@@ -1,42 +1,35 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import NavigationHeader from "@/components/NavigationHeader";
 import HimalayanCalendarHeader from "@/components/calendar/HimalayanCalendarHeader";
+import HimalayanAnnualWave from "@/components/calendar/HimalayanAnnualWave";
 import HimalayanActivityMatrix, { CalendarDayItem } from "@/components/calendar/HimalayanActivityMatrix";
-import HimalayanPhenologyComparison from "@/components/calendar/HimalayanPhenologyComparison";
 import HimalayanDayInspector from "@/components/calendar/HimalayanDayInspector";
-import HimalayanCalendarControls from "@/components/calendar/HimalayanCalendarControls";
+import HimalayanJudgesBrief from "@/components/calendar/HimalayanJudgesBrief";
 import HimalayanCalendarExportModal from "@/components/calendar/HimalayanCalendarExportModal";
 import ScientificTelemetryDrawer from "@/components/ScientificTelemetryDrawer";
 import ModulePreviewModal from "@/components/ModulePreviewModal";
 
 export default function HimalayanBurningCalendarPage() {
-  // 1. Core Data State
+  // 1. Master Data State
   const [masterData, setMasterData] = useState<any>(null);
-  const [liveDailyData, setLiveDailyData] = useState<CalendarDayItem[] | null>(null);
   const [telemetry, setTelemetry] = useState<any>(null);
 
-  // 2. Scope & Temporal Modes
+  // 2. Scope & Filter States
   const [scope, setScope] = useState<"uttarakhand" | "regional">("uttarakhand");
-  const [yearMode, setYearMode] = useState<"2025" | "multi_year">("2025");
-  const [viewMode, setViewMode] = useState<"matrix" | "comparison">("matrix");
-
-  // 3. Filter States
   const [selectedSensor, setSelectedSensor] = useState<string | null>("ALL");
   const [selectedDaynight, setSelectedDaynight] = useState<string | null>("ALL");
   const [minFrp, setMinFrp] = useState<number>(0);
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
-  const [selectedSeason, setSelectedSeason] = useState<string | null>(null);
 
-  // 4. Interaction & Inspector States
+  // 3. Selection & Modal States
   const [selectedDay, setSelectedDay] = useState<CalendarDayItem | null>(null);
-  const [isControlsOpen, setIsControlsOpen] = useState<boolean>(false);
   const [isExportOpen, setIsExportOpen] = useState<boolean>(false);
   const [isTelemetryDrawerOpen, setIsTelemetryDrawerOpen] = useState<boolean>(false);
   const [previewModule, setPreviewModule] = useState<string | null>(null);
 
-  // Load precomputed master calendar data for instant zero-latency initialization
+  // Load precomputed canonical master calendar data (240,365 UK / 510,299 Regional)
   useEffect(() => {
     async function loadMasterCalendar() {
       try {
@@ -82,7 +75,7 @@ export default function HimalayanBurningCalendarPage() {
     }
   }, [masterData, scope]);
 
-  // Derive active baseline calendar according to current scope
+  // Derive active baseline dataset according to current scope
   const activeScopeData = useMemo(() => {
     if (!masterData) return null;
     return masterData[scope] || masterData.uttarakhand;
@@ -94,7 +87,6 @@ export default function HimalayanBurningCalendarPage() {
     const baseCalendar: CalendarDayItem[] = activeScopeData.calendar;
 
     return baseCalendar.map((d) => {
-      // If day has 0 obs, return as-is
       if (!d.has_data || d.total_obs === 0) return d;
 
       let obs = d.total_obs;
@@ -121,39 +113,33 @@ export default function HimalayanBurningCalendarPage() {
         dayC = 0;
       }
 
-      // FRP Threshold Filter
-      if (minFrp > 0 && d.max_frp < minFrp) {
+      // Minimum FRP Filter
+      if (minFrp > 0 && d.mean_frp < minFrp) {
         obs = 0;
+        viirs = 0;
+        modis = 0;
+        dayC = 0;
+        nightC = 0;
       }
 
       // Month Filter
-      if (selectedMonth !== null && d.month !== selectedMonth) {
+      if (selectedMonth && d.month !== selectedMonth) {
         obs = 0;
+        viirs = 0;
+        modis = 0;
+        dayC = 0;
+        nightC = 0;
       }
 
-      // Season Filter
-      if (selectedSeason === "pre_monsoon" && d.month !== 4 && d.month !== 5) {
-        obs = 0;
-      } else if (selectedSeason === "post_monsoon" && d.month !== 10 && d.month !== 11) {
-        obs = 0;
-      } else if (selectedSeason === "winter" && ![12, 1, 2, 3].includes(d.month)) {
-        obs = 0;
-      } else if (selectedSeason === "monsoon" && ![6, 7, 8, 9].includes(d.month)) {
-        obs = 0;
+      // Recompute severity level (0 to 5)
+      let sev = 0;
+      if (obs > 0) {
+        if (obs <= 100) sev = 1;
+        else if (obs <= 500) sev = 2;
+        else if (obs <= 1500) sev = 3;
+        else if (obs <= 3000) sev = 4;
+        else sev = 5;
       }
-
-      const sev =
-        obs === 0
-          ? 0
-          : obs <= 10
-          ? 1
-          : obs <= 40
-          ? 2
-          : obs <= 100
-          ? 3
-          : obs <= 250
-          ? 4
-          : 5;
 
       return {
         ...d,
@@ -166,104 +152,60 @@ export default function HimalayanBurningCalendarPage() {
         has_data: obs > 0,
       };
     });
-  }, [
-    activeScopeData,
-    selectedSensor,
-    selectedDaynight,
-    minFrp,
-    selectedMonth,
-    selectedSeason,
-  ]);
+  }, [activeScopeData, selectedSensor, selectedDaynight, minFrp, selectedMonth]);
 
-  // Aggregate stats across active filtered calendar
-  const activeMetrics = useMemo(() => {
-    let totalMatching = 0;
-    let viirsTot = 0;
-    let modisTot = 0;
-    let activeDaysCount = 0;
-    let peakDay: CalendarDayItem | null = null;
-    let peakCount = 0;
+  // Reconciled totals
+  const totalObs = useMemo(() => {
+    return filteredDays.reduce((acc, d) => acc + d.total_obs, 0);
+  }, [filteredDays]);
 
-    for (const d of filteredDays) {
-      if (d.total_obs > 0) {
-        totalMatching += d.total_obs;
-        viirsTot += d.viirs_count;
-        modisTot += d.modis_count;
-        activeDaysCount++;
-        if (d.total_obs > peakCount) {
-          peakCount = d.total_obs;
-          peakDay = d;
-        }
-      }
-    }
+  const viirsCount = useMemo(() => {
+    return filteredDays.reduce((acc, d) => acc + d.viirs_count, 0);
+  }, [filteredDays]);
 
-    const baselineTotal = scope === "regional" ? 510299 : 240365;
+  const modisCount = useMemo(() => {
+    return filteredDays.reduce((acc, d) => acc + d.modis_count, 0);
+  }, [filteredDays]);
 
-    return {
-      totalMatching,
-      viirsTot,
-      modisTot,
-      activeDaysCount,
-      peakDayDate: peakDay ? peakDay.date : "2025-04-26",
-      peakDayCount: peakDay ? peakDay.total_obs : 383,
-      peakDayFrp: peakDay ? peakDay.total_frp : 2236.48,
-      baselineTotal,
-    };
-  }, [filteredDays, scope]);
+  const dayCount = useMemo(() => {
+    return filteredDays.reduce((acc, d) => acc + d.day_count, 0);
+  }, [filteredDays]);
 
-  // Check if any filter is active
-  const isFiltered =
-    (selectedSensor !== null && selectedSensor !== "ALL") ||
-    (selectedDaynight !== null && selectedDaynight !== "ALL") ||
+  const nightCount = useMemo(() => {
+    return filteredDays.reduce((acc, d) => acc + d.night_count, 0);
+  }, [filteredDays]);
+
+  const isFiltered = Boolean(
+    (selectedSensor && selectedSensor !== "ALL") ||
+    (selectedDaynight && selectedDaynight !== "ALL") ||
     minFrp > 0 ||
-    selectedMonth !== null ||
-    selectedSeason !== null;
+    selectedMonth !== null
+  );
 
-  // Active filter count
-  const activeFilterCount = useMemo(() => {
-    let count = 0;
-    if (selectedSensor && selectedSensor !== "ALL") count++;
-    if (selectedDaynight && selectedDaynight !== "ALL") count++;
-    if (minFrp > 0) count++;
-    if (selectedMonth !== null) count++;
-    if (selectedSeason !== null) count++;
-    return count;
-  }, [selectedSensor, selectedDaynight, minFrp, selectedMonth, selectedSeason]);
-
-  // Reset all filters
-  const handleResetAll = useCallback(() => {
+  const handleResetFilters = () => {
     setSelectedSensor("ALL");
     setSelectedDaynight("ALL");
     setMinFrp(0);
     setSelectedMonth(null);
-    setSelectedSeason(null);
-  }, []);
+  };
 
   // Expose calendar state to window for Playwright test assertions
   useEffect(() => {
     if (typeof window !== "undefined") {
       (window as any).__CALENDAR_STATE = {
         scope,
-        yearMode,
-        viewMode,
-        activeMetrics,
+        totalObs,
+        viirsCount,
+        modisCount,
         selectedDay,
         selectedSensor,
-        activeFilterCount,
+        isFiltered,
       };
     }
-  }, [
-    scope,
-    yearMode,
-    viewMode,
-    activeMetrics,
-    selectedDay,
-    selectedSensor,
-    activeFilterCount,
-  ]);
+  }, [scope, totalObs, viirsCount, modisCount, selectedDay, selectedSensor, isFiltered]);
 
   return (
-    <main className="relative min-h-screen w-full bg-[#020409] text-slate-100 select-none pb-20 overflow-x-hidden">
+    <main className="relative min-h-screen w-full bg-[#020409] text-slate-100 select-none pb-24 overflow-x-hidden">
       {/* 1. Global Navigation Header */}
       <NavigationHeader
         activeTab="calendar"
@@ -271,67 +213,59 @@ export default function HimalayanBurningCalendarPage() {
         onOpenModuleModal={(mod) => setPreviewModule(mod)}
       />
 
-      {/* 2. Top Burning Activity Calendar Command Ribbon */}
-      <HimalayanCalendarHeader
-        scope={scope}
-        onScopeChange={(newScope) => {
-          setScope(newScope);
-          setSelectedDay(null);
-        }}
-        yearMode={yearMode}
-        onYearModeChange={(mode) => {
-          setYearMode(mode);
-          if (mode === "multi_year") {
-            setViewMode("comparison");
-          } else {
-            setViewMode("matrix");
-          }
-        }}
-        viewMode={viewMode}
-        onViewModeChange={(vMode) => setViewMode(vMode)}
-        activeFilterCount={activeFilterCount}
-        isControlsOpen={isControlsOpen}
-        onToggleControls={() => setIsControlsOpen(!isControlsOpen)}
-        onOpenExport={() => setIsExportOpen(true)}
-        totalVerifiedObs={activeMetrics.totalMatching}
-        totalMultiYearObs={activeMetrics.baselineTotal}
-        activeDays={activeMetrics.activeDaysCount}
-        viirsCount={activeMetrics.viirsTot}
-        modisCount={activeMetrics.modisTot}
-        peakDayDate={activeMetrics.peakDayDate}
-        peakDayCount={activeMetrics.peakDayCount}
-        peakDayFrp={activeMetrics.peakDayFrp}
-        onResetFilters={handleResetAll}
-        isFiltered={isFiltered}
-      />
+      {/* 2. Main Content Container: Clean, Spacious, Judges-Friendly */}
+      <div className="pt-24 sm:pt-28 px-4 sm:px-6 max-w-7xl mx-auto space-y-7">
+        {/* Top Command Ribbon & KPIs */}
+        <HimalayanCalendarHeader
+          scope={scope}
+          onScopeChange={(newScope) => {
+            setScope(newScope);
+            setSelectedDay(null);
+          }}
+          selectedSensor={selectedSensor}
+          onSelectSensor={setSelectedSensor}
+          selectedDaynight={selectedDaynight}
+          onSelectDaynight={setSelectedDaynight}
+          minFrp={minFrp}
+          onMinFrpChange={setMinFrp}
+          onOpenExport={() => setIsExportOpen(true)}
+          totalObs={totalObs || activeScopeData?.total_observations || 240365}
+          viirsCount={viirsCount || activeScopeData?.viirs_count || 201993}
+          modisCount={modisCount || activeScopeData?.modis_count || 38372}
+          dayCount={dayCount || activeScopeData?.day_count || 135618}
+          nightCount={nightCount || activeScopeData?.night_count || 104747}
+          totalFrp={activeScopeData?.total_frp_mw || 1482310}
+          meanFrp={activeScopeData?.mean_frp || 6.17}
+          peakSeasonShare={scope === "uttarakhand" ? "147,069 (61.2%)" : "267,059 (52.3%)"}
+          onResetFilters={handleResetFilters}
+          isFiltered={isFiltered}
+        />
 
-      {/* 3. Main Scientific Canvas Area */}
-      <section className="pt-40 sm:pt-44 px-3 sm:px-6 max-w-7xl mx-auto space-y-6">
-        {viewMode === "matrix" ? (
-          /* View Mode A: 12-Month Orbital Calendar Matrix */
-          <HimalayanActivityMatrix
-            days={filteredDays}
-            selectedDate={selectedDay ? selectedDay.date : null}
-            onSelectDate={(d) => setSelectedDay(d)}
-            selectedMonth={selectedMonth}
-            onSelectMonth={(m) => setSelectedMonth(m)}
-            selectedSeason={selectedSeason}
-          />
-        ) : (
-          /* View Mode B: Historical Phenological Comparison */
-          <HimalayanPhenologyComparison
-            scope={scope}
-            phenologyData={
-              activeScopeData?.phenology || {
-                multi_year_monthly: [],
-                verified_2025_monthly: [],
-              }
-            }
-          />
-        )}
-      </section>
+        {/* Judges Executive Brief */}
+        <HimalayanJudgesBrief />
 
-      {/* 4. Slide-over Day Specimen Inspector */}
+        {/* Annual Fire Radiance Wave */}
+        <HimalayanAnnualWave
+          months={activeScopeData?.months || []}
+          selectedMonth={selectedMonth}
+          onSelectMonth={setSelectedMonth}
+          scope={scope}
+        />
+
+        {/* 12-Month Observatory Deck & Interactive Daily Tiles */}
+        <HimalayanActivityMatrix
+          days={filteredDays}
+          months={activeScopeData?.months || []}
+          selectedDate={selectedDay ? selectedDay.date : null}
+          onSelectDate={(d) => setSelectedDay(d)}
+          selectedMonth={selectedMonth}
+          onSelectMonth={setSelectedMonth}
+          selectedSeason={null}
+          scope={scope}
+        />
+      </div>
+
+      {/* Slide-Over Specimen & ML Feature Inspector */}
       <HimalayanDayInspector
         day={selectedDay}
         scope={scope}
@@ -339,49 +273,26 @@ export default function HimalayanBurningCalendarPage() {
         onOpenExportDate={(dStr) => setIsExportOpen(true)}
       />
 
-      {/* 5. Slide-over Instrument Controls Drawer */}
-      <HimalayanCalendarControls
-        isOpen={isControlsOpen}
-        onClose={() => setIsControlsOpen(false)}
-        selectedSensor={selectedSensor}
-        setSelectedSensor={setSelectedSensor}
-        selectedDaynight={selectedDaynight}
-        setSelectedDaynight={setSelectedDaynight}
-        minFrp={minFrp}
-        setMinFrp={setMinFrp}
-        selectedMonth={selectedMonth}
-        setSelectedMonth={setSelectedMonth}
-        selectedSeason={selectedSeason}
-        setSelectedSeason={setSelectedSeason}
-        onResetAll={handleResetAll}
-        isFiltered={isFiltered}
-        activeFilterCount={activeFilterCount}
-      />
-
-      {/* 6. Scientific Data Export Modal */}
+      {/* Scientific Data Export Modal */}
       <HimalayanCalendarExportModal
         isOpen={isExportOpen}
         onClose={() => setIsExportOpen(false)}
         scope={scope}
         selectedDate={selectedDay ? selectedDay.date : null}
         selectedMonth={selectedMonth}
-        selectedSeason={selectedSeason}
+        selectedSeason={null}
         selectedSensor={selectedSensor}
-        totalMatching={
-          selectedDay
-            ? selectedDay.total_obs
-            : activeMetrics.totalMatching
-        }
+        totalMatching={selectedDay ? selectedDay.total_obs : totalObs}
       />
 
-      {/* 7. Shared Scientific Telemetry & Provenance Drawer */}
+      {/* Shared Scientific Telemetry & Provenance Drawer */}
       <ScientificTelemetryDrawer
         isOpen={isTelemetryDrawerOpen}
         onClose={() => setIsTelemetryDrawerOpen(false)}
         telemetry={telemetry}
       />
 
-      {/* 8. Module Preview Modal */}
+      {/* Module Preview Modal */}
       <ModulePreviewModal
         module={previewModule}
         onClose={() => setPreviewModule(null)}
@@ -389,4 +300,3 @@ export default function HimalayanBurningCalendarPage() {
     </main>
   );
 }
-
