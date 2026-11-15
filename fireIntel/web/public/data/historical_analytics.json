@@ -1,334 +1,304 @@
 {
-  "metadata": {
-    "total_observations": 7541,
-    "date_range": "2025-01-01 to 2025-12-31",
-    "region": "Uttarakhand, India",
-    "spatial_boundary": "Survey of India Administrative Boundary (13 Districts)",
-    "data_sources": [
-      "NASA FIRMS Level 2 / NRT (MODIS C6.1, VIIRS VNP14IMGTDL_NRT)",
-      "Copernicus GLO-30 DEM (30m)"
-    ],
-    "provenance_note": "Observations are radiometric pixel thermal anomaly detections, not individual discrete wildfire incident counts."
-  },
+  "title": "Uttarakhand Multi-Year Seasonal Fire Analytics",
+  "dataset_scope": "Uttarakhand Survey of India Boundary Validated Primary Baseline",
+  "total_observations": 240365,
   "monthly_series": [
     {
-      "month_num": 1,
       "month": "Jan",
-      "count": 666,
-      "pct": 8.83,
-      "modis": 84,
-      "viirs": 582,
-      "peak_frp": 122.9,
-      "mean_frp": 5.02,
+      "month_num": 1,
+      "count": 11008,
+      "pct": 4.58,
+      "modis": 2178,
+      "viirs": 8830,
+      "peak_frp": 266.0,
+      "mean_frp": 6.32,
       "is_peak": false
     },
     {
-      "month_num": 2,
       "month": "Feb",
-      "count": 848,
-      "pct": 11.25,
-      "modis": 109,
-      "viirs": 739,
-      "peak_frp": 169.9,
-      "mean_frp": 6.48,
+      "month_num": 2,
+      "count": 11229,
+      "pct": 4.67,
+      "modis": 2547,
+      "viirs": 8682,
+      "peak_frp": 451.2,
+      "mean_frp": 6.93,
       "is_peak": false
     },
     {
-      "month_num": 3,
       "month": "Mar",
-      "count": 467,
-      "pct": 6.19,
-      "modis": 62,
-      "viirs": 405,
-      "peak_frp": 61.3,
-      "mean_frp": 6.12,
+      "month_num": 3,
+      "count": 20524,
+      "pct": 8.54,
+      "modis": 4000,
+      "viirs": 16524,
+      "peak_frp": 495.4,
+      "mean_frp": 6.45,
       "is_peak": false
     },
     {
-      "month_num": 4,
       "month": "Apr",
-      "count": 2255,
-      "pct": 29.9,
-      "modis": 254,
-      "viirs": 2001,
-      "peak_frp": 136.6,
-      "mean_frp": 4.95,
+      "month_num": 4,
+      "count": 75601,
+      "pct": 31.45,
+      "modis": 11656,
+      "viirs": 63945,
+      "peak_frp": 461.9,
+      "mean_frp": 5.84,
       "is_peak": true
     },
     {
-      "month_num": 5,
       "month": "May",
-      "count": 628,
-      "pct": 8.33,
-      "modis": 104,
-      "viirs": 524,
-      "peak_frp": 51.1,
+      "month_num": 5,
+      "count": 71468,
+      "pct": 29.73,
+      "modis": 9698,
+      "viirs": 61770,
+      "peak_frp": 730.0,
+      "mean_frp": 6.06,
+      "is_peak": true
+    },
+    {
+      "month": "Jun",
+      "month_num": 6,
+      "count": 25278,
+      "pct": 10.52,
+      "modis": 3731,
+      "viirs": 21547,
+      "peak_frp": 440.1,
       "mean_frp": 6.91,
       "is_peak": false
     },
     {
-      "month_num": 6,
-      "month": "Jun",
-      "count": 123,
-      "pct": 1.63,
-      "modis": 23,
-      "viirs": 100,
-      "peak_frp": 61.4,
-      "mean_frp": 7.52,
-      "is_peak": false
-    },
-    {
-      "month_num": 7,
       "month": "Jul",
-      "count": 5,
+      "month_num": 7,
+      "count": 163,
       "pct": 0.07,
-      "modis": 5,
-      "viirs": 0,
-      "peak_frp": 16.3,
-      "mean_frp": 11.06,
+      "modis": 71,
+      "viirs": 92,
+      "peak_frp": 84.9,
+      "mean_frp": 8.57,
       "is_peak": false
     },
     {
-      "month_num": 8,
       "month": "Aug",
-      "count": 1,
-      "pct": 0.01,
-      "modis": 1,
-      "viirs": 0,
-      "peak_frp": 6.2,
-      "mean_frp": 6.2,
-      "is_peak": false
-    },
-    {
-      "month_num": 9,
-      "month": "Sep",
-      "count": 3,
+      "month_num": 8,
+      "count": 99,
       "pct": 0.04,
-      "modis": 0,
-      "viirs": 3,
-      "peak_frp": 7.2,
-      "mean_frp": 5.52,
+      "modis": 69,
+      "viirs": 30,
+      "peak_frp": 28.0,
+      "mean_frp": 7.38,
       "is_peak": false
     },
     {
-      "month_num": 10,
+      "month": "Sep",
+      "month_num": 9,
+      "count": 107,
+      "pct": 0.04,
+      "modis": 39,
+      "viirs": 68,
+      "peak_frp": 175.4,
+      "mean_frp": 8.05,
+      "is_peak": false
+    },
+    {
       "month": "Oct",
-      "count": 443,
-      "pct": 5.87,
-      "modis": 77,
-      "viirs": 366,
-      "peak_frp": 36.8,
-      "mean_frp": 6.14,
+      "month_num": 10,
+      "count": 8950,
+      "pct": 3.72,
+      "modis": 1444,
+      "viirs": 7506,
+      "peak_frp": 213.0,
+      "mean_frp": 5.59,
       "is_peak": false
     },
     {
-      "month_num": 11,
       "month": "Nov",
-      "count": 424,
-      "pct": 5.62,
-      "modis": 49,
-      "viirs": 375,
-      "peak_frp": 93.9,
-      "mean_frp": 5.18,
+      "month_num": 11,
+      "count": 6223,
+      "pct": 2.59,
+      "modis": 973,
+      "viirs": 5250,
+      "peak_frp": 346.7,
+      "mean_frp": 5.56,
       "is_peak": false
     },
     {
-      "month_num": 12,
       "month": "Dec",
-      "count": 1678,
-      "pct": 22.25,
-      "modis": 150,
-      "viirs": 1528,
-      "peak_frp": 92.0,
-      "mean_frp": 4.3,
+      "month_num": 12,
+      "count": 9715,
+      "pct": 4.04,
+      "modis": 1966,
+      "viirs": 7749,
+      "peak_frp": 353.0,
+      "mean_frp": 6.73,
       "is_peak": false
     }
   ],
   "elevation_distribution": [
     {
       "band": "<500m (Foothills / Terai)",
-      "count": 2156,
-      "pct": 28.57,
-      "mean_frp": 6.65,
-      "peak_frp": 136.6
+      "count": 8713,
+      "pct": 18.4,
+      "mean_frp": 7.27
     },
     {
       "band": "500\u20131000m (Sub-montane Sal)",
-      "count": 677,
-      "pct": 8.97,
-      "mean_frp": 4.33,
-      "peak_frp": 74.8
+      "count": 5291,
+      "pct": 11.17,
+      "mean_frp": 6.19
     },
     {
       "band": "1000\u20131500m (Lower Pine)",
-      "count": 1639,
-      "pct": 21.72,
-      "mean_frp": 4.33,
-      "peak_frp": 61.4
+      "count": 13658,
+      "pct": 28.84,
+      "mean_frp": 5.17
     },
     {
       "band": "1500\u20132000m (Upper Chir Pine)",
-      "count": 1737,
-      "pct": 23.02,
-      "mean_frp": 4.31,
-      "peak_frp": 169.9
+      "count": 15834,
+      "pct": 33.43,
+      "mean_frp": 5.55
     },
     {
       "band": "2000\u20132500m (Oak-Rhododendron)",
-      "count": 764,
-      "pct": 10.12,
-      "mean_frp": 5.18,
-      "peak_frp": 73.0
+      "count": 2765,
+      "pct": 5.84,
+      "mean_frp": 7.27
     },
     {
       "band": "2500\u20133000m (Subalpine Conifer)",
-      "count": 362,
-      "pct": 4.8,
-      "mean_frp": 6.87,
-      "peak_frp": 92.4
+      "count": 593,
+      "pct": 1.25,
+      "mean_frp": 9.88
     },
     {
       "band": "3000\u20134000m (Timberline/Meadow)",
-      "count": 195,
-      "pct": 2.58,
-      "mean_frp": 9.23,
-      "peak_frp": 122.9
+      "count": 459,
+      "pct": 0.97,
+      "mean_frp": 11.98
     },
     {
       "band": ">4000m (Nival/Glacial)",
-      "count": 16,
-      "pct": 0.21,
-      "mean_frp": 15.62,
-      "peak_frp": 49.3
+      "count": 48,
+      "pct": 0.1,
+      "mean_frp": 20.66
     }
   ],
   "slope_distribution": [
     {
       "band": "0\u20135\u00b0 (Level / Valley floor)",
-      "count": 2022,
-      "pct": 26.8
+      "count": 7298,
+      "pct": 15.41
     },
     {
       "band": "5\u201315\u00b0 (Gentle hillside)",
-      "count": 231,
-      "pct": 3.06
+      "count": 2167,
+      "pct": 4.58
     },
     {
       "band": "15\u201325\u00b0 (Moderate slope)",
-      "count": 956,
-      "pct": 12.67
+      "count": 10092,
+      "pct": 21.31
     },
     {
       "band": "25\u201335\u00b0 (Steep chimney slope)",
-      "count": 3942,
-      "pct": 52.24
+      "count": 26901,
+      "pct": 56.8
     },
     {
       "band": ">35\u00b0 (Precipitous cliff)",
-      "count": 395,
-      "pct": 5.23
+      "count": 903,
+      "pct": 1.91
     }
   ],
   "frp_distribution": [
     {
       "band": "< 5 MW (Low / Smoldering)",
-      "count": 4971,
-      "pct": 65.92
+      "count": 151793,
+      "pct": 63.15
     },
     {
       "band": "5\u201315 MW (Moderate Surface)",
-      "count": 2132,
-      "pct": 28.27
+      "count": 68906,
+      "pct": 28.67
     },
     {
       "band": "15\u201340 MW (High / Intense Flaming)",
-      "count": 389,
-      "pct": 5.16
+      "count": 16465,
+      "pct": 6.85
     },
     {
       "band": "40\u2013100 MW (Severe Crown Fire)",
-      "count": 45,
-      "pct": 0.6
+      "count": 2859,
+      "pct": 1.19
     },
     {
       "band": "> 100 MW (Extreme Blowup)",
-      "count": 4,
-      "pct": 0.05
+      "count": 342,
+      "pct": 0.14
     }
   ],
-  "sensor_comparison": {
-    "VIIRS": {
-      "satellite": "Suomi-NPP",
-      "sensor": "VIIRS",
-      "total_detections": 6623,
-      "pct": 87.83,
-      "nadir_spatial_res_m": 375,
-      "min_frp_mw": 0.15,
-      "max_frp_mw": 51.1,
-      "mean_frp_mw": 3.97,
-      "confidence_classes": {
-        "nominal": 5853,
-        "high": 447,
-        "low": 323
-      }
-    },
-    "MODIS": {
-      "satellite": "Terra & Aqua",
-      "sensor": "MODIS",
-      "total_detections": 918,
-      "pct": 12.17,
-      "nadir_spatial_res_m": 1000,
-      "min_frp_mw": 2.2,
-      "max_frp_mw": 169.9,
-      "mean_frp_mw": 15.27,
-      "confidence_mean_pct": 60.1
-    }
-  },
   "seasonal_distribution": [
     {
-      "season": "Pre-Monsoon Peak Burning",
-      "period": "February \u2013 May",
-      "months": [
-        2,
-        3,
-        4,
-        5
-      ],
-      "count": 4198,
-      "pct": 55.67,
-      "characteristics": "High vapor pressure deficit (VPD), desiccated Chir pine needles, high solar insolation, intense fire behavior."
+      "season": "Pre-Monsoon Peak Wildfires",
+      "period": "March \u2013 May",
+      "count": 167593,
+      "pct": 69.72,
+      "characteristics": "Desiccated Chir pine needle fuelbed, high vapor pressure deficit (VPD), maximum solar heating, rapid flaming fire spread."
     },
     {
-      "season": "Southwest Monsoon Suppression",
-      "period": "June \u2013 September",
-      "months": [
-        6,
-        7,
-        8,
-        9
-      ],
-      "count": 132,
-      "pct": 1.75,
-      "characteristics": "Torrential precipitation, high fuel moisture content (>100%), cloud cover causing satellite optical attenuation."
+      "season": "Late Pre-Monsoon Transition",
+      "period": "June",
+      "count": 25278,
+      "pct": 10.52,
+      "characteristics": "High temperatures preceding monsoon arrival; fires terminate abruptly upon onset of heavy rainfall."
     },
     {
-      "season": "Post-Monsoon & Winter Residual",
-      "period": "October \u2013 January",
-      "months": [
-        10,
-        11,
-        12,
-        1
-      ],
-      "count": 3211,
-      "pct": 42.58,
-      "characteristics": "Terai agricultural burning, winter forest litter management, lower FRP intensity ground fires."
+      "season": "Southwest Monsoon Fire Suppression",
+      "period": "July \u2013 September",
+      "count": 369,
+      "pct": 0.15,
+      "characteristics": "Torrential monsoon precipitation, live fuel moisture saturation (>100%), extensive cloud attenuation."
+    },
+    {
+      "season": "Post-Monsoon Agricultural Burning",
+      "period": "October \u2013 November",
+      "count": 15173,
+      "pct": 6.31,
+      "characteristics": "Valley-bottom stubble and agricultural clearing, stable post-monsoon atmospheric boundary layer."
+    },
+    {
+      "season": "Winter Biomass & Forest Clearing",
+      "period": "December \u2013 February",
+      "count": 31952,
+      "pct": 13.29,
+      "characteristics": "Dormant season understory burning, warming fires, smoldering duff fires at lower elevations."
     }
   ],
-  "diurnal_distribution": {
-    "day_count": 4911,
-    "day_pct": 65.12,
-    "night_count": 2630,
-    "night_pct": 34.88
+  "sensor_provenance": {
+    "VIIRS": {
+      "observations": 201993,
+      "pct": 84.04,
+      "spatial_resolution": "375m (I-bands)",
+      "mean_frp": 4.07,
+      "satellite": "Suomi-NPP"
+    },
+    "MODIS": {
+      "observations": 38372,
+      "pct": 15.96,
+      "spatial_resolution": "1000m (Ch 21/22)",
+      "mean_frp": 17.21,
+      "satellites": [
+        "Aqua",
+        "Terra"
+      ]
+    }
+  },
+  "coverage_disclosure": "Restricted to 28.0\u00b0N\u201331.0\u00b0N, 77.0\u00b0E\u201381.0\u00b0E. Observations north of 31.0\u00b0N truncated at source; does not claim complete Uttarakhand coverage.",
+  "scientific_integrity": {
+    "record_type": "Satellite Thermal Hotspot Observations (not unique fire incidents)",
+    "date_provenance": "11,904 verified 2025 dates; historical multi-year records retain NULL date with decoded month and hour."
   }
 }

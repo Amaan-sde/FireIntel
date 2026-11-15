@@ -36,6 +36,7 @@ import {
   Info,
   Layers,
   Sparkles,
+  Globe2,
 } from "lucide-react";
 
 interface SummaryData {
@@ -67,9 +68,15 @@ interface ObservationRecord {
   bright_t31: number | null;
   scan: number;
   track: number;
-  acq_date: string;
-  acq_time: string;
-  acq_datetime: string;
+  acq_date: string | null;
+  acq_time: string | null;
+  acq_datetime: string | null;
+  date_verified_2025?: boolean;
+  decoded_month: number;
+  decoded_hour: number;
+  season?: string;
+  in_uttarakhand?: boolean;
+  coverage_note?: string;
   satellite: string;
   instrument: string;
   sensor: string;
@@ -82,17 +89,32 @@ interface ObservationRecord {
   version: string;
 }
 
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+];
+
 export default function DataExplorerPage() {
   // Navigation & Drawer states
   const [isTelemetryDrawerOpen, setIsTelemetryDrawerOpen] = useState(false);
   const [telemetry, setTelemetry] = useState<any>(null);
 
+  // Scope State: "uttarakhand" (240,365) vs "regional" (510,299)
+  const [scope, setScope] = useState<"uttarakhand" | "regional">("uttarakhand");
+
   // Filter States
   const [selectedSensor, setSelectedSensor] = useState<string>("ALL");
   const [selectedSatellite, setSelectedSatellite] = useState<string>("ALL");
   const [selectedDaynight, setSelectedDaynight] = useState<string>("ALL");
-  const [startDate, setStartDate] = useState<string>("2025-01-01");
-  const [endDate, setEndDate] = useState<string>("2025-12-31");
+  const [selectedMonth, setSelectedMonth] = useState<string>("ALL");
+  const [selectedSeason, setSelectedSeason] = useState<string>("ALL");
+  const [selectedHotspotType, setSelectedHotspotType] = useState<string>("ALL");
+
+  // Temporal Filter Mode: "all" (unconstrained / month based) vs "verified_2025" (specific 2025 date range)
+  const [temporalMode, setTemporalMode] = useState<"all" | "verified_2025">("all");
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
+
   const [minFrp, setMinFrp] = useState<string>("");
   const [maxFrp, setMaxFrp] = useState<string>("");
   const [viirsConfLow, setViirsConfLow] = useState<boolean>(true);
@@ -136,11 +158,22 @@ export default function DataExplorerPage() {
   const buildQueryParams = useCallback(() => {
     const params = new URLSearchParams();
 
+    params.append("scope", scope);
+
     if (selectedSensor !== "ALL") params.append("sensor", selectedSensor);
     if (selectedSatellite !== "ALL") params.append("satellite", selectedSatellite);
     if (selectedDaynight !== "ALL") params.append("daynight", selectedDaynight);
-    if (startDate) params.append("start_date", startDate);
-    if (endDate) params.append("end_date", endDate);
+    if (selectedMonth !== "ALL") params.append("month", selectedMonth);
+    if (selectedSeason !== "ALL") params.append("season", selectedSeason);
+    if (selectedHotspotType !== "ALL") params.append("hotspot_type", selectedHotspotType);
+
+    // Temporal Mode handling
+    if (temporalMode === "verified_2025") {
+      params.append("verified_dates_only", "true");
+      if (startDate) params.append("start_date", startDate);
+      if (endDate) params.append("end_date", endDate);
+    }
+
     if (minFrp !== "") params.append("min_frp", minFrp);
     if (maxFrp !== "") params.append("max_frp", maxFrp);
 
@@ -163,9 +196,14 @@ export default function DataExplorerPage() {
 
     return params;
   }, [
+    scope,
     selectedSensor,
     selectedSatellite,
     selectedDaynight,
+    selectedMonth,
+    selectedSeason,
+    selectedHotspotType,
+    temporalMode,
     startDate,
     endDate,
     minFrp,
@@ -246,8 +284,9 @@ export default function DataExplorerPage() {
     setCurrentPage(1);
   };
 
-  // Quick Preset Date Ranges
+  // Quick Preset Date Ranges for Verified 2025 mode
   const handleDatePreset = (preset: "full" | "pre-monsoon" | "post-monsoon" | "winter") => {
+    setTemporalMode("verified_2025");
     setCurrentPage(1);
     switch (preset) {
       case "full":
@@ -274,8 +313,12 @@ export default function DataExplorerPage() {
     setSelectedSensor("ALL");
     setSelectedSatellite("ALL");
     setSelectedDaynight("ALL");
-    setStartDate("2025-01-01");
-    setEndDate("2025-12-31");
+    setSelectedMonth("ALL");
+    setSelectedSeason("ALL");
+    setSelectedHotspotType("ALL");
+    setTemporalMode("all");
+    setStartDate("");
+    setEndDate("");
     setMinFrp("");
     setMaxFrp("");
     setViirsConfLow(true);
@@ -305,7 +348,7 @@ export default function DataExplorerPage() {
       // Read blob and trigger browser download
       const blob = await response.blob();
       const contentDisposition = response.headers.get("Content-Disposition");
-      let filename = `fireintel_uttarakhand_${format}.` + (format === "geojson" ? "geojson" : format);
+      let filename = `fireintel_${scope}_${format}.` + (format === "geojson" ? "geojson" : format);
       if (contentDisposition) {
         const match = contentDisposition.match(/filename="?([^";]+)"?/);
         if (match && match[1]) filename = match[1];
@@ -334,6 +377,8 @@ export default function DataExplorerPage() {
     setTimeout(() => setCopiedCoord(null), 2000);
   };
 
+  const baselineTotal = scope === "regional" ? 510299 : 240365;
+
   return (
     <main className="min-h-screen w-full bg-[#020408] text-white selection:bg-cyan-500/30 selection:text-cyan-200">
       {/* 1. Global Navigation Header */}
@@ -349,15 +394,15 @@ export default function DataExplorerPage() {
             <div className="space-y-1.5">
               <div className="flex items-center gap-2.5 text-xs font-mono-telemetry uppercase text-cyan-400 font-bold tracking-wider">
                 <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-                <span>NASA SPACE APPS 2026 // SATELLITE DATA RESEARCH TERMINAL</span>
+                <span>NASA SPACE APPS 2026 // HARMONISED SCIENTIFIC OBSERVATION EXPLORER</span>
               </div>
               <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white flex items-center gap-3">
                 <Database className="w-8 h-8 text-cyan-400" />
                 <span>NASA FIRMS Observation Explorer</span>
               </h1>
               <p className="text-sm sm:text-base text-slate-300 max-w-3xl leading-relaxed font-light">
-                Empirical active fire radiometric observations for Uttarakhand, India (2025 baseline).
-                Independently inspect, filter with decoupled sensor semantics, and export verified datasets in CSV, JSON, and GeoJSON.
+                Harmonised satellite thermal hotspot observations across Uttarakhand and the surrounding Western Himalayan region.
+                Independently inspect, filter across dual scopes, and export verified datasets in CSV, JSON, and GeoJSON.
               </p>
             </div>
 
@@ -369,31 +414,73 @@ export default function DataExplorerPage() {
               </div>
               <div className="bg-amber-500/10 border border-amber-500/30 rounded-full px-3.5 py-1.5 text-xs font-mono-telemetry text-amber-300 flex items-center gap-2">
                 <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
-                <span>7,541 Boundary Validated Records</span>
+                <span>240,365 Uttarakhand Records</span>
+              </div>
+              <div className="bg-sky-500/10 border border-sky-500/30 rounded-full px-3.5 py-1.5 text-xs font-mono-telemetry text-sky-300 flex items-center gap-2">
+                <Globe2 className="w-3.5 h-3.5 text-sky-400" />
+                <span>510,299 Regional Observations</span>
               </div>
             </div>
           </div>
 
-          {/* Scientific Notice Banner */}
+          {/* Scientific Notice Banner: Geographic Truncation & Semantics */}
           <div className="rounded-2xl p-4 sm:p-5 border border-amber-500/30 bg-amber-950/20 text-xs sm:text-sm text-slate-300 leading-relaxed space-y-2">
             <div className="flex items-center gap-2 text-amber-400 font-semibold uppercase tracking-wider text-xs font-mono-telemetry">
               <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
-              <span>Scientific Remote Sensing Guardrails &amp; Semantics</span>
+              <span>Scientific Remote Sensing Guardrails &amp; Geographic Coverage Disclosure</span>
             </div>
             <p className="font-light">
-              <strong className="text-white font-medium">Observational Unit Semantics:</strong> Each record represents an automated satellite thermal pixel detection (MODIS 1 km, VIIRS 375 m), not a confirmed unique wildfire incident.
-              <strong className="text-white font-medium ml-2">Radiative Energetics:</strong> FRP is instantaneous Fire Radiative Power in Megawatts (MW), not burned area.
-              <strong className="text-white font-medium ml-2">Decoupled Confidence:</strong> MODIS confidence is continuous (0–100%), whereas VIIRS confidence is categorical (low/nominal/high) — they are mathematically distinct and never merged.
+              <strong className="text-white font-medium">Geographic Bounding Box:</strong> The source dataset is strictly clipped to [28.0°N–31.0°N, 77.0°E–81.0°E]. Alpine zones of Uttarakhand north of 31.0°N (including high-altitude parts of Chamoli and Uttarkashi up to 31.456°N) were truncated at source. Complete Uttarakhand coverage is not claimed.
+              <strong className="text-white font-medium ml-2">Thermal Hotspot Semantics:</strong> Each observation represents a satellite thermal anomaly pixel (MODIS 1 km, VIIRS 375 m), not an individual confirmed fire incident.
+              <strong className="text-white font-medium ml-2">Temporal Date Recovery:</strong> Exact acquisition timestamps are preserved strictly for verified 2025 FIRMS matches (11,904 records). Multi-year historical records preserve decoded seasonal month and hour with acquisition dates intentionally left NULL to maintain rigorous scientific integrity without fabricated years.
             </p>
           </div>
         </section>
 
-        {/* 3. Live Filter Summary HUD Cards */}
+        {/* 3. Scope Switcher & Live Filter Summary HUD Cards */}
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          {/* Scope Selector Pills */}
+          <div className="flex items-center p-1 bg-black/60 rounded-2xl border border-white/10 backdrop-blur-md">
+            <button
+              onClick={() => {
+                setScope("uttarakhand");
+                setCurrentPage(1);
+              }}
+              className={`px-4 py-2 rounded-xl text-xs font-mono-telemetry font-bold transition-all flex items-center gap-2 cursor-pointer ${
+                scope === "uttarakhand"
+                  ? "bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-lg"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
+              <span>Uttarakhand Primary (240,365 obs)</span>
+            </button>
+            <button
+              onClick={() => {
+                setScope("regional");
+                setCurrentPage(1);
+              }}
+              className={`px-4 py-2 rounded-xl text-xs font-mono-telemetry font-bold transition-all flex items-center gap-2 cursor-pointer ${
+                scope === "regional"
+                  ? "bg-sky-500/20 text-sky-300 border border-sky-500/40 shadow-lg"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              <Globe2 className="w-3.5 h-3.5 text-sky-400" />
+              <span>Regional Northern India (510,299 obs)</span>
+            </button>
+          </div>
+
+          <div className="text-xs font-mono-telemetry text-slate-400">
+            Active Query Scope: <span className="text-white font-bold uppercase">{scope}</span> • In-Memory Snappy Parquet
+          </div>
+        </div>
+
         <section aria-label="Filtered Data Summary" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Card 1: Total Observations */}
           <div className="bg-[#040810]/85 backdrop-blur-xl rounded-2xl p-5 border border-white/[0.08] shadow-lg space-y-2">
             <div className="flex items-center justify-between text-xs font-mono-telemetry text-slate-400">
-              <span className="uppercase">Matching Detections</span>
+              <span className="uppercase">Matching Observations</span>
               <Flame className="w-4 h-4 text-amber-400" />
             </div>
             <div className="text-3xl font-extrabold text-white font-mono-telemetry">
@@ -404,9 +491,9 @@ export default function DataExplorerPage() {
               )}
             </div>
             <div className="text-xs text-slate-400 flex items-center justify-between">
-              <span>of 7,541 total</span>
+              <span>of {baselineTotal.toLocaleString()} {scope}</span>
               <span className="text-cyan-400 font-mono-telemetry">
-                {summary ? ((summary.total_matching / 7541) * 100).toFixed(1) : 0}% of baseline
+                {summary ? ((summary.total_matching / baselineTotal) * 100).toFixed(1) : 0}% of scope
               </span>
             </div>
           </div>
@@ -465,32 +552,34 @@ export default function DataExplorerPage() {
             <div className="flex items-center gap-3 text-xs font-mono-telemetry pt-1">
               <div className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-amber-500/10 border border-amber-500/20 text-amber-300">
                 <Sun className="w-3.5 h-3.5 text-amber-400" />
-                <span>Day: {summary?.day_count ?? 0}</span>
+                <span>Day: {summary?.day_count.toLocaleString() ?? 0}</span>
               </div>
               <div className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-indigo-500/10 border border-indigo-500/20 text-indigo-300">
                 <Moon className="w-3.5 h-3.5 text-indigo-400" />
-                <span>Night: {summary?.night_count ?? 0}</span>
+                <span>Night: {summary?.night_count.toLocaleString() ?? 0}</span>
               </div>
             </div>
             <div className="text-[11px] text-slate-400 font-mono-telemetry truncate">
-              {summary?.date_range.start} → {summary?.date_range.end}
+              {temporalMode === "verified_2025" && startDate && endDate
+                ? `${startDate} → ${endDate} (2025 Verified)`
+                : `Harmonised All Seasons (Decoded Months 1–12)`}
             </div>
           </div>
         </section>
 
-        {/* 4. Interactive Filter Panel */}
+        {/* 4. Interactive Multi-Dimensional Filter Panel */}
         <section aria-label="Data Filter Controls" className="bg-[#040810]/85 backdrop-blur-xl rounded-3xl p-6 border border-cyan-500/20 shadow-xl space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-4">
             <div className="flex items-center gap-2 text-sm font-semibold text-white uppercase tracking-wider font-mono-telemetry">
               <Filter className="w-4 h-4 text-cyan-400" />
-              <span>Multi-Dimensional Telemetry Filters</span>
+              <span>Multi-Dimensional Telemetry &amp; Seasonal Filters</span>
             </div>
 
             <div className="flex items-center gap-3">
               <button
                 onClick={handleResetFilters}
                 className="px-3.5 py-1.5 rounded-full text-xs font-mono-telemetry text-slate-300 hover:text-white hover:bg-white/10 border border-white/10 transition-all flex items-center gap-1.5 cursor-pointer"
-                title="Reset all filters to full 2025 baseline"
+                title="Reset all filters to baseline"
               >
                 <RefreshCw className="w-3 h-3 text-slate-400" />
                 <span>Reset Filters</span>
@@ -498,7 +587,7 @@ export default function DataExplorerPage() {
             </div>
           </div>
 
-          {/* Filter Rows */}
+          {/* Row 1: Sensors, Diurnal, Month, Season, Hotspot Type */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Filter 1: Sensor & Platform */}
             <div className="space-y-2">
@@ -520,36 +609,93 @@ export default function DataExplorerPage() {
               </select>
 
               <div className="text-[11px] text-slate-500 font-mono-telemetry">
-                MODIS: 918 records • VIIRS: 6,623 records
+                {scope === "uttarakhand"
+                  ? "MODIS: 38,372 • VIIRS: 201,993"
+                  : "MODIS: 82,906 • VIIRS: 427,393"}
               </div>
             </div>
 
-            {/* Filter 2: Satellite Platform */}
+            {/* Filter 2: Calendar Month (Decoded) */}
             <div className="space-y-2">
               <label className="text-xs font-mono-telemetry uppercase text-slate-400 flex items-center gap-1.5">
-                <Orbit className="w-3.5 h-3.5 text-cyan-400" />
-                <span>Satellite Platform</span>
+                <Calendar className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Decoded Calendar Month</span>
               </label>
               <select
-                value={selectedSatellite}
+                value={selectedMonth}
                 onChange={(e) => {
-                  setSelectedSatellite(e.target.value);
+                  setSelectedMonth(e.target.value);
                   setCurrentPage(1);
                 }}
                 className="w-full bg-[#03060c] border border-white/15 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500 font-mono-telemetry cursor-pointer"
               >
-                <option value="ALL">All Satellite Platforms</option>
-                <option value="SNPP">Suomi-NPP (VIIRS)</option>
-                <option value="Aqua">Aqua (MODIS PM)</option>
-                <option value="Terra">Terra (MODIS AM)</option>
+                <option value="ALL">All Months (Jan–Dec)</option>
+                {MONTH_NAMES.map((name, idx) => (
+                  <option key={idx + 1} value={String(idx + 1)}>
+                    {name} (Month {idx + 1})
+                  </option>
+                ))}
               </select>
 
               <div className="text-[11px] text-slate-500 font-mono-telemetry">
-                Aqua: 684 • Terra: 234 • SNPP: 6,623
+                Peak Uttarakhand: April (75,601) &amp; May (71,468)
               </div>
             </div>
 
-            {/* Filter 3: Overpass (Day / Night) */}
+            {/* Filter 3: Seasonal Fire Regime */}
+            <div className="space-y-2">
+              <label className="text-xs font-mono-telemetry uppercase text-slate-400 flex items-center gap-1.5">
+                <Mountain className="w-3.5 h-3.5 text-amber-400" />
+                <span>Seasonal Regime</span>
+              </label>
+              <select
+                value={selectedSeason}
+                onChange={(e) => {
+                  setSelectedSeason(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="w-full bg-[#03060c] border border-white/15 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500 font-mono-telemetry cursor-pointer"
+              >
+                <option value="ALL">All Seasonal Regimes</option>
+                <option value="pre_monsoon">Pre-Monsoon Peak (Apr–May)</option>
+                <option value="monsoon">Monsoon Buffer (Jun–Sep)</option>
+                <option value="post_monsoon">Post-Monsoon (Oct–Nov)</option>
+                <option value="winter">Winter Season (Dec–Mar)</option>
+              </select>
+
+              <div className="text-[11px] text-slate-500 font-mono-telemetry">
+                Pre-monsoon accounts for 61.2% of Uttarakhand fires
+              </div>
+            </div>
+
+            {/* Filter 4: Hotspot Type Classification */}
+            <div className="space-y-2">
+              <label className="text-xs font-mono-telemetry uppercase text-slate-400 flex items-center gap-1.5">
+                <Flame className="w-3.5 h-3.5 text-rose-400" />
+                <span>Hotspot Type (FIRMS type)</span>
+              </label>
+              <select
+                value={selectedHotspotType}
+                onChange={(e) => {
+                  setSelectedHotspotType(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="w-full bg-[#03060c] border border-white/15 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500 font-mono-telemetry cursor-pointer"
+              >
+                <option value="ALL">All Hotspot Classes</option>
+                <option value="0">Type 0: Presumed Vegetation Fire</option>
+                <option value="2">Type 2: Other Static Land Source</option>
+              </select>
+
+              <div className="text-[11px] text-slate-500 font-mono-telemetry">
+                Vegetation fires comprise 99.4% of observations
+              </div>
+            </div>
+          </div>
+
+          {/* Row 2: Overpass, FRP Limits, Decoupled Confidence & Temporal Mode */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pt-2 border-t border-white/5">
+            {/* Filter 5: Overpass (Day / Night) */}
             <div className="space-y-2">
               <label className="text-xs font-mono-telemetry uppercase text-slate-400 flex items-center gap-1.5">
                 <Sun className="w-3.5 h-3.5 text-amber-400" />
@@ -569,25 +715,24 @@ export default function DataExplorerPage() {
               </select>
 
               <div className="text-[11px] text-slate-500 font-mono-telemetry">
-                Day: 4,911 • Night: 2,630
+                Solar illumination / thermal emissive mode
               </div>
             </div>
 
-            {/* Filter 4: FRP Thresholds (MW) */}
+            {/* Filter 6: FRP Thresholds (MW) */}
             <div className="space-y-2">
               <label className="text-xs font-mono-telemetry uppercase text-slate-400 flex items-center justify-between">
                 <span className="flex items-center gap-1.5">
                   <Flame className="w-3.5 h-3.5 text-amber-400" />
                   <span>FRP Limits (MW)</span>
                 </span>
-                <span className="text-[11px] text-slate-500">Max 169.9 MW</span>
+                <span className="text-[11px] text-slate-500">Max 2,200+ MW</span>
               </label>
               <div className="grid grid-cols-2 gap-2">
                 <input
                   type="number"
                   min="0"
-                  max="170"
-                  step="0.5"
+                  step="1"
                   placeholder="Min FRP"
                   value={minFrp}
                   onChange={(e) => {
@@ -599,8 +744,7 @@ export default function DataExplorerPage() {
                 <input
                   type="number"
                   min="0"
-                  max="170"
-                  step="0.5"
+                  step="1"
                   placeholder="Max FRP"
                   value={maxFrp}
                   onChange={(e) => {
@@ -611,86 +755,12 @@ export default function DataExplorerPage() {
                 />
               </div>
               <div className="text-[11px] text-slate-500 font-mono-telemetry">
-                Leave blank for unconstrained range
-              </div>
-            </div>
-          </div>
-
-          {/* Row 2: Date Range & Decoupled Confidence */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2 border-t border-white/5">
-            {/* Date Range Selection & Presets */}
-            <div className="space-y-3">
-              <label className="text-xs font-mono-telemetry uppercase text-slate-400 flex items-center justify-between">
-                <span className="flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>Observation Window (2025 Study Period)</span>
-                </span>
-                <span className="text-[11px] text-slate-500">Available: Jan 01 – Dec 31, 2025</span>
-              </label>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <span className="text-[10px] text-slate-500 uppercase font-mono-telemetry">Start Date</span>
-                  <input
-                    type="date"
-                    min="2025-01-01"
-                    max="2025-12-31"
-                    value={startDate}
-                    onChange={(e) => {
-                      setStartDate(e.target.value);
-                      setCurrentPage(1);
-                    }}
-                    className="w-full bg-[#03060c] border border-white/15 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500 font-mono-telemetry mt-1"
-                  />
-                </div>
-                <div>
-                  <span className="text-[10px] text-slate-500 uppercase font-mono-telemetry">End Date</span>
-                  <input
-                    type="date"
-                    min="2025-01-01"
-                    max="2025-12-31"
-                    value={endDate}
-                    onChange={(e) => {
-                      setEndDate(e.target.value);
-                      setCurrentPage(1);
-                    }}
-                    className="w-full bg-[#03060c] border border-white/15 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500 font-mono-telemetry mt-1"
-                  />
-                </div>
-              </div>
-
-              {/* Date Presets */}
-              <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                <span className="text-[10px] text-slate-500 uppercase font-mono-telemetry mr-1">Presets:</span>
-                <button
-                  onClick={() => handleDatePreset("full")}
-                  className="px-2.5 py-1 rounded-lg text-[11px] font-mono-telemetry bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 transition-colors"
-                >
-                  Full 2025
-                </button>
-                <button
-                  onClick={() => handleDatePreset("pre-monsoon")}
-                  className="px-2.5 py-1 rounded-lg text-[11px] font-mono-telemetry bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/20 transition-colors"
-                >
-                  Pre-Monsoon Peak (Apr–May)
-                </button>
-                <button
-                  onClick={() => handleDatePreset("post-monsoon")}
-                  className="px-2.5 py-1 rounded-lg text-[11px] font-mono-telemetry bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/20 transition-colors"
-                >
-                  Post-Monsoon (Oct–Nov)
-                </button>
-                <button
-                  onClick={() => handleDatePreset("winter")}
-                  className="px-2.5 py-1 rounded-lg text-[11px] font-mono-telemetry bg-sky-500/10 hover:bg-sky-500/20 text-sky-300 border border-sky-500/20 transition-colors"
-                >
-                  Winter (Jan–Feb)
-                </button>
+                Instantaneous radiative intensity
               </div>
             </div>
 
-            {/* Decoupled Sensor Confidence Controls */}
-            <div className="space-y-3">
+            {/* Filter 7: Decoupled Sensor Confidence Controls */}
+            <div className="space-y-2 lg:col-span-2">
               <label className="text-xs font-mono-telemetry uppercase text-slate-400 flex items-center gap-1.5">
                 <SlidersHorizontal className="w-3.5 h-3.5 text-amber-400" />
                 <span>Decoupled Sensor Confidence Filtering</span>
@@ -703,8 +773,8 @@ export default function DataExplorerPage() {
                     <span>VIIRS Categories</span>
                     <span className="text-[10px] text-slate-500">l / n / h</span>
                   </div>
-                  <div className="space-y-1.5">
-                    <label className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+                  <div className="flex items-center gap-4">
+                    <label className="flex items-center gap-1.5 text-xs text-slate-300 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={viirsConfLow}
@@ -714,9 +784,9 @@ export default function DataExplorerPage() {
                         }}
                         className="rounded border-white/20 bg-slate-900 text-cyan-500 focus:ring-0"
                       />
-                      <span>Low (559 obs)</span>
+                      <span>Low (l)</span>
                     </label>
-                    <label className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+                    <label className="flex items-center gap-1.5 text-xs text-slate-300 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={viirsConfNominal}
@@ -726,9 +796,9 @@ export default function DataExplorerPage() {
                         }}
                         className="rounded border-white/20 bg-slate-900 text-cyan-500 focus:ring-0"
                       />
-                      <span>Nominal (5,974 obs)</span>
+                      <span>Nominal (n)</span>
                     </label>
-                    <label className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+                    <label className="flex items-center gap-1.5 text-xs text-slate-300 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={viirsConfHigh}
@@ -738,13 +808,13 @@ export default function DataExplorerPage() {
                         }}
                         className="rounded border-white/20 bg-slate-900 text-cyan-500 focus:ring-0"
                       />
-                      <span>High (90 obs)</span>
+                      <span>High (h)</span>
                     </label>
                   </div>
                 </div>
 
                 {/* MODIS Numeric */}
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <div className="flex items-center justify-between text-xs font-semibold text-amber-400 font-mono-telemetry">
                     <span>MODIS Continuous</span>
                     <span>{minModisConf}%+</span>
@@ -762,17 +832,120 @@ export default function DataExplorerPage() {
                     className="w-full accent-amber-400 cursor-pointer"
                   />
                   <div className="flex justify-between text-[10px] text-slate-500 font-mono-telemetry">
-                    <span>0% (All 918)</span>
+                    <span>0% (All)</span>
                     <span>50% (Standard)</span>
                     <span>80%+ (High)</span>
                   </div>
                 </div>
               </div>
-
-              <div className="text-[10px] text-slate-500 font-mono-telemetry">
-                * Filters are applied independently to their respective sensors.
-              </div>
             </div>
+          </div>
+
+          {/* Row 3: Temporal Mode Switcher (Verified 2025 Date Mode) */}
+          <div className="p-4 rounded-2xl bg-black/40 border border-white/10 space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-mono-telemetry uppercase text-slate-400 font-semibold flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>Temporal Query Mode:</span>
+                </span>
+                <div className="flex items-center p-0.5 rounded-lg bg-black/60 border border-white/10 text-xs font-mono-telemetry">
+                  <button
+                    onClick={() => {
+                      setTemporalMode("all");
+                      setStartDate("");
+                      setEndDate("");
+                      setCurrentPage(1);
+                    }}
+                    className={`px-3 py-1 rounded-md transition-all ${
+                      temporalMode === "all"
+                        ? "bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/30"
+                        : "text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    Full Dataset (All Seasonal/Historical Records)
+                  </button>
+                  <button
+                    onClick={() => {
+                      setTemporalMode("verified_2025");
+                      setStartDate("2025-01-01");
+                      setEndDate("2025-12-31");
+                      setCurrentPage(1);
+                    }}
+                    className={`px-3 py-1 rounded-md transition-all ${
+                      temporalMode === "verified_2025"
+                        ? "bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30"
+                        : "text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    Verified 2025 Dates Only (11,904 Exact Matches)
+                  </button>
+                </div>
+              </div>
+
+              {temporalMode === "verified_2025" && (
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] text-slate-500 uppercase font-mono-telemetry mr-1">Presets:</span>
+                  <button
+                    onClick={() => handleDatePreset("full")}
+                    className="px-2 py-0.5 rounded text-[11px] font-mono-telemetry bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10"
+                  >
+                    Full 2025
+                  </button>
+                  <button
+                    onClick={() => handleDatePreset("pre-monsoon")}
+                    className="px-2 py-0.5 rounded text-[11px] font-mono-telemetry bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/20"
+                  >
+                    Apr–May Peak
+                  </button>
+                  <button
+                    onClick={() => handleDatePreset("post-monsoon")}
+                    className="px-2 py-0.5 rounded text-[11px] font-mono-telemetry bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/20"
+                  >
+                    Oct–Nov
+                  </button>
+                  <button
+                    onClick={() => handleDatePreset("winter")}
+                    className="px-2 py-0.5 rounded text-[11px] font-mono-telemetry bg-sky-500/10 hover:bg-sky-500/20 text-sky-300 border border-sky-500/20"
+                  >
+                    Jan–Feb
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {temporalMode === "verified_2025" && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-white/5">
+                <div>
+                  <span className="text-[10px] text-slate-400 uppercase font-mono-telemetry">Start Date (2025)</span>
+                  <input
+                    type="date"
+                    min="2025-01-01"
+                    max="2025-12-31"
+                    value={startDate}
+                    onChange={(e) => {
+                      setStartDate(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    className="w-full bg-[#03060c] border border-white/15 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-500 font-mono-telemetry mt-1"
+                  />
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 uppercase font-mono-telemetry">End Date (2025)</span>
+                  <input
+                    type="date"
+                    min="2025-01-01"
+                    max="2025-12-31"
+                    value={endDate}
+                    onChange={(e) => {
+                      setEndDate(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    className="w-full bg-[#03060c] border border-white/15 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-500 font-mono-telemetry mt-1"
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </section>
 
@@ -782,14 +955,14 @@ export default function DataExplorerPage() {
             <div>
               <div className="flex items-center gap-2 text-xs font-mono-telemetry uppercase text-emerald-400">
                 <Download className="w-3.5 h-3.5" />
-                <span>Verified Scientific Export Hub</span>
+                <span>Verified Scientific Export Hub ({scope.toUpperCase()} SCOPE)</span>
               </div>
               <h2 className="text-xl font-bold text-white tracking-tight mt-0.5">
                 Download Filtered Observations ({summary?.total_matching.toLocaleString() ?? "0"} Records)
               </h2>
             </div>
             <div className="text-xs text-slate-400 font-mono-telemetry">
-              Format includes authentic metadata, provenance manifest, and CRS EPSG:4326.
+              Format includes authentic metadata, provenance manifest, spatial bounds [28°N–31°N, 77°E–81°E], and CRS EPSG:4326.
             </div>
           </div>
 
@@ -807,7 +980,7 @@ export default function DataExplorerPage() {
                   </span>
                 </div>
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  Standard tabular export with sanitized formula injection defense, metadata comment header, and timestamps.
+                  Tabular export preserving decoded month/hour, nullable dates, confidence category, and geographic bounding metadata.
                 </p>
               </div>
               <button
@@ -837,7 +1010,7 @@ export default function DataExplorerPage() {
                   </span>
                 </div>
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  Complete JSON package containing top-level scientific limitations manifest, CRS documentation, and records array.
+                  Complete JSON package containing top-level scientific limitations manifest, truncation disclosure, and records array.
                 </p>
               </div>
               <button
@@ -886,16 +1059,16 @@ export default function DataExplorerPage() {
           </div>
         </section>
 
-        {/* 6. Polished Paginated Observation Table */}
+        {/* 6. Paginated Observation Table */}
         <section aria-label="Observation Data Table" className="bg-[#040810]/85 backdrop-blur-xl rounded-3xl p-6 border border-cyan-500/20 shadow-xl space-y-5">
           {/* Table Controls Header */}
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="relative min-w-[240px]">
+              <div className="relative min-w-[260px]">
                 <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
-                  placeholder="Search observation attributes..."
+                  placeholder="Search sensor, platform, season..."
                   value={searchQuery}
                   onChange={(e) => {
                     setSearchQuery(e.target.value);
@@ -907,7 +1080,7 @@ export default function DataExplorerPage() {
 
               <span className="text-xs font-mono-telemetry text-slate-400 hidden sm:inline">
                 Showing {totalRecords === 0 ? 0 : (currentPage - 1) * pageSize + 1} –{" "}
-                {Math.min(currentPage * pageSize, totalRecords)} of {totalRecords.toLocaleString()} records
+                {Math.min(currentPage * pageSize, totalRecords)} of {totalRecords.toLocaleString()} observations
               </span>
             </div>
 
@@ -949,7 +1122,7 @@ export default function DataExplorerPage() {
                     className="p-3.5 hover:text-white cursor-pointer transition-colors"
                   >
                     <div className="flex items-center gap-1.5">
-                      <span>Date &amp; Time (UTC)</span>
+                      <span>Temporal Observation</span>
                       {sortBy === "acq_datetime" ? (
                         sortOrder === "asc" ? <ArrowUp className="w-3 h-3 text-cyan-400" /> : <ArrowDown className="w-3 h-3 text-cyan-400" />
                       ) : (
@@ -1016,7 +1189,7 @@ export default function DataExplorerPage() {
 
                   <th className="p-3.5 text-center">Overpass</th>
                   <th className="p-3.5">Confidence</th>
-                  <th className="p-3.5">Detection Classification</th>
+                  <th className="p-3.5">Classification</th>
                 </tr>
               </thead>
 
@@ -1035,7 +1208,7 @@ export default function DataExplorerPage() {
                       <Database className="w-8 h-8 mx-auto text-slate-600" />
                       <div className="text-sm font-semibold text-white">No Matching Observations Found</div>
                       <p className="text-xs text-slate-500 max-w-md mx-auto">
-                        No active fire thermal anomalies in the Uttarakhand 2025 dataset matched your current filter combinations. Try loosening the date range or FRP limits.
+                        No active fire thermal anomalies in the {scope} harmonised dataset matched your current filter combinations. Try loosening the month, FRP limits, or confidence thresholds.
                       </p>
                       <button
                         onClick={handleResetFilters}
@@ -1049,6 +1222,7 @@ export default function DataExplorerPage() {
                   observations.map((obs) => {
                     const isModis = obs.sensor === "MODIS";
                     const frpVal = obs.frp;
+                    const hasVerifiedDate = Boolean(obs.date_verified_2025 && obs.acq_date);
 
                     return (
                       <tr
@@ -1056,13 +1230,41 @@ export default function DataExplorerPage() {
                         data-sensor={obs.sensor}
                         className="hover:bg-white/[0.04] transition-colors group observation-row"
                       >
-                        {/* Date & Time */}
+                        {/* Temporal Observation */}
                         <td className="p-3.5 whitespace-nowrap">
-                          <div className="font-semibold text-white">{obs.acq_date}</div>
-                          <div className="text-[11px] text-slate-400 flex items-center gap-1">
-                            <Clock className="w-3 h-3 text-slate-500" />
-                            <span>{obs.acq_time} UTC</span>
-                          </div>
+                          {hasVerifiedDate ? (
+                            <div>
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-semibold text-white">{obs.acq_date}</span>
+                                <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                                  2025 VERIFIED
+                                </span>
+                              </div>
+                              <div className="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5">
+                                <Clock className="w-3 h-3 text-slate-500" />
+                                <span>{obs.acq_time} UTC</span>
+                                <span className="text-slate-600">•</span>
+                                <span className="text-slate-500">M{obs.decoded_month} H{obs.decoded_hour}</span>
+                              </div>
+                            </div>
+                          ) : (
+                            <div>
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-semibold text-slate-300">
+                                  {MONTH_NAMES[obs.decoded_month - 1] || `Month ${obs.decoded_month}`}
+                                </span>
+                                <span className="text-[9px] px-1.5 py-0.2 rounded bg-slate-700/50 text-slate-400 border border-slate-600">
+                                  HISTORICAL (NULL DATE)
+                                </span>
+                              </div>
+                              <div className="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5">
+                                <Clock className="w-3 h-3 text-slate-500" />
+                                <span>~{obs.decoded_hour}:00 UTC</span>
+                                <span className="text-slate-600">•</span>
+                                <span className="text-amber-400/80 capitalize">{obs.season?.replace("_", "-")}</span>
+                              </div>
+                            </div>
+                          )}
                         </td>
 
                         {/* Coordinates */}
@@ -1232,7 +1434,7 @@ export default function DataExplorerPage() {
         <footer className="pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono-telemetry text-slate-500">
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <span>NASA Space Apps 2026 • Verified Scientific Telemetry Baseline</span>
+            <span>NASA Space Apps 2026 • Harmonised Scientific Data Foundation (EPSG:4326)</span>
           </div>
           <div className="flex items-center gap-4">
             <Link href="/fires" className="text-amber-400 hover:text-amber-300 transition-colors">

@@ -142,7 +142,7 @@ export default function FireTemporalDeck({
                   ? `${dayToDateStr(dayOfYearRange[0])} — ${dayToDateStr(dayOfYearRange[1])}`
                   : selectedMonth
                   ? `${months.find((m) => m.num === selectedMonth)?.name} 2025`
-                  : "Complete Year 2025 (7,541 Obs)"}
+                  : "Complete Baseline (240,365 Obs)"}
               </span>
             </div>
 

@@ -182,21 +182,30 @@ export default function HistoricalAnalyticsPage() {
           <span>Scientific Monograph // Western Himalayan Thermal Telemetry</span>
         </div>
         <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-light mb-3">
-          This empirical study quantifies the spatial, temporal, and topographic drivers of wildfire activity across Uttarakhand, India for the complete 2025 observation cycle. Synthesizing 7,541 boundary-validated radiometric observations from NASA FIRMS (MODIS Terra/Aqua &amp; VIIRS Suomi-NPP) with the Copernicus GLO-30 Digital Elevation Model, the findings demonstrate pronounced altitudinal confinement, steep slope convective chimney acceleration, and acute bimodal burning seasonality.
+          This empirical study quantifies the spatial, temporal, and topographic drivers of wildfire activity across Uttarakhand, India based on the Phase 9 Harmonised Multi-Year Satellite Observation Baseline. Synthesizing {analytics?.total_observations?.toLocaleString() || "240,365"} boundary-validated radiometric observations from NASA FIRMS (MODIS Terra/Aqua &amp; VIIRS Suomi-NPP) with the Copernicus GLO-30 Digital Elevation Model, the findings demonstrate pronounced altitudinal confinement, steep slope convective chimney acceleration, and acute pre-monsoon burning seasonality.
         </p>
         <div className="flex flex-wrap items-center gap-4 text-[11px] font-mono-telemetry text-slate-400 pt-3 border-t border-white/[0.06]">
-          <span>Data Ingestion: <strong className="text-slate-200">NASA FIRMS 2025 Archive</strong></span>
+          <span>Data Ingestion: <strong className="text-slate-200">NASA FIRMS Harmonised Baseline</strong></span>
           <span>Topography: <strong className="text-slate-200">Copernicus GLO-30 DEM (30m)</strong></span>
           <span>Boundary: <strong className="text-slate-200">Survey of India (SOI) Verified</strong></span>
-          <span>Detections: <strong className="text-amber-400">7,541 Observations</strong></span>
+          <span>Detections: <strong className="text-amber-400">{analytics?.total_observations?.toLocaleString() || "240,365"} Observations</strong></span>
         </div>
       </section>
 
-      {/* Scientific Definition Notice */}
-      <div className="bg-[#040810]/60 p-4 rounded-xl border border-white/[0.08] mb-8 flex items-start gap-3 text-xs text-slate-300">
-        <Info className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-        <div className="leading-relaxed font-light">
-          <strong className="text-white font-medium">Observational Unit Definition:</strong> All 7,541 records represent radiometric satellite pixel hotspot detections (thermal anomalies) captured by NASA MODIS (Terra &amp; Aqua) and VIIRS (Suomi-NPP) instruments. They do not constitute discrete wildfire incident perimeters, as a single severe fire can produce multiple contiguous pixel detections across consecutive overpasses.
+      {/* Scientific Definition Notice & Coverage Disclosure */}
+      <div className="space-y-3 mb-8">
+        <div className="bg-[#040810]/60 p-4 rounded-xl border border-white/[0.08] flex items-start gap-3 text-xs text-slate-300">
+          <Info className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+          <div className="leading-relaxed font-light">
+            <strong className="text-white font-medium">Observational Unit Definition:</strong> All {analytics?.total_observations?.toLocaleString() || "240,365"} records represent radiometric satellite pixel hotspot detections (thermal anomalies) captured by NASA MODIS (Terra &amp; Aqua) and VIIRS (Suomi-NPP) instruments. They do not constitute discrete wildfire incident perimeters, as a single severe fire can produce multiple contiguous pixel detections across consecutive overpasses.
+          </div>
+        </div>
+
+        <div className="bg-amber-950/20 p-3 rounded-xl border border-amber-500/30 flex items-start gap-2.5 text-xs text-amber-200/90 font-mono-telemetry">
+          <span className="w-2 h-2 rounded-full bg-amber-400 mt-1 shrink-0 animate-pulse" />
+          <div>
+            <strong>Geographic Coverage Disclosure:</strong> Source dataset is restricted to integer bounding box 28.0°N–31.0°N, 77.0°E–81.0°E. Alpine fire observations in northern Uttarakhand (Chamoli &amp; Uttarkashi) above 31.0°N were truncated at source. Does not claim complete Uttarakhand state coverage.
+          </div>
         </div>
       </div>
 
@@ -204,7 +213,7 @@ export default function HistoricalAnalyticsPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <div className="bg-[#040810]/85 backdrop-blur-xl p-5 rounded-2xl border border-white/[0.08] shadow-lg">
           <div className="text-[10px] font-mono-telemetry text-slate-400 uppercase tracking-wider mb-1">Total Verified Observations</div>
-          <div className="text-3xl font-extrabold font-mono-telemetry text-white">7,541</div>
+          <div className="text-3xl font-extrabold font-mono-telemetry text-white">{analytics?.total_observations?.toLocaleString() || "240,365"}</div>
           <div className="text-xs text-emerald-400 mt-1 flex items-center gap-1 font-mono-telemetry">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
             <span>100% Boundary Validated (SOI)</span>
@@ -213,27 +222,31 @@ export default function HistoricalAnalyticsPage() {
 
         <div className="bg-[#040810]/85 backdrop-blur-xl p-5 rounded-2xl border border-white/[0.08] shadow-lg">
           <div className="text-[10px] font-mono-telemetry text-slate-400 uppercase tracking-wider mb-1">VIIRS Suomi-NPP (375m nadir)</div>
-          <div className="text-3xl font-extrabold font-mono-telemetry text-amber-400">6,623</div>
+          <div className="text-3xl font-extrabold font-mono-telemetry text-amber-400">
+            {analytics?.sensor_provenance?.VIIRS?.observations?.toLocaleString() || "201,993"}
+          </div>
           <div className="text-xs text-slate-400 mt-1 font-mono-telemetry">
-            87.83% of total · 7.21× observation density
+            84.04% of total · 5.26× observation density
           </div>
         </div>
 
         <div className="bg-[#040810]/85 backdrop-blur-xl p-5 rounded-2xl border border-white/[0.08] shadow-lg">
           <div className="text-[10px] font-mono-telemetry text-slate-400 uppercase tracking-wider mb-1">MODIS Terra &amp; Aqua (1km nadir)</div>
-          <div className="text-3xl font-extrabold font-mono-telemetry text-sky-400">918</div>
+          <div className="text-3xl font-extrabold font-mono-telemetry text-sky-400">
+            {analytics?.sensor_provenance?.MODIS?.observations?.toLocaleString() || "38,372"}
+          </div>
           <div className="text-xs text-slate-400 mt-1 font-mono-telemetry">
-            12.17% of total · Mean FRP 15.27 MW
+            15.96% of total · Mean FRP 17.21 MW
           </div>
         </div>
 
         <div className="bg-[#040810]/85 backdrop-blur-xl p-5 rounded-2xl border border-white/[0.08] shadow-lg">
           <div className="text-[10px] font-mono-telemetry text-slate-400 uppercase tracking-wider mb-1">Peak Radiative Power (FRP)</div>
           <div className="text-3xl font-extrabold font-mono-telemetry text-rose-400">
-            169.9 <span className="text-sm font-normal text-slate-300">MW</span>
+            730.0 <span className="text-sm font-normal text-slate-300">MW</span>
           </div>
           <div className="text-xs text-slate-400 mt-1 font-mono-telemetry">
-            Terra MODIS (Feb 11, 2025 · 30.38°N, 79.43°E)
+            Aqua MODIS (Pre-Monsoon Peak)
           </div>
         </div>
       </div>
@@ -358,18 +371,18 @@ export default function HistoricalAnalyticsPage() {
             <div className="flex items-center gap-4">
               <span className="flex items-center gap-1.5">
                 <span className="w-3 h-3 rounded bg-amber-400" />
-                <span>Primary Annual Peak (April: 2,255)</span>
+                <span>Primary Pre-Monsoon Peak (April: 75,601)</span>
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="w-3 h-3 rounded bg-sky-500/80" />
-                <span>Major Monthly Volume (&gt; 1,000)</span>
+                <span>Major Seasonal Volume (&gt; 10,000)</span>
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="w-3 h-3 rounded bg-white/20" />
                 <span>Baseline Months</span>
               </span>
             </div>
-            <span>Annual Total: <strong className="text-white">7,541 Observations</strong></span>
+            <span>Primary Baseline Total: <strong className="text-white">{analytics?.total_observations?.toLocaleString() || "240,365"} Observations</strong></span>
           </div>
         </section>
       )}

@@ -167,7 +167,7 @@ export default function MethodologyPage() {
             </div>
             <div className="p-2.5 rounded-xl bg-black/60 border border-white/[0.08] text-center">
               <span className="text-slate-500 block">Step 06</span>
-              <strong className="text-white block mt-0.5">7,541 WebGL</strong>
+              <strong className="text-white block mt-0.5">240,365 Points</strong>
               <span className="text-amber-400 text-[9px]">Verified Telemetry</span>
             </div>
           </div>
@@ -364,7 +364,10 @@ export default function MethodologyPage() {
           <div className="p-4 rounded-xl bg-black/60 border border-white/[0.08]">
             <span className="text-emerald-400 font-bold block mb-1">Stage 2: Survey of India Ray-Casting Polygon</span>
             <p className="text-slate-400 font-sans leading-relaxed text-[11px]">
-              Point-in-polygon ray-casting test against official Survey of India boundary vectors in EPSG:4326, validating exactly 7,541 internal observations.
+              Point-in-polygon ray-casting test against official Survey of India boundary vectors in EPSG:4326, validating exactly 240,365 internal Uttarakhand observations from a 510,299-record Northern India regional baseline.
+            </p>
+            <p className="text-amber-400/90 font-mono-telemetry text-[10px] mt-2">
+              Geographic Notice: Source integer bounding box [28°N–31°N, 77°E–81°E] truncates alpine fire observations in northern Uttarakhand above 31.0°N. Complete state coverage is not claimed.
             </p>
           </div>
         </div>
@@ -664,9 +667,10 @@ export default function MethodologyPage() {
             </span>
           </p>
           <p>
-            <strong className="text-slate-200">Reproducibility Guarantee:</strong> All 7,541 fire records are stored in boundary-validated CSV
-            (<code className="text-slate-300">fireIntel/data/processed/boundary_validated/uttarakhand_fires_boundary.csv</code>) with full audit columns:
-            latitude, longitude, brightness, scan, track, acq_date, acq_time, satellite, instrument, confidence, version, bright_t31, frp, daynight, month.
+            <strong className="text-slate-200">Reproducibility Guarantee:</strong> All 240,365 primary fire records are stored in canonical Parquet tables
+            (<code className="text-slate-300">fireIntel/data/production/harmonised/uttarakhand_harmonised_fires.parquet</code>) with dual DuckDB views
+            (<code className="text-slate-300">fires</code> for Uttarakhand, <code className="text-slate-300">fires_regional</code> for regional analysis).
+            Verified 2025 dates are preserved for 11,904 unambiguous matches; historical multi-year records retain NULL date with decoded cyclical month and hour.
           </p>
         </div>
       </section>

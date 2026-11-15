@@ -249,7 +249,7 @@ export default function TerrainExplorerPage() {
                 ? "bg-amber-500/20 text-amber-300 font-medium"
                 : "text-slate-500 hover:text-slate-300"
             }`}
-            title={showHotspots ? "Hide 7,541 fire hotspots" : "Show 7,541 fire hotspots"}
+            title={showHotspots ? "Hide satellite fire hotspots" : "Show satellite fire hotspots"}
           >
             <Flame className="w-3.5 h-3.5 text-amber-400" />
             <span>Hotspots</span>
@@ -323,9 +323,12 @@ export default function TerrainExplorerPage() {
           concentrate 44.7% of all fires in the 1,000–2,000m Chir pine zone.
         </p>
 
-        <div className="flex items-center justify-between text-[11px] font-mono-telemetry pt-2 border-t border-white/[0.08] text-slate-400 mb-2.5">
-          <span>Active Detections:</span>
-          <span className="text-amber-400 font-bold">7,541 Observations</span>
+        <div className="flex items-center justify-between text-[11px] font-mono-telemetry pt-2 border-t border-white/[0.08] text-slate-400 mb-1">
+          <span>Primary Baseline Detections:</span>
+          <span className="text-amber-400 font-bold">240,365 Observations</span>
+        </div>
+        <div className="text-[10px] text-slate-400/80 font-mono-telemetry mb-2.5">
+          Restricted to 28°N–31°N (Alpine &gt;31°N truncated at source)
         </div>
 
         {/* Dynamic Mode-Specific Topographic / Thermal Legend */}

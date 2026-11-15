@@ -97,7 +97,7 @@ export default function CinematicHimalayanViewer({
         </p>
         <div className="flex items-center justify-between text-[11px] font-mono-telemetry pt-2 border-t border-white/10 text-slate-400">
           <span>Active Detections:</span>
-          <span className="text-amber-400 font-bold">7,541 Observations</span>
+          <span className="text-amber-400 font-bold">240,365 Observations</span>
         </div>
       </aside>
 

@@ -29,6 +29,12 @@ ALLOWED_SORT_FIELDS = {
     "latitude": "latitude",
     "longitude": "longitude",
     "daynight": "daynight",
+    "decoded_month": "decoded_month",
+    "decoded_hour": "decoded_hour",
+    "season": "season",
+    "type": "type",
+    "date_verified_2025": "date_verified_2025",
+    "in_uttarakhand": "in_uttarakhand",
 }
 
 TYPE_DESCRIPTIONS = {
@@ -94,10 +100,15 @@ def build_filter_clause(
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
     search: Optional[str] = None,
+    month: Optional[str] = None,
+    season: Optional[str] = None,
+    hotspot_type: Optional[int] = None,
+    verified_dates_only: Optional[bool] = None,
 ) -> tuple[str, list[Any], dict[str, Any]]:
     """
     Constructs parameterized WHERE clause for DuckDB querying with strict decoupling
-    of MODIS numeric confidence and VIIRS categorical confidence.
+    of MODIS numeric confidence and VIIRS categorical confidence, plus decoded seasonal
+    and hotspot type filters.
     """
     validate_dates(start_date, end_date)
 
@@ -154,7 +165,6 @@ def build_filter_clause(
         applied_filters["max_frp"] = max_frp
 
     # 5. Sensor-Specific Confidence Filters
-    # VIIRS categorical confidence: 'l', 'n', 'h' (can be comma-separated like "n,h")
     if confidence_viirs:
         cats = [c.strip().lower() for c in confidence_viirs.split(",") if c.strip()]
         valid_cats = {"l", "n", "h"}
@@ -173,7 +183,7 @@ def build_filter_clause(
         params.append(int(min_confidence_modis))
         applied_filters["min_confidence_modis"] = min_confidence_modis
 
-    # 6. Date Range Filters
+    # 6. Date Range Filters (Only matches verified records with dates)
     if start_date:
         conditions.append("acq_date >= ?")
         params.append(start_date)
@@ -184,15 +194,41 @@ def build_filter_clause(
         params.append(end_date)
         applied_filters["end_date"] = end_date
 
-    # 7. Search Filter
+    # 7. Calendar Month Filter (Decoded 1-12)
+    if month and str(month).upper() != "ALL":
+        m_list = [int(m.strip()) for m in str(month).split(",") if m.strip().isdigit()]
+        if m_list:
+            placeholders = ", ".join(["?"] * len(m_list))
+            conditions.append(f"decoded_month IN ({placeholders})")
+            params.extend(m_list)
+            applied_filters["month"] = m_list
+
+    # 8. Seasonal Regime Filter
+    if season and season.upper() != "ALL":
+        conditions.append("LOWER(season) = LOWER(?)")
+        params.append(season.strip())
+        applied_filters["season"] = season.strip()
+
+    # 9. Hotspot Type Filter (0: Vegetation, 2: Static Land Source)
+    if hotspot_type is not None:
+        conditions.append("type = ?")
+        params.append(int(hotspot_type))
+        applied_filters["hotspot_type"] = int(hotspot_type)
+
+    # 10. Verified Dates Only Filter
+    if verified_dates_only:
+        conditions.append("date_verified_2025 = true")
+        applied_filters["verified_dates_only"] = True
+
+    # 11. Search Filter
     if search:
         search_term = f"%{search.strip().lower()}%"
         conditions.append("""(
             LOWER(satellite) LIKE ? OR 
             LOWER(sensor) LIKE ? OR 
-            LOWER(acq_date) LIKE ? OR 
             LOWER(confidence) LIKE ? OR
-            CAST(acq_time AS VARCHAR) LIKE ?
+            LOWER(season) LIKE ? OR
+            CAST(decoded_month AS VARCHAR) LIKE ?
         )""")
         params.extend([search_term] * 5)
         applied_filters["search"] = search.strip()
@@ -202,6 +238,7 @@ def build_filter_clause(
 
 @router.get("/summary")
 def get_data_summary(
+    scope: str = Query("uttarakhand", description="Dataset scope: 'uttarakhand' (240,365 obs) or 'regional' (510,299 obs)"),
     sensor: Optional[str] = Query(None, description="Sensor filter: 'MODIS', 'VIIRS', or 'ALL'"),
     satellite: Optional[str] = Query(None, description="Satellite: 'Terra', 'Aqua', 'SNPP'"),
     daynight: Optional[str] = Query(None, description="Overpass filter: 'D' (Day) or 'N' (Night)"),
@@ -211,12 +248,20 @@ def get_data_summary(
     min_confidence_modis: Optional[int] = Query(None, ge=0, le=100, description="MODIS min confidence 0-100"),
     start_date: Optional[str] = Query(None, description="Start date YYYY-MM-DD"),
     end_date: Optional[str] = Query(None, description="End date YYYY-MM-DD"),
+    month: Optional[str] = Query(None, description="Decoded month 1-12"),
+    season: Optional[str] = Query(None, description="Seasonal regime"),
+    hotspot_type: Optional[int] = Query(None, description="Hotspot type: 0 (vegetation) or 2 (static)"),
+    verified_dates_only: Optional[bool] = Query(None, description="Filter for 2025 verified dates only"),
     search: Optional[str] = Query(None, description="Text search filter"),
 ):
     """
     Returns empirical aggregate statistics and counts for the currently filtered observations.
     All calculations are executed in-memory directly from validated data via DuckDB.
     """
+    table_name = "fires_regional" if scope and scope.lower() == "regional" else "fires"
+    total_base = 510299 if scope and scope.lower() == "regional" else 240365
+    scope_label = "Regional Northern India (28°N–31°N, 77°E–81°E)" if scope and scope.lower() == "regional" else "Uttarakhand Boundary Validated (Survey of India Polygon)"
+
     where_clause, params, applied_filters = build_filter_clause(
         sensor=sensor,
         satellite=satellite,
@@ -227,8 +272,13 @@ def get_data_summary(
         min_confidence_modis=min_confidence_modis,
         start_date=start_date,
         end_date=end_date,
+        month=month,
+        season=season,
+        hotspot_type=hotspot_type,
+        verified_dates_only=verified_dates_only,
         search=search,
     )
+    applied_filters["scope"] = scope
 
     sql = f"""
         SELECT 
@@ -237,12 +287,15 @@ def get_data_summary(
             count(CASE WHEN sensor = 'VIIRS' THEN 1 END) as viirs_count,
             count(CASE WHEN daynight = 'D' THEN 1 END) as day_count,
             count(CASE WHEN daynight = 'N' THEN 1 END) as night_count,
+            count(CASE WHEN type = 0 THEN 1 END) as vegetation_count,
+            count(CASE WHEN type = 2 THEN 1 END) as static_source_count,
+            count(CASE WHEN date_verified_2025 = true THEN 1 END) as verified_2025_count,
             COALESCE(round(sum(frp), 2), 0.0) as total_frp_mw,
             COALESCE(round(avg(frp), 2), 0.0) as avg_frp_mw,
             COALESCE(round(max(frp), 2), 0.0) as max_frp_mw,
-            COALESCE(min(acq_date), '2025-01-01') as matched_start_date,
-            COALESCE(max(acq_date), '2025-12-31') as matched_end_date
-        FROM fires
+            min(acq_date) as matched_start_date,
+            max(acq_date) as matched_end_date
+        FROM {table_name}
         WHERE {where_clause}
     """
 
@@ -251,25 +304,29 @@ def get_data_summary(
 
     return {
         "status": "SUCCESS",
+        "scope": scope,
         "total_matching": int(row["total_matching"]),
         "modis_count": int(row["modis_count"]),
         "viirs_count": int(row["viirs_count"]),
         "day_count": int(row["day_count"]),
         "night_count": int(row["night_count"]),
+        "vegetation_fires_count": int(row["vegetation_count"]),
+        "static_sources_count": int(row["static_source_count"]),
+        "verified_2025_dates_count": int(row["verified_2025_count"]),
         "total_frp_mw": float(row["total_frp_mw"]),
         "avg_frp_mw": float(row["avg_frp_mw"]),
         "max_frp_mw": float(row["max_frp_mw"]),
         "date_range": {
-            "start": str(row["matched_start_date"]),
-            "end": str(row["matched_end_date"]),
+            "start": str(row["matched_start_date"]) if row["matched_start_date"] is not None else None,
+            "end": str(row["matched_end_date"]) if row["matched_end_date"] is not None else None,
         },
         "dataset_bounds": {
-            "min_date": "2025-01-01",
-            "max_date": "2025-12-31",
-            "total_dataset_records": 7541,
-            "region": "Uttarakhand, India",
-            "spatial_envelope": "28.70°N to 31.46°N, 77.57°E to 81.04°E",
+            "total_dataset_records": total_base,
+            "region": scope_label,
+            "spatial_envelope": "28.00°N to 31.00°N, 77.00°E to 81.00°E",
             "crs": "EPSG:4326 (WGS84)",
+            "coverage_disclosure": "Restricted to bounding box 28°N–31°N, 77°E–81°E. Alpine areas north of 31°N truncated at source; does not claim complete Uttarakhand coverage.",
+            "scientific_note": "Satellite thermal hotspot observations (not unique fire incidents). Unmatched dates are NULL."
         },
         "applied_filters": applied_filters,
         "query_execution_ms": round(elapsed_ms, 2),
@@ -277,6 +334,7 @@ def get_data_summary(
 
 @router.get("/observations")
 def get_observations(
+    scope: str = Query("uttarakhand", description="Dataset scope: 'uttarakhand' (240,365 obs) or 'regional' (510,299 obs)"),
     sensor: Optional[str] = Query(None, description="Sensor filter: 'MODIS', 'VIIRS', or 'ALL'"),
     satellite: Optional[str] = Query(None, description="Satellite: 'Terra', 'Aqua', 'SNPP'"),
     daynight: Optional[str] = Query(None, description="Overpass filter: 'D' (Day) or 'N' (Night)"),
@@ -286,10 +344,14 @@ def get_observations(
     min_confidence_modis: Optional[int] = Query(None, ge=0, le=100, description="MODIS min confidence 0-100"),
     start_date: Optional[str] = Query(None, description="Start date YYYY-MM-DD"),
     end_date: Optional[str] = Query(None, description="End date YYYY-MM-DD"),
+    month: Optional[str] = Query(None, description="Decoded month 1-12"),
+    season: Optional[str] = Query(None, description="Seasonal regime"),
+    hotspot_type: Optional[int] = Query(None, description="Hotspot type: 0 (vegetation) or 2 (static)"),
+    verified_dates_only: Optional[bool] = Query(None, description="Filter for 2025 verified dates only"),
     search: Optional[str] = Query(None, description="Text search filter"),
     page: int = Query(1, ge=1, description="Page number (1-indexed)"),
     page_size: int = Query(25, ge=1, le=500, description="Page size (1 to 500)"),
-    sort_by: str = Query("acq_datetime", description="Sort field"),
+    sort_by: str = Query("frp", description="Sort field"),
     sort_order: str = Query("desc", pattern="^(asc|desc|ASC|DESC)$", description="Sort direction ('asc' or 'desc')"),
 ):
     """
@@ -302,8 +364,14 @@ def get_observations(
             detail=f"Invalid sort_by field '{sort_by}'. Allowed fields: {list(ALLOWED_SORT_FIELDS.keys())}"
         )
 
+    table_name = "fires_regional" if scope and scope.lower() == "regional" else "fires"
     order_dir = sort_order.upper()
     order_col = ALLOWED_SORT_FIELDS[sort_by]
+
+    if order_col == "acq_datetime":
+        order_clause = f"acq_datetime {order_dir} NULLS LAST, decoded_month {order_dir}, frp DESC"
+    else:
+        order_clause = f"{order_col} {order_dir}"
 
     where_clause, params, applied_filters = build_filter_clause(
         sensor=sensor,
@@ -315,11 +383,16 @@ def get_observations(
         min_confidence_modis=min_confidence_modis,
         start_date=start_date,
         end_date=end_date,
+        month=month,
+        season=season,
+        hotspot_type=hotspot_type,
+        verified_dates_only=verified_dates_only,
         search=search,
     )
+    applied_filters["scope"] = scope
 
     # 1. Compute exact total count
-    count_sql = f"SELECT count(*) as total FROM fires WHERE {where_clause}"
+    count_sql = f"SELECT count(*) as total FROM {table_name} WHERE {where_clause}"
     df_count, count_ms = DuckDBManager.query(count_sql, list(params))
     total_records = int(df_count.iloc[0]["total"])
     total_pages = math.ceil(total_records / page_size) if total_records > 0 else 1
@@ -330,65 +403,72 @@ def get_observations(
 
     sql = f"""
         SELECT 
-            ROW_NUMBER() OVER (ORDER BY acq_datetime ASC, latitude ASC) as obs_id,
+            ROW_NUMBER() OVER (ORDER BY {order_clause}, latitude ASC) as obs_id,
             latitude, longitude, brightness, scan, track, acq_date, acq_time,
             satellite, instrument, confidence, version, bright_t31, frp, daynight,
-            type, sensor, strftime(acq_datetime, '%Y-%m-%dT%H:%M:%SZ') as acq_datetime_iso
-        FROM fires
+            type, sensor, decoded_month, decoded_hour, season, confidence_label,
+            type_label, date_verified_2025, in_uttarakhand, coverage_note,
+            strftime(acq_datetime, '%Y-%m-%dT%H:%M:%SZ') as acq_datetime_iso
+        FROM {table_name}
         WHERE {where_clause}
-        ORDER BY {order_col} {order_dir}
+        ORDER BY {order_clause}
         LIMIT ? OFFSET ?
     """
 
     df, data_ms = DuckDBManager.query(sql, query_params)
     raw_records = df.to_dict(orient="records")
 
-    # Enrich records with semantic classifications
     enriched_records = []
     for r in raw_records:
-        time_int = int(r.get("acq_time") or 0)
-        time_str = f"{time_int:04d}"
+        time_int = int(r.get("acq_time") or 0) if r.get("acq_time") else None
+        time_str = f"{time_int:04d}" if time_int is not None else None
+        acq_d = str(r["acq_date"]) if r.get("acq_date") else None
+        acq_dt = str(r["acq_datetime_iso"]) if r.get("acq_datetime_iso") else None
 
         conf_raw = str(r.get("confidence") or "").strip()
-        conf_cat = "Unknown"
-        if r.get("sensor") == "VIIRS":
-            conf_cat = VIIRS_CONFIDENCE_MAP.get(conf_raw.lower(), conf_raw.upper())
-        elif r.get("sensor") == "MODIS":
-            conf_cat = f"{conf_raw}%"
+        conf_cat = r.get("confidence_label") or "Nominal"
 
         det_type = int(r.get("type") or 0)
-        det_desc = TYPE_DESCRIPTIONS.get(det_type, "Presumed vegetation fire")
+        det_desc = r.get("type_label") or TYPE_DESCRIPTIONS.get(det_type, "Presumed vegetation fire")
 
         enriched_records.append({
             "obs_id": int(r["obs_id"]),
             "latitude": round(float(r["latitude"]), 5),
             "longitude": round(float(r["longitude"]), 5),
+            "acq_date": acq_d,
+            "acq_time": time_str,
+            "acq_datetime": acq_dt,
+            "date_verified_2025": bool(r.get("date_verified_2025")),
+            "decoded_month": int(r["decoded_month"]),
+            "decoded_hour": int(r["decoded_hour"]),
+            "season": str(r["season"]),
+            "satellite": str(r["satellite"]),
+            "instrument": str(r["instrument"]),
+            "sensor": str(r["sensor"]),
+            "frp": round(float(r["frp"]), 2),
             "brightness": round(float(r["brightness"]), 2),
             "bright_t31": round(float(r["bright_t31"]), 2) if r.get("bright_t31") is not None else None,
             "scan": round(float(r["scan"]), 2),
             "track": round(float(r["track"]), 2),
-            "acq_date": str(r["acq_date"]),
-            "acq_time": time_str,
-            "acq_datetime": r.get("acq_datetime_iso") or f"{r['acq_date']}T{time_str[:2]}:{time_str[2:]}:00Z",
-            "satellite": str(r["satellite"]),
-            "instrument": str(r["instrument"]),
-            "sensor": str(r["sensor"]),
             "confidence": conf_raw,
             "confidence_category": conf_cat,
-            "frp": round(float(r["frp"]), 2),
             "daynight": str(r["daynight"]),
-            "detection_type": det_type,
-            "detection_description": det_desc,
-            "version": str(r.get("version") or "2.0"),
+            "type": det_type,
+            "type_description": det_desc,
+            "in_uttarakhand": bool(r.get("in_uttarakhand")),
+            "coverage_note": str(r.get("coverage_note") or ""),
+            "version": str(r.get("version") or "Harmonised-v1"),
         })
 
     return {
         "status": "SUCCESS",
+        "scope": scope,
         "page": page,
         "page_size": page_size,
         "total_records": total_records,
         "total_pages": total_pages,
         "has_next": page < total_pages,
+        "has_previous": page > 1,
         "has_prev": page > 1,
         "sort_by": sort_by,
         "sort_order": order_dir.lower(),
@@ -400,6 +480,7 @@ def get_observations(
 @router.get("/export")
 def export_observations(
     format: str = Query(..., pattern="^(csv|json|geojson|CSV|JSON|GEOJSON)$", description="Export format: 'csv', 'json', or 'geojson'"),
+    scope: str = Query("uttarakhand", description="Dataset scope: 'uttarakhand' (240,365 obs) or 'regional' (510,299 obs)"),
     sensor: Optional[str] = Query(None, description="Sensor filter: 'MODIS', 'VIIRS', or 'ALL'"),
     satellite: Optional[str] = Query(None, description="Satellite: 'Terra', 'Aqua', 'SNPP'"),
     daynight: Optional[str] = Query(None, description="Overpass filter: 'D' (Day) or 'N' (Night)"),
@@ -409,6 +490,10 @@ def export_observations(
     min_confidence_modis: Optional[int] = Query(None, ge=0, le=100, description="MODIS min confidence 0-100"),
     start_date: Optional[str] = Query(None, description="Start date YYYY-MM-DD"),
     end_date: Optional[str] = Query(None, description="End date YYYY-MM-DD"),
+    month: Optional[str] = Query(None, description="Decoded month 1-12"),
+    season: Optional[str] = Query(None, description="Seasonal regime"),
+    hotspot_type: Optional[int] = Query(None, description="Hotspot type: 0 (vegetation) or 2 (static)"),
+    verified_dates_only: Optional[bool] = Query(None, description="Filter for 2025 verified dates only"),
     search: Optional[str] = Query(None, description="Text search filter"),
     limit: int = Query(10000, le=50000, description="Max export records"),
 ):
@@ -417,6 +502,8 @@ def export_observations(
     Every export embeds authentic metadata, CRS documentation, provenance, and scientific notices.
     """
     fmt = format.lower()
+    table_name = "fires_regional" if scope and scope.lower() == "regional" else "fires"
+
     where_clause, params, applied_filters = build_filter_clause(
         sensor=sensor,
         satellite=satellite,
@@ -427,18 +514,25 @@ def export_observations(
         min_confidence_modis=min_confidence_modis,
         start_date=start_date,
         end_date=end_date,
+        month=month,
+        season=season,
+        hotspot_type=hotspot_type,
+        verified_dates_only=verified_dates_only,
         search=search,
     )
+    applied_filters["scope"] = scope
 
     sql = f"""
         SELECT 
-            ROW_NUMBER() OVER (ORDER BY acq_datetime ASC, latitude ASC) as obs_id,
+            ROW_NUMBER() OVER (ORDER BY frp DESC, latitude ASC) as obs_id,
             latitude, longitude, brightness, scan, track, acq_date, acq_time,
             satellite, instrument, confidence, version, bright_t31, frp, daynight,
-            type, sensor, strftime(acq_datetime, '%Y-%m-%dT%H:%M:%SZ') as acq_datetime_iso
-        FROM fires
+            type, sensor, decoded_month, decoded_hour, season, confidence_label,
+            type_label, date_verified_2025, in_uttarakhand, coverage_note,
+            strftime(acq_datetime, '%Y-%m-%dT%H:%M:%SZ') as acq_datetime_iso
+        FROM {table_name}
         WHERE {where_clause}
-        ORDER BY acq_datetime ASC, latitude ASC
+        ORDER BY frp DESC, latitude ASC
         LIMIT ?
     """
     query_params = list(params) + [limit]
@@ -447,25 +541,25 @@ def export_observations(
 
     timestamp_iso = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     sensor_slug = (sensor or "all_sensors").lower()
-    start_slug = start_date.replace("-", "") if start_date else "20250101"
-    end_slug = end_date.replace("-", "") if end_date else "20251231"
-    base_filename = f"fireintel_uttarakhand_{sensor_slug}_{start_slug}_{end_slug}"
+    scope_slug = scope.lower()
+    base_filename = f"fireintel_{scope_slug}_{sensor_slug}_{timestamp_iso[:10]}"
 
     # -------------------------------------------------------------------------
     # FORMAT A: CSV EXPORT WITH FORMULA INJECTION DEFENSE & METADATA HEADER
     # -------------------------------------------------------------------------
     if fmt == "csv":
         output = io.StringIO()
-        # Top metadata comments
         output.write("# ==========================================================================\n")
         output.write("# FIREINTEL // NASA EARTH OBSERVATION DATA EXPLORER EXPORT\n")
-        output.write(f"# Dataset: NASA FIRMS Satellite Fire Telemetry (Uttarakhand, India Baseline)\n")
+        output.write(f"# Dataset: Harmonised Satellite Thermal Hotspot Observations (Phase 9)\n")
+        output.write(f"# Scope: {scope.title()} ({'240,365' if scope_slug == 'uttarakhand' else '510,299'} observations)\n")
         output.write(f"# Export Generated: {timestamp_iso}\n")
         output.write(f"# Exported Records: {len(records)}\n")
-        output.write(f"# Spatial Envelope: Uttarakhand Boundary Validated (EPSG:4326)\n")
+        output.write(f"# Spatial Envelope: 28.0°N–31.0°N, 77.0°E–81.0°E (Alpine areas >31°N truncated at source)\n")
         output.write(f"# Applied Filters: {json.dumps(applied_filters)}\n")
         output.write("# Scientific Notice: Detections represent satellite radiometric pixel observations,\n")
-        output.write("# not confirmed wildfire incident perimeters. FRP is measured in Megawatts (MW).\n")
+        output.write("# not confirmed unique wildfire incident perimeters. FRP is measured in Megawatts (MW).\n")
+        output.write("# Dates are verified only for 2025 raw matches; historical records retain NULL date.\n")
         output.write("# ==========================================================================\n")
 
         writer = csv.writer(output, quoting=csv.QUOTE_MINIMAL)
@@ -473,9 +567,14 @@ def export_observations(
             "obs_id",
             "latitude",
             "longitude",
+            "in_uttarakhand",
+            "decoded_month",
+            "decoded_hour",
+            "season",
             "acq_date",
             "acq_time",
             "acq_datetime",
+            "date_verified_2025",
             "satellite",
             "instrument",
             "sensor",
@@ -489,29 +588,35 @@ def export_observations(
             "daynight",
             "detection_type",
             "detection_description",
+            "coverage_note",
             "version"
         ]
         writer.writerow(headers)
 
         for r in records:
-            time_int = int(r.get("acq_time") or 0)
-            time_str = f"{time_int:04d}"
+            time_int = int(r.get("acq_time") or 0) if r.get("acq_time") else None
+            time_str = f"{time_int:04d}" if time_int is not None else ""
+            acq_d = str(r["acq_date"]) if r.get("acq_date") else ""
+            acq_dt = str(r["acq_datetime_iso"]) if r.get("acq_datetime_iso") else ""
+
             conf_raw = str(r.get("confidence") or "").strip()
-            conf_cat = "Unknown"
-            if r.get("sensor") == "VIIRS":
-                conf_cat = VIIRS_CONFIDENCE_MAP.get(conf_raw.lower(), conf_raw.upper())
-            elif r.get("sensor") == "MODIS":
-                conf_cat = f"{conf_raw}%"
+            conf_cat = r.get("confidence_label") or "Nominal"
+
             det_type = int(r.get("type") or 0)
-            det_desc = TYPE_DESCRIPTIONS.get(det_type, "Presumed vegetation fire")
+            det_desc = r.get("type_label") or TYPE_DESCRIPTIONS.get(det_type, "Presumed vegetation fire")
 
             row_data = [
                 r["obs_id"],
                 round(float(r["latitude"]), 5),
                 round(float(r["longitude"]), 5),
-                r["acq_date"],
+                bool(r.get("in_uttarakhand")),
+                int(r["decoded_month"]),
+                int(r["decoded_hour"]),
+                sanitize_csv_cell(str(r["season"])),
+                acq_d,
                 time_str,
-                r.get("acq_datetime_iso") or f"{r['acq_date']}T{time_str[:2]}:{time_str[2:]}:00Z",
+                acq_dt,
+                bool(r.get("date_verified_2025")),
                 sanitize_csv_cell(str(r["satellite"])),
                 sanitize_csv_cell(str(r["instrument"])),
                 sanitize_csv_cell(str(r["sensor"])),
@@ -525,7 +630,8 @@ def export_observations(
                 sanitize_csv_cell(str(r["daynight"])),
                 det_type,
                 sanitize_csv_cell(det_desc),
-                sanitize_csv_cell(str(r.get("version") or "2.0")),
+                sanitize_csv_cell(str(r.get("coverage_note") or "")),
+                sanitize_csv_cell(str(r.get("version") or "Harmonised-v1")),
             ]
             writer.writerow(row_data)
 
@@ -548,24 +654,29 @@ def export_observations(
     elif fmt == "json":
         export_records = []
         for r in records:
-            time_int = int(r.get("acq_time") or 0)
-            time_str = f"{time_int:04d}"
+            time_int = int(r.get("acq_time") or 0) if r.get("acq_time") else None
+            time_str = f"{time_int:04d}" if time_int is not None else None
+            acq_d = str(r["acq_date"]) if r.get("acq_date") else None
+            acq_dt = str(r["acq_datetime_iso"]) if r.get("acq_datetime_iso") else None
+
             conf_raw = str(r.get("confidence") or "").strip()
-            conf_cat = "Unknown"
-            if r.get("sensor") == "VIIRS":
-                conf_cat = VIIRS_CONFIDENCE_MAP.get(conf_raw.lower(), conf_raw.upper())
-            elif r.get("sensor") == "MODIS":
-                conf_cat = f"{conf_raw}%"
+            conf_cat = r.get("confidence_label") or "Nominal"
+
             det_type = int(r.get("type") or 0)
-            det_desc = TYPE_DESCRIPTIONS.get(det_type, "Presumed vegetation fire")
+            det_desc = r.get("type_label") or TYPE_DESCRIPTIONS.get(det_type, "Presumed vegetation fire")
 
             export_records.append({
                 "obs_id": int(r["obs_id"]),
                 "latitude": round(float(r["latitude"]), 5),
                 "longitude": round(float(r["longitude"]), 5),
-                "acq_date": str(r["acq_date"]),
+                "in_uttarakhand": bool(r.get("in_uttarakhand")),
+                "decoded_month": int(r["decoded_month"]),
+                "decoded_hour": int(r["decoded_hour"]),
+                "season": str(r["season"]),
+                "acq_date": acq_d,
                 "acq_time": time_str,
-                "acq_datetime": r.get("acq_datetime_iso") or f"{r['acq_date']}T{time_str[:2]}:{time_str[2:]}:00Z",
+                "acq_datetime": acq_dt,
+                "date_verified_2025": bool(r.get("date_verified_2025")),
                 "satellite": str(r["satellite"]),
                 "instrument": str(r["instrument"]),
                 "sensor": str(r["sensor"]),
@@ -579,24 +690,26 @@ def export_observations(
                 "daynight": str(r["daynight"]),
                 "detection_type": det_type,
                 "detection_description": det_desc,
-                "version": str(r.get("version") or "2.0"),
+                "coverage_note": str(r.get("coverage_note") or ""),
+                "version": str(r.get("version") or "Harmonised-v1"),
             })
 
         payload = {
             "metadata": {
-                "dataset_name": "FIREINTEL Boundary-Validated NASA FIRMS Observations",
-                "study_region": "Uttarakhand, India",
+                "dataset_name": "FIREINTEL Harmonised Satellite Hotspot Observations",
+                "study_region": "Uttarakhand & Regional Northern India",
+                "scope": scope,
                 "export_timestamp": timestamp_iso,
                 "record_count": len(export_records),
                 "crs": "EPSG:4326 (WGS84)",
                 "source_instruments": ["MODIS (Terra/Aqua)", "VIIRS (Suomi-NPP)"],
-                "spatial_boundary": "Survey of India Administrative Boundary Envelope (53,483 km²)",
+                "spatial_boundary": "Survey of India Administrative Boundary (Uttarakhand) + Regional Bounding Box [28N-31N, 77E-81E]",
                 "applied_filters": applied_filters,
                 "scientific_limitations": [
                     "Satellite detections are radiometric pixel observations, not confirmed unique wildfire incident perimeters.",
                     "FRP represents instantaneous Fire Radiative Power in Megawatts (MW), not total burned area.",
-                    "MODIS numeric confidence (0-100) and VIIRS categorical confidence (low/nominal/high) are instrument-specific algorithms and not directly equivalent.",
-                    "Historical dataset currently covers calendar year 2025."
+                    "Northern India bounding box [28N-31N, 77E-81E] truncates alpine fire observations in northern Uttarakhand above 31N.",
+                    "Acquisition dates are verified only for 2025 matches; historical multi-year records retain NULL date."
                 ]
             },
             "records": export_records,
@@ -620,16 +733,16 @@ def export_observations(
         for r in records:
             lon = round(float(r["longitude"]), 5)
             lat = round(float(r["latitude"]), 5)
-            time_int = int(r.get("acq_time") or 0)
-            time_str = f"{time_int:04d}"
+            time_int = int(r.get("acq_time") or 0) if r.get("acq_time") else None
+            time_str = f"{time_int:04d}" if time_int is not None else None
+            acq_d = str(r["acq_date"]) if r.get("acq_date") else None
+            acq_dt = str(r["acq_datetime_iso"]) if r.get("acq_datetime_iso") else None
+
             conf_raw = str(r.get("confidence") or "").strip()
-            conf_cat = "Unknown"
-            if r.get("sensor") == "VIIRS":
-                conf_cat = VIIRS_CONFIDENCE_MAP.get(conf_raw.lower(), conf_raw.upper())
-            elif r.get("sensor") == "MODIS":
-                conf_cat = f"{conf_raw}%"
+            conf_cat = r.get("confidence_label") or "Nominal"
+
             det_type = int(r.get("type") or 0)
-            det_desc = TYPE_DESCRIPTIONS.get(det_type, "Presumed vegetation fire")
+            det_desc = r.get("type_label") or TYPE_DESCRIPTIONS.get(det_type, "Presumed vegetation fire")
 
             features.append({
                 "type": "Feature",
@@ -640,9 +753,16 @@ def export_observations(
                 },
                 "properties": {
                     "obs_id": int(r["obs_id"]),
-                    "acq_date": str(r["acq_date"]),
+                    "latitude": lat,
+                    "longitude": lon,
+                    "in_uttarakhand": bool(r.get("in_uttarakhand")),
+                    "decoded_month": int(r["decoded_month"]),
+                    "decoded_hour": int(r["decoded_hour"]),
+                    "season": str(r["season"]),
+                    "acq_date": acq_d,
                     "acq_time": time_str,
-                    "acq_datetime": r.get("acq_datetime_iso") or f"{r['acq_date']}T{time_str[:2]}:{time_str[2:]}:00Z",
+                    "acq_datetime": acq_dt,
+                    "date_verified_2025": bool(r.get("date_verified_2025")),
                     "satellite": str(r["satellite"]),
                     "instrument": str(r["instrument"]),
                     "sensor": str(r["sensor"]),
@@ -656,21 +776,23 @@ def export_observations(
                     "daynight": str(r["daynight"]),
                     "detection_type": det_type,
                     "detection_description": det_desc,
-                    "version": str(r.get("version") or "2.0"),
+                    "coverage_note": str(r.get("coverage_note") or ""),
+                    "version": str(r.get("version") or "Harmonised-v1"),
                 }
             })
 
         geojson_payload = {
             "type": "FeatureCollection",
             "metadata": {
-                "dataset_name": "FIREINTEL Boundary-Validated NASA FIRMS Observations",
+                "dataset_name": "FIREINTEL Harmonised Satellite Hotspot Observations",
                 "crs": "urn:ogc:def:crs:OGC:1.3:CRS84",
                 "export_timestamp": timestamp_iso,
+                "scope": scope,
                 "record_count": len(features),
-                "region": "Uttarakhand, India",
+                "region": "Uttarakhand & Regional Northern India",
                 "applied_filters": applied_filters,
                 "coordinate_convention": "[longitude, latitude] in EPSG:4326 (WGS84)",
-                "scientific_notice": "Pixel observations != unique incidents. FRP in MW."
+                "scientific_notice": "Pixel observations != unique incidents. FRP in MW. Observations north of 31N truncated at source."
             },
             "features": features,
         }

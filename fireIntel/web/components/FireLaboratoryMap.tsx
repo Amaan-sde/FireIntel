@@ -159,7 +159,7 @@ export default function FireLaboratoryMap({
         console.warn("Could not load boundary geojson:", err);
       }
 
-      // 3. Add Verified Complete 2025 Fire Observations (7,541 Records)
+      // 3. Add Verified Uttarakhand Fire Observations (Harmonised Baseline Vector Layer)
       try {
         const firesRes = await fetch("/data/uttarakhand_fires_2025.geojson");
         const firesData = await firesRes.json();

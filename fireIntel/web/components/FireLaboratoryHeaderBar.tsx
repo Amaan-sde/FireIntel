@@ -97,6 +97,12 @@ export default function FireLaboratoryHeaderBar({
             </div>
           </div>
         </div>
+
+        {/* Coverage Limitation & Scientific Disclosure */}
+        <div className="mt-2.5 pt-2 border-t border-white/[0.06] flex items-center justify-between text-[10px] text-slate-400 font-mono-telemetry">
+          <span>BOUNDS: 28°N–31°N, 77°E–81°E</span>
+          <span className="text-amber-400/90 text-[9px]" title="Observations north of 31.0°N were truncated at source">Alpine &gt;31°N truncated</span>
+        </div>
       </div>
     </aside>
   );

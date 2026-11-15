@@ -1,0 +1,68 @@
+{
+  "dataset_version": "phase9_harmonised_v1",
+  "scope": "Uttarakhand Boundary-Validated Primary Observation Baseline",
+  "temporal_type": "Multi-Year Harmonised Aggregate (Seasonal / Diurnal Decoded)",
+  "geographic_bounds": {
+    "min_latitude": 28.72648,
+    "max_latitude": 30.99998,
+    "min_longitude": 77.58287,
+    "max_longitude": 80.97401,
+    "northern_truncation_note": "Observations north of 31.0000\u00b0N truncated in source dataset"
+  },
+  "total_observations": 240365,
+  "total_regional_observations": 510299,
+  "sensors": {
+    "VIIRS": 201993,
+    "MODIS": 38372
+  },
+  "satellites": {
+    "SNPP": 201993,
+    "Aqua": 22578,
+    "Terra": 15794
+  },
+  "daynight": {
+    "Day": 135618,
+    "Night": 104747
+  },
+  "confidence_levels": {
+    "Nominal": 208672,
+    "Low": 23720,
+    "High": 7973
+  },
+  "hotspot_types": {
+    "Presumed Vegetation Fire": 240036,
+    "Static Land Source / Industrial": 329
+  },
+  "frp_metrics": {
+    "mean_mw": 6.17,
+    "median_mw": 3.42,
+    "max_mw": 730.0,
+    "p95_mw": 20.1,
+    "total_radiative_energy_mw": 1482309.8
+  },
+  "monthly_distribution": {
+    "1": 11008,
+    "2": 11229,
+    "3": 20524,
+    "4": 75601,
+    "5": 71468,
+    "6": 25278,
+    "7": 163,
+    "8": 99,
+    "9": 107,
+    "10": 8950,
+    "11": 6223,
+    "12": 9715
+  },
+  "date_recovery_metrics": {
+    "verified_2025_dates_in_uttarakhand": 7245,
+    "verified_2025_dates_total_regional": 11904,
+    "unverified_multi_year_null_dates_total": 498395
+  },
+  "scientific_integrity": {
+    "record_type": "Satellite Thermal Hotspot Observations (not unique fire incidents)",
+    "coverage_statement": "Restricted to bounding box 28\u00b0N\u201331\u00b0N, 77\u00b0E\u201381\u00b0E. Observations north of 31\u00b0N truncated at source; does not claim complete Uttarakhand coverage.",
+    "ml_status": "Observation source classification only (Vegetation vs Static Land Source); distinct from future wildfire hazard forecasting."
+  },
+  "peak_season": "April\u2013May (Pre-monsoon Himalayan pine forest dry season: 61.18% of observations)"
+}

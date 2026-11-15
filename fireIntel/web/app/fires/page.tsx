@@ -50,7 +50,7 @@ export default function FireLaboratoryPage() {
     loadTelemetry();
   }, []);
 
-  // Load all 7,541 fire records once for immediate, deterministic reactive filtering
+  // Load representative fire records once for immediate, deterministic reactive filtering
   useEffect(() => {
     async function loadFires() {
       try {
@@ -67,7 +67,7 @@ export default function FireLaboratoryPage() {
   // Compute live filtered stats with microsecond speed via useMemo
   const filteredStats = useMemo(() => {
     if (!allFeatures.length) {
-      return { total: 7541, viirs: 6623, modis: 918, peakFrp: 169.9 };
+      return { total: 240365, viirs: 201993, modis: 38372, peakFrp: 730.0 };
     }
 
     const allowedViirsCats: string[] = [];

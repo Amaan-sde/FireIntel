@@ -1,0 +1,167 @@
+{
+  "title": "Uttarakhand Multi-Year Seasonal Fire Analytics",
+  "total_observations": 240365,
+  "monthly_breakdown": [
+    {
+      "month": 1,
+      "month_name": "Jan",
+      "total_observations": 11008,
+      "viirs_count": 8830,
+      "modis_count": 2178,
+      "mean_frp": 6.32,
+      "max_frp": 266.0,
+      "high_confidence_count": 238,
+      "vegetation_fires": 10990,
+      "static_sources": 18
+    },
+    {
+      "month": 2,
+      "month_name": "Feb",
+      "total_observations": 11229,
+      "viirs_count": 8682,
+      "modis_count": 2547,
+      "mean_frp": 6.93,
+      "max_frp": 451.2,
+      "high_confidence_count": 340,
+      "vegetation_fires": 11199,
+      "static_sources": 30
+    },
+    {
+      "month": 3,
+      "month_name": "Mar",
+      "total_observations": 20524,
+      "viirs_count": 16524,
+      "modis_count": 4000,
+      "mean_frp": 6.45,
+      "max_frp": 495.4,
+      "high_confidence_count": 562,
+      "vegetation_fires": 20498,
+      "static_sources": 26
+    },
+    {
+      "month": 4,
+      "month_name": "Apr",
+      "total_observations": 75601,
+      "viirs_count": 63945,
+      "modis_count": 11656,
+      "mean_frp": 5.84,
+      "max_frp": 461.9,
+      "high_confidence_count": 2641,
+      "vegetation_fires": 75546,
+      "static_sources": 55
+    },
+    {
+      "month": 5,
+      "month_name": "May",
+      "total_observations": 71468,
+      "viirs_count": 61770,
+      "modis_count": 9698,
+      "mean_frp": 6.06,
+      "max_frp": 730.0,
+      "high_confidence_count": 2575,
+      "vegetation_fires": 71431,
+      "static_sources": 37
+    },
+    {
+      "month": 6,
+      "month_name": "Jun",
+      "total_observations": 25278,
+      "viirs_count": 21547,
+      "modis_count": 3731,
+      "mean_frp": 6.91,
+      "max_frp": 440.1,
+      "high_confidence_count": 1147,
+      "vegetation_fires": 25269,
+      "static_sources": 9
+    },
+    {
+      "month": 7,
+      "month_name": "Jul",
+      "total_observations": 163,
+      "viirs_count": 92,
+      "modis_count": 71,
+      "mean_frp": 8.57,
+      "max_frp": 84.94,
+      "high_confidence_count": 3,
+      "vegetation_fires": 151,
+      "static_sources": 12
+    },
+    {
+      "month": 8,
+      "month_name": "Aug",
+      "total_observations": 99,
+      "viirs_count": 30,
+      "modis_count": 69,
+      "mean_frp": 7.38,
+      "max_frp": 28.0,
+      "high_confidence_count": 1,
+      "vegetation_fires": 67,
+      "static_sources": 32
+    },
+    {
+      "month": 9,
+      "month_name": "Sep",
+      "total_observations": 107,
+      "viirs_count": 68,
+      "modis_count": 39,
+      "mean_frp": 8.05,
+      "max_frp": 175.4,
+      "high_confidence_count": 2,
+      "vegetation_fires": 91,
+      "static_sources": 16
+    },
+    {
+      "month": 10,
+      "month_name": "Oct",
+      "total_observations": 8950,
+      "viirs_count": 7506,
+      "modis_count": 1444,
+      "mean_frp": 5.59,
+      "max_frp": 213.0,
+      "high_confidence_count": 127,
+      "vegetation_fires": 8905,
+      "static_sources": 45
+    },
+    {
+      "month": 11,
+      "month_name": "Nov",
+      "total_observations": 6223,
+      "viirs_count": 5250,
+      "modis_count": 973,
+      "mean_frp": 5.56,
+      "max_frp": 346.7,
+      "high_confidence_count": 112,
+      "vegetation_fires": 6207,
+      "static_sources": 16
+    },
+    {
+      "month": 12,
+      "month_name": "Dec",
+      "total_observations": 9715,
+      "viirs_count": 7749,
+      "modis_count": 1966,
+      "mean_frp": 6.73,
+      "max_frp": 353.0,
+      "high_confidence_count": 225,
+      "vegetation_fires": 9682,
+      "static_sources": 33
+    }
+  ],
+  "sensor_provenance": {
+    "VIIRS": {
+      "observations": 201993,
+      "spatial_resolution": "375m (I-bands)",
+      "mean_frp": 4.07,
+      "satellite": "Suomi-NPP"
+    },
+    "MODIS": {
+      "observations": 38372,
+      "spatial_resolution": "1000m (Ch 21/22)",
+      "mean_frp": 17.21,
+      "satellites": [
+        "Aqua",
+        "Terra"
+      ]
+    }
+  }
+}
