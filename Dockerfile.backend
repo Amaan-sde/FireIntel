@@ -23,6 +23,7 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 COPY fireIntel/api /app/fireIntel/api
 
 # Copy required analytical Parquet, GeoJSON and metadata files
+COPY fireIntel/data/production/harmonised /app/fireIntel/data/production/harmonised
 COPY fireIntel/data/processed/boundary_validated /app/fireIntel/data/processed/boundary_validated
 COPY fireIntel/data/environmental/metadata /app/fireIntel/data/environmental/metadata
 COPY fireIntel/data/environmental/processed /app/fireIntel/data/environmental/processed

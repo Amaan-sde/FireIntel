@@ -10,6 +10,7 @@ import {
   BarChart3,
   FileText,
   Database,
+  Calendar,
   Crosshair,
   Orbit,
   Globe2,
@@ -183,6 +184,14 @@ export default function CinematicHeroOverlay({
           >
             <Flame className="w-3.5 h-3.5 text-amber-400" />
             <span>Fire Lab</span>
+          </Link>
+
+          <Link
+            href="/calendar"
+            className="flex items-center gap-1.5 glass-pill rounded-full px-3.5 py-1.5 text-xs text-slate-300 hover:text-white hover:bg-white/10 transition-all font-medium cursor-pointer"
+          >
+            <Calendar className="w-3.5 h-3.5 text-amber-400" />
+            <span>Calendar</span>
           </Link>
 
           <Link
