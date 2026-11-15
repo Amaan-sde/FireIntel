@@ -236,3 +236,4 @@ export default function LocationTemporalCharts({
     </div>
   );
 }
+
