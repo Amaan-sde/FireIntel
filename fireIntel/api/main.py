@@ -5,7 +5,7 @@ High-performance FastAPI backend querying Parquet datasets via DuckDB.
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fireIntel.api.routes import mission_control, fires, terrain, benchmarks, data_explorer, calendar, workspace, studio
+from fireIntel.api.routes import mission_control, fires, terrain, benchmarks, data_explorer, calendar, workspace, studio, location_intelligence
 
 app = FastAPI(
     title="FIREINTEL Mission Control API",
@@ -37,6 +37,8 @@ app.include_router(workspace.router, prefix="/api/v1")
 app.include_router(workspace.router, prefix="/api")
 app.include_router(studio.router, prefix="/api/v1")
 app.include_router(studio.router, prefix="/api")
+app.include_router(location_intelligence.router, prefix="/api/v1")
+app.include_router(location_intelligence.router, prefix="/api")
 
 @app.get("/")
 def root():
