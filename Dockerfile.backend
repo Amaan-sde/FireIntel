@@ -32,7 +32,9 @@ COPY fireIntel/data/studio_samples /app/fireIntel/data/studio_samples
 
 # Create non-root system user for production security
 RUN groupadd -r fireintel && useradd -r -g fireintel -d /app fireintel \
-    && chown -R fireintel:fireintel /app
+    && mkdir -p /tmp/studio_sessions \
+    && chown -R fireintel:fireintel /app /tmp/studio_sessions \
+    && chmod 777 /tmp/studio_sessions
 
 USER fireintel
 
