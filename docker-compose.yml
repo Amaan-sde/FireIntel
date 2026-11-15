@@ -2,29 +2,98 @@ version: "3.8"
 
 services:
   # ==============================================================================
-  # 1. FIREINTEL REST API & Telemetry Engine (FastAPI + DuckDB)
+  # FIREINTEL Scaled REST API & DuckDB Telemetry Cluster (4 Worker Containers)
   # ==============================================================================
-  backend:
+  backend-1:
     build:
       context: .
       dockerfile: Dockerfile.backend
     image: fireintel-backend:latest
-    container_name: fireintel-backend
+    container_name: fireintel-backend-1
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "8001:8000"
     environment:
       - PORT=8000
       - FIREINTEL_ENV=production
+      - WORKER_ID=node-1
+    volumes:
+      - studio_sessions:/tmp/studio_sessions
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
-      interval: 15s
-      timeout: 5s
+      interval: 10s
+      timeout: 4s
       retries: 3
-      start_period: 5s
+      start_period: 4s
+
+  backend-2:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    image: fireintel-backend:latest
+    container_name: fireintel-backend-2
+    restart: unless-stopped
+    ports:
+      - "8002:8000"
+    environment:
+      - PORT=8000
+      - FIREINTEL_ENV=production
+      - WORKER_ID=node-2
+    volumes:
+      - studio_sessions:/tmp/studio_sessions
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 10s
+      timeout: 4s
+      retries: 3
+      start_period: 4s
+
+  backend-3:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    image: fireintel-backend:latest
+    container_name: fireintel-backend-3
+    restart: unless-stopped
+    ports:
+      - "8003:8000"
+    environment:
+      - PORT=8000
+      - FIREINTEL_ENV=production
+      - WORKER_ID=node-3
+    volumes:
+      - studio_sessions:/tmp/studio_sessions
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 10s
+      timeout: 4s
+      retries: 3
+      start_period: 4s
+
+  backend-4:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    image: fireintel-backend:latest
+    container_name: fireintel-backend-4
+    restart: unless-stopped
+    ports:
+      - "8004:8000"
+    environment:
+      - PORT=8000
+      - FIREINTEL_ENV=production
+      - WORKER_ID=node-4
+    volumes:
+      - studio_sessions:/tmp/studio_sessions
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 10s
+      timeout: 4s
+      retries: 3
+      start_period: 4s
 
   # ==============================================================================
-  # 2. FIREINTEL Web Application (Next.js 15, Three.js, MapLibre GL)
+  # FIREINTEL Web Application (Next.js 15, Three.js, MapLibre GL)
   # ==============================================================================
   frontend:
     build:
@@ -38,9 +107,9 @@ services:
     environment:
       - PORT=3000
       - NODE_ENV=production
-      - BACKEND_URL=http://backend:8000
+      - BACKEND_URL=http://backend-1:8000
     depends_on:
-      backend:
+      backend-1:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/"]
@@ -48,3 +117,7 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
+
+volumes:
+  studio_sessions:
+    driver: local
