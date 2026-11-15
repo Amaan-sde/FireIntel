@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { Activity, SlidersHorizontal, Menu, X, Orbit, Flame, Mountain, BarChart3, FileText, Database, Calendar } from "lucide-react";
+import { Activity, SlidersHorizontal, Menu, X, Orbit, Flame, Mountain, BarChart3, FileText, Database, Calendar, Compass, Sparkles } from "lucide-react";
 
 interface NavigationHeaderProps {
   activeTab: string;
@@ -20,13 +20,15 @@ export default function NavigationHeader({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navItems = [
-    { id: "overview", label: "Mission Overview", href: "/", icon: Orbit },
-    { id: "fires", label: "Fire Intelligence", href: "/fires", badge: "Live Lab", icon: Flame },
-    { id: "calendar", label: "Burning Calendar", href: "/calendar", badge: "2025 Orbit", icon: Calendar },
-    { id: "terrain", label: "3D Topography", href: "/terrain", badge: "3D DEM", icon: Mountain },
+    { id: "overview", label: "Overview", href: "/", icon: Orbit },
+    { id: "fires", label: "Fires", href: "/fires", badge: "Live", icon: Flame },
+    { id: "calendar", label: "Calendar", href: "/calendar", badge: "Orbit", icon: Calendar },
+    { id: "workspace", label: "Terrain Lab", href: "/workspace", badge: "Research", icon: Compass },
+    { id: "studio", label: "Global Studio", href: "/studio", badge: "AutoML", icon: Sparkles },
+    { id: "terrain", label: "3D Topo", href: "/terrain", badge: "DEM", icon: Mountain },
     { id: "analytics", label: "Analytics", href: "/analytics", icon: BarChart3 },
-    { id: "data", label: "Data Explorer", href: "/data", badge: "Export", icon: Database },
-    { id: "methodology", label: "Methodology & Data", href: "/methodology", icon: FileText },
+    { id: "data", label: "Data", href: "/data", badge: "Export", icon: Database },
+    { id: "methodology", label: "Methodology", href: "/methodology", icon: FileText },
   ];
 
   const handleModalClick = (itemId: string) => {
@@ -37,7 +39,7 @@ export default function NavigationHeader({
 
   return (
     <>
-      <header className="fixed top-2.5 sm:top-3 left-1/2 -translate-x-1/2 z-30 w-[98%] max-w-[94rem] flex items-center justify-between pointer-events-none px-2 sm:px-4">
+      <header className="fixed top-2.5 sm:top-3 left-1/2 -translate-x-1/2 z-40 w-[98%] max-w-[94rem] flex items-center justify-between pointer-events-none px-2 sm:px-4">
         {/* Brand Identity Capsule */}
         <Link 
           href="/"
@@ -55,10 +57,10 @@ export default function NavigationHeader({
         </Link>
 
         {/* Center Navigation Capsule (Desktop & Laptop) */}
-        <nav className="hidden md:flex items-center glass-pill rounded-full p-1 text-xs shadow-2xl pointer-events-auto shrink-0 whitespace-nowrap">
+        <nav className="hidden xl:flex items-center glass-pill rounded-full p-1 text-xs shadow-2xl pointer-events-auto shrink-0 whitespace-nowrap overflow-x-auto no-scrollbar">
           {navItems.map((item) => {
             const isActive = activeTab === item.id;
-            const buttonClass = `px-2.5 lg:px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1.5 font-medium cursor-pointer whitespace-nowrap ${
+            const buttonClass = `px-2.5 lg:px-3 py-1 rounded-full transition-all flex items-center gap-1.5 text-xs font-medium cursor-pointer shrink-0 whitespace-nowrap ${
               isActive
                 ? "bg-white/20 text-white font-semibold shadow-sm"
                 : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.05]"
@@ -85,7 +87,7 @@ export default function NavigationHeader({
         <div className="flex items-center gap-2 pointer-events-auto shrink-0 whitespace-nowrap">
           <div className="hidden xl:flex items-center gap-2 glass-pill rounded-full px-3 py-1.5 text-xs text-slate-300 whitespace-nowrap">
             <Activity className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-            <span className="font-mono-telemetry text-[11px] whitespace-nowrap">43/43 Tests Verified</span>
+            <span className="font-mono-telemetry text-[11px] whitespace-nowrap">43/43 Verified</span>
           </div>
 
           {onOpenTelemetryDrawer && (
@@ -96,24 +98,24 @@ export default function NavigationHeader({
               aria-label="Open Scientific Telemetry"
             >
               <SlidersHorizontal className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-              <span className="hidden sm:inline whitespace-nowrap">Scientific Telemetry</span>
+              <span className="hidden sm:inline whitespace-nowrap">Telemetry</span>
             </button>
           )}
 
-          {/* Mobile & Tablet Menu Toggle Button (iOS / Android) */}
+          {/* Mobile & Tablet Menu Toggle Button (iOS / Android / Tablets < 1280px) */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-label={isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
-            className="md:hidden glass-pill rounded-full p-2 text-slate-300 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
+            className="xl:hidden glass-pill rounded-full p-2 text-slate-300 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
           >
             {isMobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
           </button>
         </div>
       </header>
 
-      {/* Mobile Navigation Dropdown (iOS & Small Screen friendly) */}
+      {/* Mobile & Tablet Navigation Dropdown (< 1280px) */}
       {isMobileMenuOpen && (
-        <div className="md:hidden fixed top-16 left-3 right-3 z-40 glass-surface rounded-2xl p-4 border border-white/15 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="xl:hidden fixed top-16 left-3 right-3 sm:left-auto sm:right-6 sm:w-80 z-50 glass-surface rounded-2xl p-4 border border-white/15 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200">
           <div className="text-[10px] font-mono-telemetry text-slate-400 uppercase tracking-wider mb-2.5 px-2">
             Mission Navigation
           </div>
