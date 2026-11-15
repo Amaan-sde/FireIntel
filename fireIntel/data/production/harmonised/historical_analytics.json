@@ -1,0 +1,304 @@
+{
+  "title": "Uttarakhand Multi-Year Seasonal Fire Analytics",
+  "dataset_scope": "Uttarakhand Survey of India Boundary Validated Primary Baseline",
+  "total_observations": 240365,
+  "monthly_series": [
+    {
+      "month": "Jan",
+      "month_num": 1,
+      "count": 11008,
+      "pct": 4.58,
+      "modis": 2178,
+      "viirs": 8830,
+      "peak_frp": 266.0,
+      "mean_frp": 6.32,
+      "is_peak": false
+    },
+    {
+      "month": "Feb",
+      "month_num": 2,
+      "count": 11229,
+      "pct": 4.67,
+      "modis": 2547,
+      "viirs": 8682,
+      "peak_frp": 451.2,
+      "mean_frp": 6.93,
+      "is_peak": false
+    },
+    {
+      "month": "Mar",
+      "month_num": 3,
+      "count": 20524,
+      "pct": 8.54,
+      "modis": 4000,
+      "viirs": 16524,
+      "peak_frp": 495.4,
+      "mean_frp": 6.45,
+      "is_peak": false
+    },
+    {
+      "month": "Apr",
+      "month_num": 4,
+      "count": 75601,
+      "pct": 31.45,
+      "modis": 11656,
+      "viirs": 63945,
+      "peak_frp": 461.9,
+      "mean_frp": 5.84,
+      "is_peak": true
+    },
+    {
+      "month": "May",
+      "month_num": 5,
+      "count": 71468,
+      "pct": 29.73,
+      "modis": 9698,
+      "viirs": 61770,
+      "peak_frp": 730.0,
+      "mean_frp": 6.06,
+      "is_peak": true
+    },
+    {
+      "month": "Jun",
+      "month_num": 6,
+      "count": 25278,
+      "pct": 10.52,
+      "modis": 3731,
+      "viirs": 21547,
+      "peak_frp": 440.1,
+      "mean_frp": 6.91,
+      "is_peak": false
+    },
+    {
+      "month": "Jul",
+      "month_num": 7,
+      "count": 163,
+      "pct": 0.07,
+      "modis": 71,
+      "viirs": 92,
+      "peak_frp": 84.9,
+      "mean_frp": 8.57,
+      "is_peak": false
+    },
+    {
+      "month": "Aug",
+      "month_num": 8,
+      "count": 99,
+      "pct": 0.04,
+      "modis": 69,
+      "viirs": 30,
+      "peak_frp": 28.0,
+      "mean_frp": 7.38,
+      "is_peak": false
+    },
+    {
+      "month": "Sep",
+      "month_num": 9,
+      "count": 107,
+      "pct": 0.04,
+      "modis": 39,
+      "viirs": 68,
+      "peak_frp": 175.4,
+      "mean_frp": 8.05,
+      "is_peak": false
+    },
+    {
+      "month": "Oct",
+      "month_num": 10,
+      "count": 8950,
+      "pct": 3.72,
+      "modis": 1444,
+      "viirs": 7506,
+      "peak_frp": 213.0,
+      "mean_frp": 5.59,
+      "is_peak": false
+    },
+    {
+      "month": "Nov",
+      "month_num": 11,
+      "count": 6223,
+      "pct": 2.59,
+      "modis": 973,
+      "viirs": 5250,
+      "peak_frp": 346.7,
+      "mean_frp": 5.56,
+      "is_peak": false
+    },
+    {
+      "month": "Dec",
+      "month_num": 12,
+      "count": 9715,
+      "pct": 4.04,
+      "modis": 1966,
+      "viirs": 7749,
+      "peak_frp": 353.0,
+      "mean_frp": 6.73,
+      "is_peak": false
+    }
+  ],
+  "elevation_distribution": [
+    {
+      "band": "<500m (Foothills / Terai)",
+      "count": 8713,
+      "pct": 18.4,
+      "mean_frp": 7.27
+    },
+    {
+      "band": "500\u20131000m (Sub-montane Sal)",
+      "count": 5291,
+      "pct": 11.17,
+      "mean_frp": 6.19
+    },
+    {
+      "band": "1000\u20131500m (Lower Pine)",
+      "count": 13658,
+      "pct": 28.84,
+      "mean_frp": 5.17
+    },
+    {
+      "band": "1500\u20132000m (Upper Chir Pine)",
+      "count": 15834,
+      "pct": 33.43,
+      "mean_frp": 5.55
+    },
+    {
+      "band": "2000\u20132500m (Oak-Rhododendron)",
+      "count": 2765,
+      "pct": 5.84,
+      "mean_frp": 7.27
+    },
+    {
+      "band": "2500\u20133000m (Subalpine Conifer)",
+      "count": 593,
+      "pct": 1.25,
+      "mean_frp": 9.88
+    },
+    {
+      "band": "3000\u20134000m (Timberline/Meadow)",
+      "count": 459,
+      "pct": 0.97,
+      "mean_frp": 11.98
+    },
+    {
+      "band": ">4000m (Nival/Glacial)",
+      "count": 48,
+      "pct": 0.1,
+      "mean_frp": 20.66
+    }
+  ],
+  "slope_distribution": [
+    {
+      "band": "0\u20135\u00b0 (Level / Valley floor)",
+      "count": 7298,
+      "pct": 15.41
+    },
+    {
+      "band": "5\u201315\u00b0 (Gentle hillside)",
+      "count": 2167,
+      "pct": 4.58
+    },
+    {
+      "band": "15\u201325\u00b0 (Moderate slope)",
+      "count": 10092,
+      "pct": 21.31
+    },
+    {
+      "band": "25\u201335\u00b0 (Steep chimney slope)",
+      "count": 26901,
+      "pct": 56.8
+    },
+    {
+      "band": ">35\u00b0 (Precipitous cliff)",
+      "count": 903,
+      "pct": 1.91
+    }
+  ],
+  "frp_distribution": [
+    {
+      "band": "< 5 MW (Low / Smoldering)",
+      "count": 151793,
+      "pct": 63.15
+    },
+    {
+      "band": "5\u201315 MW (Moderate Surface)",
+      "count": 68906,
+      "pct": 28.67
+    },
+    {
+      "band": "15\u201340 MW (High / Intense Flaming)",
+      "count": 16465,
+      "pct": 6.85
+    },
+    {
+      "band": "40\u2013100 MW (Severe Crown Fire)",
+      "count": 2859,
+      "pct": 1.19
+    },
+    {
+      "band": "> 100 MW (Extreme Blowup)",
+      "count": 342,
+      "pct": 0.14
+    }
+  ],
+  "seasonal_distribution": [
+    {
+      "season": "Pre-Monsoon Peak Wildfires",
+      "period": "March \u2013 May",
+      "count": 167593,
+      "pct": 69.72,
+      "characteristics": "Desiccated Chir pine needle fuelbed, high vapor pressure deficit (VPD), maximum solar heating, rapid flaming fire spread."
+    },
+    {
+      "season": "Late Pre-Monsoon Transition",
+      "period": "June",
+      "count": 25278,
+      "pct": 10.52,
+      "characteristics": "High temperatures preceding monsoon arrival; fires terminate abruptly upon onset of heavy rainfall."
+    },
+    {
+      "season": "Southwest Monsoon Fire Suppression",
+      "period": "July \u2013 September",
+      "count": 369,
+      "pct": 0.15,
+      "characteristics": "Torrential monsoon precipitation, live fuel moisture saturation (>100%), extensive cloud attenuation."
+    },
+    {
+      "season": "Post-Monsoon Agricultural Burning",
+      "period": "October \u2013 November",
+      "count": 15173,
+      "pct": 6.31,
+      "characteristics": "Valley-bottom stubble and agricultural clearing, stable post-monsoon atmospheric boundary layer."
+    },
+    {
+      "season": "Winter Biomass & Forest Clearing",
+      "period": "December \u2013 February",
+      "count": 31952,
+      "pct": 13.29,
+      "characteristics": "Dormant season understory burning, warming fires, smoldering duff fires at lower elevations."
+    }
+  ],
+  "sensor_provenance": {
+    "VIIRS": {
+      "observations": 201993,
+      "pct": 84.04,
+      "spatial_resolution": "375m (I-bands)",
+      "mean_frp": 4.07,
+      "satellite": "Suomi-NPP"
+    },
+    "MODIS": {
+      "observations": 38372,
+      "pct": 15.96,
+      "spatial_resolution": "1000m (Ch 21/22)",
+      "mean_frp": 17.21,
+      "satellites": [
+        "Aqua",
+        "Terra"
+      ]
+    }
+  },
+  "coverage_disclosure": "Restricted to 28.0\u00b0N\u201331.0\u00b0N, 77.0\u00b0E\u201381.0\u00b0E. Observations north of 31.0\u00b0N truncated at source; does not claim complete Uttarakhand coverage.",
+  "scientific_integrity": {
+    "record_type": "Satellite Thermal Hotspot Observations (not unique fire incidents)",
+    "date_provenance": "11,904 verified 2025 dates; historical multi-year records retain NULL date with decoded month and hour."
+  }
+}

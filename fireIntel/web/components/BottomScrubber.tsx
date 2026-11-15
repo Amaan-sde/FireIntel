@@ -54,7 +54,7 @@ export default function BottomScrubber({
                   : "text-slate-400 hover:text-slate-200"
               }`}
             >
-              ALL (7,541)
+              ALL (240,365)
             </button>
             <button
               onClick={() => setSelectedSensor("VIIRS")}
@@ -64,7 +64,7 @@ export default function BottomScrubber({
                   : "text-slate-400 hover:text-slate-200"
               }`}
             >
-              VIIRS (6,623)
+              VIIRS (201,993)
             </button>
             <button
               onClick={() => setSelectedSensor("MODIS")}
@@ -74,7 +74,7 @@ export default function BottomScrubber({
                   : "text-slate-400 hover:text-slate-200"
               }`}
             >
-              MODIS (918)
+              MODIS (38,372)
             </button>
           </div>
 

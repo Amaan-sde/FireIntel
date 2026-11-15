@@ -1,0 +1,42 @@
+{
+  "pipeline": "Phase 9 Harmonised Data Transformation",
+  "timestamp": "2026-11-15T05:00:00Z",
+  "source_file": {
+    "path": "fireIntel/data/incoming/harmonised/final_consolidated_master.xlsx",
+    "size_bytes": 42776029,
+    "sha256": "2ecb166247e137cfcf8e40c32dc1e44dddf23b7f9510786530212bc5777a4e17",
+    "raw_rows": 510299
+  },
+  "staged_artifacts": {
+    "canonical_parquet": {
+      "path": "fireIntel/data/staging/phase9/canonical_harmonised_fires.parquet",
+      "rows": 510299,
+      "cols": 31,
+      "size_bytes": 10787389,
+      "sha256": "9c29226d0932a6b4abf0e946f640da1a2ed79cafd32cb1f38a72c5fa91076d0b"
+    },
+    "uttarakhand_parquet": {
+      "path": "fireIntel/data/staging/phase9/uttarakhand_harmonised_fires.parquet",
+      "rows": 240365,
+      "cols": 31,
+      "size_bytes": 4741717,
+      "sha256": "44622eb56e3ce1b98416c450c51d8576039b98482c4e430e1dcb81ef42c027f3"
+    },
+    "regional_parquet": {
+      "path": "fireIntel/data/staging/phase9/regional_harmonised_fires.parquet",
+      "rows": 510299,
+      "cols": 31,
+      "size_bytes": 10787389,
+      "sha256": "9c29226d0932a6b4abf0e946f640da1a2ed79cafd32cb1f38a72c5fa91076d0b"
+    },
+    "mission_control_summary": {
+      "path": "fireIntel/data/staging/phase9/mission_control_summary.json",
+      "sha256": "8f5785f3607390502e429962ed0f4c6f9034c8300512619a6abee1eff9494b00"
+    },
+    "historical_analytics": {
+      "path": "fireIntel/data/staging/phase9/historical_analytics.json",
+      "sha256": "22b812e85d63c2385fd5c0cf0f815f166665ccb19c2d2c9e29f926196700fc71"
+    }
+  },
+  "validation_status": "PASSED"
+}

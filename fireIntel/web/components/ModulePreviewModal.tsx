@@ -38,7 +38,7 @@ export default function ModulePreviewModal({
         "Diurnal overpass filters (Terra ~10:30, Aqua/SNPP ~13:30 local)",
         "Pre-monsoon peak vs winter fire comparative modes"
       ],
-      dataset: "uttarakhand_fires_boundary.parquet (7,541 observations, 17 columns)"
+      dataset: "uttarakhand_harmonised_fires.parquet (240,365 observations, 16 attributes)"
     },
     terrain: {
       title: "3D Himalayan Topography & Geomorphology",

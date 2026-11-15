@@ -18,6 +18,7 @@ COPY requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
 COPY . /app/fireIntel/api
+COPY ../data/production/harmonised /app/fireIntel/data/production/harmonised
 COPY ../data/processed/boundary_validated /app/fireIntel/data/processed/boundary_validated
 COPY ../data/environmental/metadata /app/fireIntel/data/environmental/metadata
 COPY ../data/environmental/processed /app/fireIntel/data/environmental/processed

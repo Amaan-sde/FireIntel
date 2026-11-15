@@ -1503,7 +1503,7 @@ export default function CinematicEarthCanvas({
             <span className="text-slate-400">•</span>
             <span>30.1542°N, 79.2519°E</span>
             <span className="text-slate-400">•</span>
-            <span className="text-amber-400">7,541 Observations</span>
+            <span className="text-amber-400">240,365 Observations</span>
           </div>
         </div>
       )}

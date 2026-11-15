@@ -107,7 +107,7 @@ export default function FireLaboratoryControls({
                       : "text-slate-400 hover:text-slate-200"
                   }`}
                 >
-                  All (7,541)
+                  All (240,365)
                 </button>
                 <button
                   onClick={() => setSelectedSensor("VIIRS")}
@@ -118,7 +118,7 @@ export default function FireLaboratoryControls({
                       : "text-slate-400 hover:text-slate-200"
                   }`}
                 >
-                  VIIRS (6,623)
+                  VIIRS (201,993)
                 </button>
                 <button
                   onClick={() => setSelectedSensor("MODIS")}
@@ -129,7 +129,7 @@ export default function FireLaboratoryControls({
                       : "text-slate-400 hover:text-slate-200"
                   }`}
                 >
-                  MODIS (918)
+                  MODIS (38,372)
                 </button>
               </div>
             </div>

@@ -58,7 +58,12 @@ htmlcov/
 *credentials*
 *secret*
 
-# Large environmental data binaries and downloads (preserve structure with .gitkeep)
+# Incoming raw datasets
+fireIntel/data/incoming/harmonised/*.xlsx
+fireIntel/data/incoming/harmonised/*.xls
+fireIntel/data/incoming/harmonised/*.csv
+!fireIntel/data/incoming/harmonised/.gitkeep
+
 fireIntel/data/environmental/raw/*
 !fireIntel/data/environmental/raw/.gitkeep
 fireIntel/data/environmental/intermediate/*
@@ -89,6 +94,9 @@ yarn-error.log*
 fireIntel/web/tests/screenshots/
 fireIntel/web/tests/transition_frames/
 fireIntel/web/tests/ascent_frames/
+
+# Phase 9 Staging Parquet files
+fireIntel/data/staging/phase9/*.parquet
 
 
 

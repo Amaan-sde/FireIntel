@@ -10,6 +10,7 @@ import {
   BarChart3,
   FileText,
   Database,
+  Calendar,
   Crosshair,
   Orbit,
   Globe2,
@@ -104,11 +105,11 @@ export default function CinematicHeroOverlay({
     6: {
       act: "ACT 6 // THERMAL OBSERVATION REVEAL",
       title: "NASA FIRMS Telemetry",
-      subtitle: "Activating 7,541 verified radiometric hotspots with empirical FRP intensity",
+      subtitle: "Activating 240,365 verified radiometric hotspots with empirical FRP intensity",
       altitude: "6,500 M",
       velocity: "320 M/S",
       target: "CHIR PINE FIRE REGIME",
-      sensor: "6,623 VIIRS + 918 MODIS",
+      sensor: "201,993 VIIRS + 38,372 MODIS",
       phase: "THERMAL EMISSION DETECTED",
     },
     7: {
@@ -186,6 +187,14 @@ export default function CinematicHeroOverlay({
           </Link>
 
           <Link
+            href="/calendar"
+            className="flex items-center gap-1.5 glass-pill rounded-full px-3.5 py-1.5 text-xs text-slate-300 hover:text-white hover:bg-white/10 transition-all font-medium cursor-pointer"
+          >
+            <Calendar className="w-3.5 h-3.5 text-amber-400" />
+            <span>Calendar</span>
+          </Link>
+
+          <Link
             href="/analytics"
             className="flex items-center gap-1.5 glass-pill rounded-full px-3.5 py-1.5 text-xs text-slate-300 hover:text-white hover:bg-white/10 transition-all font-medium cursor-pointer"
           >
@@ -239,9 +248,9 @@ export default function CinematicHeroOverlay({
 
         {/* Streamlined Monospace Scientific Telemetry Strip */}
         <div className="space-y-1 text-xs text-slate-400 font-mono-telemetry mb-9 pl-4 border-l-2 border-cyan-500/50">
-          <div className="text-slate-200">7,541 satellite thermal observations.</div>
-          <div className="text-slate-400">918 MODIS (1 km) · 6,623 VIIRS (375 m).</div>
-          <div className="text-amber-400/90 font-medium">Uttarakhand, Western Himalayas · 2025 baseline.</div>
+          <div className="text-slate-200">240,365 satellite thermal observations.</div>
+          <div className="text-slate-400">38,372 MODIS (1 km) · 201,993 VIIRS (375 m).</div>
+          <div className="text-amber-400/90 font-medium">Uttarakhand, Western Himalayas · Harmonised foundation.</div>
         </div>
 
         {/* Primary Call-to-Action Group */}

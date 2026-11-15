@@ -1,0 +1,191 @@
+{
+  "dataset_name": "FIREINTEL Phase 9 Canonical Harmonised Satellite Fire Observations",
+  "version": "1.0.0",
+  "release_date": "2026-11-15",
+  "format": "Apache Parquet / Snappy",
+  "crs": "EPSG:4326 (WGS84)",
+  "fields": {
+    "latitude": {
+      "type": "float64",
+      "unit": "degrees_north",
+      "bounds": [
+        28.0,
+        31.0
+      ],
+      "description": "Hotspot center latitude"
+    },
+    "longitude": {
+      "type": "float64",
+      "unit": "degrees_east",
+      "bounds": [
+        77.0,
+        81.0
+      ],
+      "description": "Hotspot center longitude"
+    },
+    "in_uttarakhand": {
+      "type": "bool",
+      "description": "Strict Survey of India official polygon containment"
+    },
+    "dataset_scope": {
+      "type": "string",
+      "values": [
+        "uttarakhand",
+        "regional_external"
+      ],
+      "description": "Spatial scope classification"
+    },
+    "sensor": {
+      "type": "string",
+      "values": [
+        "VIIRS",
+        "MODIS"
+      ],
+      "description": "Earth observation radiometer instrument"
+    },
+    "satellite": {
+      "type": "string",
+      "values": [
+        "SNPP",
+        "Aqua",
+        "Terra"
+      ],
+      "description": "Spacecraft platform"
+    },
+    "brightness": {
+      "type": "float64",
+      "unit": "Kelvin",
+      "description": "Brightness temperature (Ch21/22 or I-4)"
+    },
+    "bright_t31": {
+      "type": "float64",
+      "unit": "Kelvin",
+      "description": "Background thermal channel (Ch31 or I-5)"
+    },
+    "frp": {
+      "type": "float64",
+      "unit": "Megawatts (MW)",
+      "description": "Fire Radiative Power"
+    },
+    "scan": {
+      "type": "float64",
+      "unit": "km",
+      "description": "Spatial scan pixel size along scan track"
+    },
+    "track": {
+      "type": "float64",
+      "unit": "km",
+      "description": "Spatial scan pixel size along track"
+    },
+    "confidence_class": {
+      "type": "string",
+      "values": [
+        "n",
+        "l",
+        "h"
+      ],
+      "description": "Harmonised confidence code"
+    },
+    "confidence_label": {
+      "type": "string",
+      "values": [
+        "Nominal",
+        "Low",
+        "High"
+      ],
+      "description": "Human-readable confidence category"
+    },
+    "type": {
+      "type": "int64",
+      "values": [
+        0,
+        2
+      ],
+      "description": "FIRMS hotspot type code"
+    },
+    "type_label": {
+      "type": "string",
+      "values": [
+        "Presumed Vegetation Fire",
+        "Static Land Source / Industrial"
+      ],
+      "description": "Hotspot category label"
+    },
+    "daynight": {
+      "type": "string",
+      "values": [
+        "D",
+        "N"
+      ],
+      "description": "Solar illumination condition"
+    },
+    "decoded_month": {
+      "type": "int64",
+      "values": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "description": "Decoded calendar month"
+    },
+    "decoded_hour": {
+      "type": "int64",
+      "values": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ],
+      "description": "Decoded UTC hour of satellite overpass"
+    },
+    "season": {
+      "type": "string",
+      "description": "Himalayan wildfire seasonal regime phase"
+    },
+    "month_sin": {
+      "type": "float64",
+      "description": "Input cyclical month sine component"
+    },
+    "month_cos": {
+      "type": "float64",
+      "description": "Input cyclical month cosine component"
+    },
+    "hour_sin": {
+      "type": "float64",
+      "description": "Input cyclical hour sine component"
+    },
+    "hour_cos": {
+      "type": "float64",
+      "description": "Input cyclical hour cosine component"
+    }
+  }
+}
