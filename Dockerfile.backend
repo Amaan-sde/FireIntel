@@ -28,6 +28,7 @@ COPY fireIntel/data/processed/boundary_validated /app/fireIntel/data/processed/b
 COPY fireIntel/data/environmental/metadata /app/fireIntel/data/environmental/metadata
 COPY fireIntel/data/environmental/processed /app/fireIntel/data/environmental/processed
 COPY fireIntel/data/boundaries /app/fireIntel/data/boundaries
+COPY fireIntel/data/studio_samples /app/fireIntel/data/studio_samples
 
 # Create non-root system user for production security
 RUN groupadd -r fireintel && useradd -r -g fireintel -d /app fireintel \

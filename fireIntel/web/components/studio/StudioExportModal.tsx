@@ -12,12 +12,15 @@ import {
   Printer,
   Sparkles,
   FileText,
+  Layers,
+  Database,
 } from "lucide-react";
 
 interface StudioExportModalProps {
   isOpen: boolean;
   onClose: () => void;
   datasetName: string;
+  sessionId?: string | null;
   profileData: any;
   modelResult: any;
 }
@@ -26,56 +29,62 @@ export default function StudioExportModal({
   isOpen,
   onClose,
   datasetName,
+  sessionId,
   profileData,
   modelResult,
 }: StudioExportModalProps) {
   const [copied, setCopied] = useState(false);
+  const [downloadingFormat, setDownloadingFormat] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
-  const quality = profileData?.quality || {};
   const spatial = profileData?.spatial || {};
   const radiometrics = profileData?.radiometrics || {};
+  const harmonisation = profileData?.harmonisation_summary || {};
+  const breakdowns = profileData?.breakdowns || {};
 
   // Build Markdown Research Dossier
   const summaryMarkdown = `# FIREINTEL GLOBAL RESEARCH DOSSIER
 Dataset: ${datasetName}
 Generated: NASA Space Apps Challenge 2026 // Global Fire Intelligence Studio
 
-## 1. DATASET PROFILE & QUALITY AUDIT
-- Total Processed Observations: ${quality.total_rows ? quality.total_rows.toLocaleString() : "N/A"}
-- Valid Geocoded Observations: ${quality.valid_rows ? quality.valid_rows.toLocaleString() : "N/A"}
-- Invalid Coordinates: ${quality.invalid_coords || 0}
-- Duplicate Rows: ${quality.duplicate_rows || 0}
+## 1. MULTI-SATELLITE HARMONISATION AUDIT
+- Total Harmonised Observations: ${harmonisation.net_harmonised_observations ? harmonisation.net_harmonised_observations.toLocaleString() : "N/A"}
+- VIIRS Observations: ${breakdowns.sensors?.VIIRS ? breakdowns.sensors.VIIRS.toLocaleString() : "N/A"}
+- MODIS Observations: ${breakdowns.sensors?.MODIS ? breakdowns.sensors.MODIS.toLocaleString() : "N/A"}
+- Archive Historical: ${breakdowns.categories?.ARCHIVE ? breakdowns.categories.ARCHIVE.toLocaleString() : "N/A"}
+- Near Real-Time (NRT): ${breakdowns.categories?.NRT ? breakdowns.categories.NRT.toLocaleString() : "N/A"}
+- Duplicates Removed: ${harmonisation.nrt_duplicates_removed || 0}
+- Coincident Cross-Sensor Detections: ${harmonisation.cross_sensor_co_observations || 0}
 
-## 2. GEOGRAPHICAL EXTENT & SPATIAL COVERAGE
+## 2. GEOGRAPHICAL BOUNDS & SPATIAL EXTENT
 - Geographic Bounding Box: ${spatial.bbox ? `[${spatial.bbox[0]}°E, ${spatial.bbox[1]}°N to ${spatial.bbox[2]}°E, ${spatial.bbox[3]}°N]` : "N/A"}
-- Geographic Center: ${spatial.center ? `[${spatial.center[1]}°N, ${spatial.center[0]}°E]` : "N/A"}
-- Approximate Ground Footprint: ${spatial.area_sqkm ? `${spatial.area_sqkm.toLocaleString()} km²` : "N/A"}
+- Center Coordinate: ${spatial.center ? `[${spatial.center[1]}°N, ${spatial.center[0]}°E]` : "N/A"}
+- Ground Surface Footprint: ${spatial.area_sqkm ? `${spatial.area_sqkm.toLocaleString()} km²` : "N/A"}
 
 ## 3. RADIOMETRIC FIRE RADIATIVE POWER (FRP)
-- Mean FRP: ${radiometrics.frp ? `${radiometrics.frp.mean} MW` : "N/A"}
-- Peak Instantaneous FRP: ${radiometrics.frp ? `${radiometrics.frp.max} MW` : "N/A"}
-- 95th Percentile FRP: ${radiometrics.frp ? `${radiometrics.frp.p95} MW` : "N/A"}
+- Mean Radiative Power: ${radiometrics.frp ? `${radiometrics.frp.mean_mw} MW` : "N/A"}
+- Peak Instantaneous Power: ${radiometrics.frp ? `${radiometrics.frp.max_mw} MW` : "N/A"}
+- Total Accumulated FRP: ${radiometrics.frp ? `${radiometrics.frp.total_mw} MW` : "N/A"}
 
-## 4. MACHINE LEARNING RESULTS
-- Model Type: ${modelResult?.model_type || "Unprocessed / Profiling Mode"}
-- Model Architecture: ${modelResult?.model_name || "N/A"}
+## 4. MACHINE LEARNING & ANALYTICAL METRICS
+- Executed Pipeline: ${modelResult?.model_type || "Profiling Only"}
+- Target Feature: ${modelResult?.target_variable || "None (Unsupervised Mode)"}
 ${
-  modelResult?.metrics
-    ? `- Overall Accuracy: ${modelResult.metrics.accuracy}% (vs ${modelResult.metrics.baseline_majority_accuracy}% naive baseline)\n- Balanced Accuracy: ${modelResult.metrics.balanced_accuracy}%\n- Macro F1-Score: ${modelResult.metrics.macro_f1}%`
+  modelResult?.models
+    ? `- Random Forest Accuracy: ${modelResult.models.random_forest.accuracy}% (Bal. Acc: ${modelResult.models.random_forest.balanced_accuracy}%)\n- XGBoost Accuracy: ${modelResult.models.xgboost.accuracy}% (Bal. Acc: ${modelResult.models.xgboost.balanced_accuracy}%)\n- Majority Baseline: ${modelResult.models.baseline.accuracy}%`
     : ""
 }
 ${
   modelResult?.spatial_clusters
-    ? `- DBSCAN Spatial Clusters: ${modelResult.spatial_clusters.cluster_count}\n- Isolated Outliers: ${modelResult.spatial_clusters.isolated_hotspots}\n- Radiometric Anomalies: ${modelResult.anomaly_detection?.anomalous_observations} (${modelResult.anomaly_detection?.anomaly_percentage}%)`
+    ? `- DBSCAN Spatial Clusters: ${modelResult.spatial_clusters.cluster_count}\n- Isolated Outliers: ${modelResult.spatial_clusters.isolated_hotspots}\n- Isolation Forest Anomalies: ${modelResult.anomaly_detection?.anomalous_observations} (${modelResult.anomaly_detection?.anomaly_percentage}%)`
     : ""
 }
 
 ## 5. SCIENTIFIC DATA GOVERNANCE & LIMITATIONS
-- Detections represent satellite thermal anomalies at overpass moment, not confirmed wildfire perimeters.
-- Fire Radiative Power (FRP) reflects instantaneous radiant combustion rate, not crown fire depth.
-- Coordinates were withheld from model training features to prevent trivial spatial memorization.
+- Active fire detections reflect satellite thermal radiation at sensor overpass, NOT verified wildfire perimeter or burn area.
+- Coordinates were withheld from model features to ensure the classifier does not memorize regional geometry.
+- Supervised models distinguish observation spectral profile (e.g. vegetation vs industrial flaring), not future wildfire ignition.
 `;
 
   const handleCopySummary = () => {
@@ -84,164 +93,176 @@ ${
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleDownloadJSON = () => {
-    const combinedData = {
-      dataset_name: datasetName,
-      profile: profileData,
-      model_result: modelResult,
-      exported_at: new Date().toISOString(),
-    };
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(combinedData, null, 2));
-    const a = document.createElement("a");
-    a.setAttribute("href", dataStr);
-    a.setAttribute("download", `fireintel_studio_${datasetName.toLowerCase().replace(/\s+/g, "_")}.json`);
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  };
+  const handleDownloadDirect = async (format: string, defaultFilename: string) => {
+    if (!sessionId) {
+      alert("No active session ID available to export.");
+      return;
+    }
 
-  const handleDownloadGeoJSON = () => {
-    const geojsonData = modelResult?.geojson || profileData?.geojson || { type: "FeatureCollection", features: [] };
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(geojsonData, null, 2));
-    const a = document.createElement("a");
-    a.setAttribute("href", dataStr);
-    a.setAttribute("download", `fireintel_studio_${datasetName.toLowerCase().replace(/\s+/g, "_")}.geojson`);
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  };
+    setDownloadingFormat(format);
+    try {
+      const res = await fetch("/api/v1/studio/export", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          session_id: sessionId,
+          format: format,
+        }),
+      });
 
-  const handleDownloadCSV = () => {
-    const geojsonData = modelResult?.geojson || profileData?.geojson || { features: [] };
-    let csv = "longitude,latitude,frp,sensor,confidence,predicted,cluster_id,is_anomaly\n";
-    geojsonData.features.forEach((f: any) => {
-      const c = f.geometry.coordinates;
-      const p = f.properties;
-      csv += `${c[0]},${c[1]},${p.frp || ""},${p.sensor || ""},${p.confidence || ""},${p.predicted || ""},${p.cluster_id || ""},${p.is_anomaly || ""}\n`;
-    });
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `fireintel_studio_${datasetName.toLowerCase().replace(/\s+/g, "_")}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+      if (!res.ok) {
+        const errJson = await res.json();
+        throw new Error(errJson.detail || "Export failed");
+      }
+
+      const data = await res.json();
+      const content = typeof data.content === "object" ? JSON.stringify(data.content, null, 2) : data.content;
+      const mime = format.includes("json") ? "application/json" : "text/csv";
+      
+      const blob = new Blob([content], { type: mime });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = data.filename || defaultFilename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err: any) {
+      alert(`Export error: ${err.message}`);
+    } finally {
+      setDownloadingFormat(null);
+    }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md font-mono-telemetry text-xs">
-      <div className="relative w-full max-w-2xl bg-[#030612] border border-purple-500/40 rounded-2xl p-6 shadow-2xl text-slate-200 space-y-5 max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-white/10 pb-3">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="bg-[#030612] border border-white/15 rounded-3xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden font-mono-telemetry text-xs">
+        {/* Modal Header */}
+        <div className="p-5 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-purple-500/15 border border-purple-500/30 text-purple-400">
+            <div className="p-2 rounded-xl bg-purple-500/20 border border-purple-500/30 text-purple-300">
               <Download className="w-5 h-5" />
             </div>
             <div>
-              <div className="text-[10px] text-purple-400 font-bold uppercase tracking-wider">
-                GLOBAL RESEARCH DOSSIER STUDIO
-              </div>
-              <h2 className="text-base font-bold text-white">
-                Export Dossier ({datasetName})
-              </h2>
+              <h3 className="text-base font-bold text-white tracking-wide">
+                Download Global Research Package
+              </h3>
+              <span className="text-[10px] text-slate-400">
+                NASA FIRMS Harmonised Telemetry & Machine Learning Artifacts
+              </span>
             </div>
           </div>
 
           <button
+            data-testid="close-export-modal-btn"
             onClick={onClose}
-            aria-label="Close export dialog"
-            className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 cursor-pointer"
+            className="p-1.5 rounded-xl bg-white/[0.05] hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
           >
-            <X className="w-4 h-4" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* 3 Download Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <button
-            onClick={handleDownloadCSV}
-            className="p-3.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-emerald-500/40 text-left transition-all cursor-pointer space-y-1.5"
-          >
-            <div className="flex items-center justify-between">
-              <FileSpreadsheet className="w-5 h-5 text-emerald-400" />
-              <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">
-                CSV
-              </span>
-            </div>
-            <strong className="text-xs text-white block">Cleaned Points</strong>
-            <span className="text-[10px] text-slate-400 block">
-              Coordinates, FRP, and model predictions
+        {/* Modal Body */}
+        <div className="p-5 overflow-y-auto space-y-4 flex-1">
+          {/* Artifacts Download Grid */}
+          <div className="space-y-2">
+            <span className="text-[11px] font-bold text-slate-300 uppercase tracking-wider block">
+              1. Downloadable Data Products
             </span>
-          </button>
 
-          <button
-            onClick={handleDownloadGeoJSON}
-            className="p-3.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-cyan-500/40 text-left transition-all cursor-pointer space-y-1.5"
-          >
-            <div className="flex items-center justify-between">
-              <MapPin className="w-5 h-5 text-cyan-400" />
-              <span className="text-[9px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-bold">
-                GeoJSON
-              </span>
-            </div>
-            <strong className="text-xs text-white block">Spatial Geometry</strong>
-            <span className="text-[10px] text-slate-400 block">
-              FeatureCollection with GIS attributes
-            </span>
-          </button>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {/* Harmonised CSV */}
+              <button
+                onClick={() => handleDownloadDirect("harmonised_csv", "harmonised_global_fire_observations.csv")}
+                disabled={Boolean(downloadingFormat)}
+                className="p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/10 hover:border-emerald-500/40 text-left transition-all flex items-start gap-3 cursor-pointer group"
+              >
+                <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-400 group-hover:scale-110 transition-transform">
+                  <Database className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="font-bold text-white text-xs">harmonised_global_fire_observations.csv</div>
+                  <div className="text-[10px] text-slate-400">Unified 20-column schema with provenance</div>
+                </div>
+              </button>
 
-          <button
-            onClick={handleDownloadJSON}
-            className="p-3.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-purple-500/40 text-left transition-all cursor-pointer space-y-1.5"
-          >
-            <div className="flex items-center justify-between">
-              <FileCode className="w-5 h-5 text-purple-400" />
-              <span className="text-[9px] px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 font-bold">
-                JSON
-              </span>
-            </div>
-            <strong className="text-xs text-white block">Metadata Config</strong>
-            <span className="text-[10px] text-slate-400 block">
-              Full profile and evaluation matrices
-            </span>
-          </button>
-        </div>
+              {/* Report CSV */}
+              <button
+                onClick={() => handleDownloadDirect("report_csv", "global_fire_analysis_report.csv")}
+                disabled={Boolean(downloadingFormat)}
+                className="p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/10 hover:border-cyan-500/40 text-left transition-all flex items-start gap-3 cursor-pointer group"
+              >
+                <div className="p-2 rounded-lg bg-cyan-500/20 text-cyan-400 group-hover:scale-110 transition-transform">
+                  <FileSpreadsheet className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="font-bold text-white text-xs">global_fire_analysis_report.csv</div>
+                  <div className="text-[10px] text-slate-400">Spatial bbox, radiometrics, sensor breakdowns</div>
+                </div>
+              </button>
 
-        {/* Copyable Markdown Preview */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-slate-400 font-bold uppercase text-[10px] tracking-wider">
-              Scientific Research Dossier
-            </span>
-            <button
-              onClick={handleCopySummary}
-              className="px-3 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-cyan-300 border border-cyan-500/30 text-[10px] flex items-center gap-1 cursor-pointer font-bold"
-            >
-              {copied ? (
-                <>
-                  <Check className="w-3 h-3 text-emerald-400" />
-                  <span>Copied to Clipboard!</span>
-                </>
-              ) : (
-                <>
-                  <Copy className="w-3 h-3" />
-                  <span>Copy Markdown Dossier</span>
-                </>
+              {/* Predictions CSV (if supervised) */}
+              {modelResult?.models && (
+                <button
+                  onClick={() => handleDownloadDirect("predictions_csv", "model_predictions.csv")}
+                  disabled={Boolean(downloadingFormat)}
+                  className="p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/10 hover:border-purple-500/40 text-left transition-all flex items-start gap-3 cursor-pointer group"
+                >
+                  <div className="p-2 rounded-lg bg-purple-500/20 text-purple-400 group-hover:scale-110 transition-transform">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="font-bold text-white text-xs">model_predictions.csv</div>
+                    <div className="text-[10px] text-slate-400">Actual vs Predicted classification labels</div>
+                  </div>
+                </button>
               )}
-            </button>
+
+              {/* GeoJSON */}
+              <button
+                onClick={() => handleDownloadDirect("geojson", "spatial_clusters.geojson")}
+                disabled={Boolean(downloadingFormat)}
+                className="p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/10 hover:border-amber-500/40 text-left transition-all flex items-start gap-3 cursor-pointer group"
+              >
+                <div className="p-2 rounded-lg bg-amber-500/20 text-amber-400 group-hover:scale-110 transition-transform">
+                  <MapPin className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="font-bold text-white text-xs">spatial_clusters.geojson</div>
+                  <div className="text-[10px] text-slate-400">GIS point layers for QGIS / ArcGIS / MapLibre</div>
+                </div>
+              </button>
+            </div>
           </div>
 
-          <pre className="p-3.5 rounded-xl bg-black/60 border border-white/10 text-[11px] text-slate-300 overflow-x-auto max-h-48 leading-relaxed font-mono">
-            {summaryMarkdown}
-          </pre>
+          {/* Markdown Dossier Preview */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
+                2. Scientific Research Dossier (Markdown)
+              </span>
+              <button
+                onClick={handleCopySummary}
+                className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white text-[10px] font-bold transition-all flex items-center gap-1 cursor-pointer"
+              >
+                {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                <span>{copied ? "Copied!" : "Copy Markdown"}</span>
+              </button>
+            </div>
+
+            <pre className="p-3 rounded-xl bg-black/80 border border-white/10 text-slate-300 font-mono text-[10px] leading-relaxed max-h-48 overflow-y-auto whitespace-pre-wrap select-all">
+              {summaryMarkdown}
+            </pre>
+          </div>
         </div>
 
-        {/* Footer */}
-        <div className="pt-2 border-t border-white/10 flex justify-end">
+        {/* Modal Footer */}
+        <div className="p-4 border-t border-white/10 bg-white/[0.02] flex items-center justify-between text-[11px] text-slate-400">
+          <span>Format: Open Standard WGS-84 (EPSG:4326)</span>
           <button
             onClick={onClose}
-            className="px-4 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-slate-200 cursor-pointer"
+            className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold transition-colors cursor-pointer"
           >
             Close
           </button>
@@ -250,4 +271,3 @@ ${
     </div>
   );
 }
-

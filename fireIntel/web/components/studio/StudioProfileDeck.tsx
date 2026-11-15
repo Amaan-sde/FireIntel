@@ -11,15 +11,11 @@ import {
   Sparkles,
   Layers,
   Percent,
+  CheckCircle2,
+  Activity,
+  Satellite,
+  Compass,
 } from "lucide-react";
-
-interface QualityStats {
-  total_rows: number;
-  valid_rows: number;
-  invalid_coords: number;
-  duplicate_rows: number;
-  missing_cells_pct: number;
-}
 
 interface SpatialStats {
   bbox: [number, number, number, number];
@@ -29,37 +25,38 @@ interface SpatialStats {
 
 interface RadiometricStats {
   frp?: {
-    min: number;
-    max: number;
-    mean: number;
-    median: number;
-    p95: number;
+    total_mw: number;
+    min_mw?: number;
+    max_mw: number;
+    mean_mw: number;
+    median_mw: number;
+    p95_mw: number;
   };
   brightness?: {
-    min: number;
-    max: number;
-    mean: number;
-    median: number;
+    min_k: number;
+    max_k: number;
+    mean_k: number;
   };
 }
 
 interface TargetSummary {
-  target_col: string;
+  has_target_label: boolean;
   classes: string[];
   counts: Record<string, number>;
-  class_count: number;
   is_suitable_for_supervised: boolean;
 }
 
 interface StudioProfileDeckProps {
   datasetName: string;
-  quality: QualityStats;
+  harmonisationSummary: any;
   spatial: SpatialStats;
   radiometrics: RadiometricStats;
-  sensors: Record<string, number>;
-  temporal?: {
-    min_date: string;
-    max_date: string;
+  breakdowns: {
+    sensors: Record<string, number>;
+    categories: Record<string, number>;
+    confidence: Record<string, number>;
+    daynight: Record<string, number>;
+    monthly?: Record<string, number>;
   };
   target?: TargetSummary;
   onProceedToTrain: () => void;
@@ -67,15 +64,18 @@ interface StudioProfileDeckProps {
 
 export default function StudioProfileDeck({
   datasetName,
-  quality,
+  harmonisationSummary,
   spatial,
   radiometrics,
-  sensors,
-  temporal,
+  breakdowns,
   target,
   onProceedToTrain,
 }: StudioProfileDeckProps) {
-  const validPct = Math.round((quality.valid_rows / quality.total_rows) * 100);
+  const totalHarmonised = harmonisationSummary?.net_harmonised_observations || 0;
+  const viirsCount = breakdowns.sensors?.VIIRS || 0;
+  const modisCount = breakdowns.sensors?.MODIS || 0;
+  const archiveCount = breakdowns.categories?.ARCHIVE || 0;
+  const nrtCount = breakdowns.categories?.NRT || 0;
 
   return (
     <div className="bg-[#030612]/90 border border-white/10 rounded-2xl p-5 backdrop-blur-xl shadow-2xl space-y-5 font-mono-telemetry text-xs">
@@ -87,10 +87,10 @@ export default function StudioProfileDeck({
           </div>
           <div>
             <h3 className="text-sm font-bold text-white tracking-wide uppercase">
-              Automated Dataset Profiling & Verification
+              Harmonised Multi-Satellite Quality & Spatial Telemetry
             </h3>
             <span className="text-[10px] text-slate-400">
-              Validated telemetry distributions and geometric integrity for {datasetName}
+              Validated coordinate geometries and sensor distributions for {datasetName}
             </span>
           </div>
         </div>
@@ -98,7 +98,7 @@ export default function StudioProfileDeck({
         <button
           data-testid="proceed-to-train-btn"
           onClick={onProceedToTrain}
-          className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-purple-500 to-cyan-500 hover:from-purple-600 hover:to-cyan-600 text-white font-bold text-xs flex items-center gap-2 shadow-lg cursor-pointer transition-all"
+          className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-black font-bold transition-all shadow-lg hover:shadow-cyan-500/20 flex items-center gap-1.5 cursor-pointer hover:scale-[1.02]"
         >
           <Sparkles className="w-3.5 h-3.5" />
           <span>Launch Machine Learning Engine</span>
@@ -106,115 +106,76 @@ export default function StudioProfileDeck({
         </button>
       </div>
 
-      {/* 4 Core KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-        {/* KPI 1: Observations & Validity */}
-        <div className="p-4 rounded-xl border border-white/10 bg-white/[0.02] space-y-2">
-          <div className="flex items-center justify-between text-slate-400 text-[10px]">
-            <span className="font-bold uppercase tracking-wider">Valid Detections</span>
-            <FileCheck className="w-3.5 h-3.5 text-emerald-400" />
+      {/* Grid of Key Analytical Metrics */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        {/* Total Harmonised */}
+        <div className="p-3.5 rounded-xl bg-black/50 border border-white/10 space-y-1">
+          <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Harmonised Obs</span>
+          <div className="text-xl font-black text-white">
+            {totalHarmonised.toLocaleString()}
           </div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-black text-white">
-              {quality.valid_rows.toLocaleString()}
-            </span>
-            <span className="text-xs text-emerald-400 font-bold">
-              ({validPct}% Valid)
-            </span>
+          <div className="text-[9px] text-emerald-400 font-bold">100% WGS-84 Valid</div>
+        </div>
+
+        {/* Geographic Footprint */}
+        <div className="p-3.5 rounded-xl bg-black/50 border border-white/10 space-y-1">
+          <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Surface Footprint</span>
+          <div className="text-xl font-black text-cyan-300">
+            {spatial.area_sqkm?.toLocaleString() || "0"} <span className="text-xs font-normal text-slate-400">km²</span>
           </div>
-          <div className="text-[10px] text-slate-400 flex justify-between pt-1 border-t border-white/5">
-            <span>Invalid Coords: {quality.invalid_coords}</span>
-            <span>Duplicates: {quality.duplicate_rows}</span>
+          <div className="text-[9px] text-slate-400 truncate">
+            {spatial.center ? `${spatial.center[1]}°N, ${spatial.center[0]}°E` : "Global"}
           </div>
         </div>
 
-        {/* KPI 2: Geographic Extent */}
-        <div className="p-4 rounded-xl border border-white/10 bg-white/[0.02] space-y-2">
-          <div className="flex items-center justify-between text-slate-400 text-[10px]">
-            <span className="font-bold uppercase tracking-wider">Geographic Footprint</span>
-            <Globe2 className="w-3.5 h-3.5 text-cyan-400" />
+        {/* VIIRS vs MODIS */}
+        <div className="p-3.5 rounded-xl bg-black/50 border border-white/10 space-y-1">
+          <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Sensor Breakdown</span>
+          <div className="text-sm font-bold text-white flex justify-between">
+            <span className="text-cyan-400">VIIRS:</span>
+            <span>{viirsCount.toLocaleString()}</span>
           </div>
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-2xl font-black text-white">
-              {spatial.area_sqkm.toLocaleString()}
-            </span>
-            <span className="text-xs text-slate-400">km²</span>
-          </div>
-          <div className="text-[10px] text-slate-400 truncate pt-1 border-t border-white/5">
-            Span: [{spatial.bbox[1].toFixed(2)}° to {spatial.bbox[3].toFixed(2)}°N]
+          <div className="text-sm font-bold text-white flex justify-between">
+            <span className="text-amber-400">MODIS:</span>
+            <span>{modisCount.toLocaleString()}</span>
           </div>
         </div>
 
-        {/* KPI 3: Fire Radiative Power */}
-        <div className="p-4 rounded-xl border border-white/10 bg-white/[0.02] space-y-2">
-          <div className="flex items-center justify-between text-slate-400 text-[10px]">
-            <span className="font-bold uppercase tracking-wider">Mean Radiant Power</span>
-            <Flame className="w-3.5 h-3.5 text-amber-400" />
+        {/* Archive vs NRT */}
+        <div className="p-3.5 rounded-xl bg-black/50 border border-white/10 space-y-1">
+          <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Stream Category</span>
+          <div className="text-sm font-bold text-white flex justify-between">
+            <span className="text-emerald-400">Archive:</span>
+            <span>{archiveCount.toLocaleString()}</span>
           </div>
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-2xl font-black text-amber-300">
-              {radiometrics.frp ? radiometrics.frp.mean : "N/A"}
-            </span>
-            <span className="text-xs text-slate-400">MW</span>
-          </div>
-          <div className="text-[10px] text-slate-400 flex justify-between pt-1 border-t border-white/5">
-            <span>Peak: {radiometrics.frp ? `${radiometrics.frp.max} MW` : "N/A"}</span>
-            <span>95th: {radiometrics.frp ? `${radiometrics.frp.p95} MW` : "N/A"}</span>
+          <div className="text-sm font-bold text-white flex justify-between">
+            <span className="text-rose-400">NRT:</span>
+            <span>{nrtCount.toLocaleString()}</span>
           </div>
         </div>
 
-        {/* KPI 4: Sensor & Provenance */}
-        <div className="p-4 rounded-xl border border-white/10 bg-white/[0.02] space-y-2">
-          <div className="flex items-center justify-between text-slate-400 text-[10px]">
-            <span className="font-bold uppercase tracking-wider">Sensor Provenance</span>
-            <Radio className="w-3.5 h-3.5 text-purple-400" />
+        {/* Mean Radiative Power (FRP) */}
+        <div className="p-3.5 rounded-xl bg-black/50 border border-white/10 space-y-1">
+          <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Mean Radiant Power</span>
+          <div className="text-xl font-black text-amber-300">
+            {radiometrics.frp?.mean_mw || 0} <span className="text-xs font-normal text-slate-400">MW</span>
           </div>
-          <div className="space-y-1">
-            {Object.entries(sensors).map(([sensor, cnt]) => {
-              const pct = Math.round((cnt / quality.valid_rows) * 100);
-              return (
-                <div key={sensor} className="flex justify-between items-center text-[11px]">
-                  <span className="text-slate-300 font-bold">{sensor}:</span>
-                  <span className="text-purple-300">
-                    {cnt.toLocaleString()} ({pct}%)
-                  </span>
-                </div>
-              );
-            })}
-            {Object.keys(sensors).length === 0 && (
-              <span className="text-slate-500 text-xs">Unspecified satellite sensor</span>
-            )}
+          <div className="text-[9px] text-slate-400">
+            Peak: {radiometrics.frp?.max_mw || 0} MW
+          </div>
+        </div>
+
+        {/* Ground Truth Status */}
+        <div className="p-3.5 rounded-xl bg-black/50 border border-white/10 space-y-1">
+          <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Target Ground Truth</span>
+          <div className={`text-sm font-black ${target?.has_target_label ? "text-emerald-400" : "text-amber-400"}`}>
+            {target?.has_target_label ? "Class 0 vs Class 2" : "Unlabelled NRT"}
+          </div>
+          <div className="text-[9px] text-slate-400">
+            {target?.has_target_label ? "Supervised Ready" : "Unsupervised Mode"}
           </div>
         </div>
       </div>
-
-      {/* Target Summary Banner (if target mapped) */}
-      {target && (
-        <div className="p-3.5 rounded-xl border border-amber-500/30 bg-amber-950/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[10px] font-bold uppercase">
-                Target Variable: {target.target_col}
-              </span>
-              <span className="text-white text-xs font-bold">
-                {target.class_count} Distinct Classes Detected
-              </span>
-            </div>
-            <div className="flex flex-wrap gap-2 text-[10px] text-slate-300">
-              {Object.entries(target.counts).map(([cls, cnt]) => (
-                <span key={cls} className="px-2 py-0.5 rounded bg-black/60 border border-white/10">
-                  Class {cls}: {cnt.toLocaleString()} obs
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <span className="text-[10px] px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold whitespace-nowrap">
-            ✓ Suitable for Supervised Random Forest
-          </span>
-        </div>
-      )}
     </div>
   );
 }
-
