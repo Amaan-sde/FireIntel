@@ -249,7 +249,7 @@ export default function LocationMap({
         filter: ["has", "point_count"],
         layout: {
           "text-field": "{point_count_abbreviated}",
-          "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
+          "text-font": ["Open Sans Semibold"],
           "text-size": 12,
         },
         paint: {

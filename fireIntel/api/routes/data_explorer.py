@@ -60,6 +60,53 @@ def sanitize_csv_cell(val: Any) -> Any:
             return f"'{val}"
     return val
 
+def is_nan_or_null(val: Any) -> bool:
+    if val is None:
+        return True
+    if isinstance(val, float) and (math.isnan(val) or math.isinf(val)):
+        return True
+    s = str(val).strip().lower()
+    return s in ("nan", "none", "null", "nat", "")
+
+def safe_time_str(val: Any) -> Optional[str]:
+    if is_nan_or_null(val):
+        return None
+    try:
+        f = float(val)
+        if math.isnan(f) or math.isinf(f):
+            return None
+        return f"{int(f):04d}"
+    except (ValueError, TypeError):
+        s = str(val).strip()
+        return s if s and s.lower() not in ("nan", "none", "null") else None
+
+def safe_str(val: Any, default: Optional[str] = None) -> Optional[str]:
+    if is_nan_or_null(val):
+        return default
+    return str(val)
+
+def safe_float(val: Any, decimals: int = 2) -> Optional[float]:
+    if is_nan_or_null(val):
+        return None
+    try:
+        f = float(val)
+        if math.isnan(f) or math.isinf(f):
+            return None
+        return round(f, decimals)
+    except (ValueError, TypeError):
+        return None
+
+def safe_int(val: Any, default: int = 0) -> int:
+    if is_nan_or_null(val):
+        return default
+    try:
+        f = float(val)
+        if math.isnan(f) or math.isinf(f):
+            return default
+        return int(f)
+    except (ValueError, TypeError):
+        return default
+
 def validate_dates(start_date: Optional[str], end_date: Optional[str]):
     """Validates ISO date format YYYY-MM-DD and ensures start_date <= end_date."""
     d_start = None
@@ -434,44 +481,43 @@ def get_observations(
 
     enriched_records = []
     for r in raw_records:
-        time_int = int(r.get("acq_time") or 0) if r.get("acq_time") else None
-        time_str = f"{time_int:04d}" if time_int is not None else None
-        acq_d = str(r["acq_date"]) if r.get("acq_date") else None
-        acq_dt = str(r["acq_datetime_iso"]) if r.get("acq_datetime_iso") else None
+        time_str = safe_time_str(r.get("acq_time"))
+        acq_d = safe_str(r.get("acq_date"))
+        acq_dt = safe_str(r.get("acq_datetime_iso"))
 
-        conf_raw = str(r.get("confidence") or "").strip()
-        conf_cat = r.get("confidence_label") or "Nominal"
+        conf_raw = safe_str(r.get("confidence"), "") or ""
+        conf_cat = safe_str(r.get("confidence_label"), "Nominal") or "Nominal"
 
-        det_type = int(r.get("type") or 0)
-        det_desc = r.get("type_label") or TYPE_DESCRIPTIONS.get(det_type, "Presumed vegetation fire")
+        det_type = safe_int(r.get("type"), 0)
+        det_desc = safe_str(r.get("type_label")) or TYPE_DESCRIPTIONS.get(det_type, "Presumed vegetation fire")
 
         enriched_records.append({
-            "obs_id": int(r["obs_id"]),
-            "latitude": round(float(r["latitude"]), 5),
-            "longitude": round(float(r["longitude"]), 5),
+            "obs_id": safe_int(r.get("obs_id")),
+            "latitude": safe_float(r.get("latitude"), 5),
+            "longitude": safe_float(r.get("longitude"), 5),
             "acq_date": acq_d,
             "acq_time": time_str,
             "acq_datetime": acq_dt,
             "date_verified_2025": bool(r.get("date_verified_2025")),
-            "decoded_month": int(r["decoded_month"]),
-            "decoded_hour": int(r["decoded_hour"]),
-            "season": str(r["season"]),
-            "satellite": str(r["satellite"]),
-            "instrument": str(r["instrument"]),
-            "sensor": str(r["sensor"]),
-            "frp": round(float(r["frp"]), 2),
-            "brightness": round(float(r["brightness"]), 2),
-            "bright_t31": round(float(r["bright_t31"]), 2) if r.get("bright_t31") is not None else None,
-            "scan": round(float(r["scan"]), 2),
-            "track": round(float(r["track"]), 2),
+            "decoded_month": safe_int(r.get("decoded_month"), 1),
+            "decoded_hour": safe_int(r.get("decoded_hour"), 0),
+            "season": safe_str(r.get("season"), "Unknown"),
+            "satellite": safe_str(r.get("satellite"), "Unknown"),
+            "instrument": safe_str(r.get("instrument"), "Unknown"),
+            "sensor": safe_str(r.get("sensor"), "Unknown"),
+            "frp": safe_float(r.get("frp"), 2),
+            "brightness": safe_float(r.get("brightness"), 2),
+            "bright_t31": safe_float(r.get("bright_t31"), 2),
+            "scan": safe_float(r.get("scan"), 2),
+            "track": safe_float(r.get("track"), 2),
             "confidence": conf_raw,
             "confidence_category": conf_cat,
-            "daynight": str(r["daynight"]),
+            "daynight": safe_str(r.get("daynight"), "D"),
             "type": det_type,
             "type_description": det_desc,
             "in_uttarakhand": bool(r.get("in_uttarakhand")),
-            "coverage_note": str(r.get("coverage_note") or ""),
-            "version": str(r.get("version") or "Harmonised-v1"),
+            "coverage_note": safe_str(r.get("coverage_note"), ""),
+            "version": safe_str(r.get("version"), "Harmonised-v1"),
         })
 
     return {
@@ -608,44 +654,46 @@ def export_observations(
         writer.writerow(headers)
 
         for r in records:
-            time_int = int(r.get("acq_time") or 0) if r.get("acq_time") else None
-            time_str = f"{time_int:04d}" if time_int is not None else ""
-            acq_d = str(r["acq_date"]) if r.get("acq_date") else ""
-            acq_dt = str(r["acq_datetime_iso"]) if r.get("acq_datetime_iso") else ""
+            time_str = safe_time_str(r.get("acq_time")) or ""
+            acq_d = safe_str(r.get("acq_date"), "") or ""
+            acq_dt = safe_str(r.get("acq_datetime_iso"), "") or ""
 
-            conf_raw = str(r.get("confidence") or "").strip()
-            conf_cat = r.get("confidence_label") or "Nominal"
+            conf_raw = safe_str(r.get("confidence"), "") or ""
+            conf_cat = safe_str(r.get("confidence_label"), "Nominal") or "Nominal"
 
-            det_type = int(r.get("type") or 0)
-            det_desc = r.get("type_label") or TYPE_DESCRIPTIONS.get(det_type, "Presumed vegetation fire")
+            det_type = safe_int(r.get("type"), 0)
+            det_desc = safe_str(r.get("type_label")) or TYPE_DESCRIPTIONS.get(det_type, "Presumed vegetation fire")
+
+            b_t31 = safe_float(r.get("bright_t31"), 2)
+            b_t31_str = str(b_t31) if b_t31 is not None else ""
 
             row_data = [
-                r["obs_id"],
-                round(float(r["latitude"]), 5),
-                round(float(r["longitude"]), 5),
+                safe_int(r.get("obs_id")),
+                safe_float(r.get("latitude"), 5),
+                safe_float(r.get("longitude"), 5),
                 bool(r.get("in_uttarakhand")),
-                int(r["decoded_month"]),
-                int(r["decoded_hour"]),
-                sanitize_csv_cell(str(r["season"])),
+                safe_int(r.get("decoded_month"), 1),
+                safe_int(r.get("decoded_hour"), 0),
+                sanitize_csv_cell(safe_str(r.get("season"), "")),
                 acq_d,
                 time_str,
                 acq_dt,
                 bool(r.get("date_verified_2025")),
-                sanitize_csv_cell(str(r["satellite"])),
-                sanitize_csv_cell(str(r["instrument"])),
-                sanitize_csv_cell(str(r["sensor"])),
-                round(float(r["frp"]), 2),
-                round(float(r["brightness"]), 2),
-                round(float(r["bright_t31"]), 2) if r.get("bright_t31") is not None else "",
-                round(float(r["scan"]), 2),
-                round(float(r["track"]), 2),
+                sanitize_csv_cell(safe_str(r.get("satellite"), "")),
+                sanitize_csv_cell(safe_str(r.get("instrument"), "")),
+                sanitize_csv_cell(safe_str(r.get("sensor"), "")),
+                safe_float(r.get("frp"), 2),
+                safe_float(r.get("brightness"), 2),
+                b_t31_str,
+                safe_float(r.get("scan"), 2),
+                safe_float(r.get("track"), 2),
                 sanitize_csv_cell(conf_raw),
                 sanitize_csv_cell(conf_cat),
-                sanitize_csv_cell(str(r["daynight"])),
+                sanitize_csv_cell(safe_str(r.get("daynight"), "")),
                 det_type,
                 sanitize_csv_cell(det_desc),
-                sanitize_csv_cell(str(r.get("coverage_note") or "")),
-                sanitize_csv_cell(str(r.get("version") or "Harmonised-v1")),
+                sanitize_csv_cell(safe_str(r.get("coverage_note"), "")),
+                sanitize_csv_cell(safe_str(r.get("version"), "Harmonised-v1")),
             ]
             writer.writerow(row_data)
 
@@ -668,44 +716,43 @@ def export_observations(
     elif fmt == "json":
         export_records = []
         for r in records:
-            time_int = int(r.get("acq_time") or 0) if r.get("acq_time") else None
-            time_str = f"{time_int:04d}" if time_int is not None else None
-            acq_d = str(r["acq_date"]) if r.get("acq_date") else None
-            acq_dt = str(r["acq_datetime_iso"]) if r.get("acq_datetime_iso") else None
+            time_str = safe_time_str(r.get("acq_time"))
+            acq_d = safe_str(r.get("acq_date"))
+            acq_dt = safe_str(r.get("acq_datetime_iso"))
 
-            conf_raw = str(r.get("confidence") or "").strip()
-            conf_cat = r.get("confidence_label") or "Nominal"
+            conf_raw = safe_str(r.get("confidence"), "") or ""
+            conf_cat = safe_str(r.get("confidence_label"), "Nominal") or "Nominal"
 
-            det_type = int(r.get("type") or 0)
-            det_desc = r.get("type_label") or TYPE_DESCRIPTIONS.get(det_type, "Presumed vegetation fire")
+            det_type = safe_int(r.get("type"), 0)
+            det_desc = safe_str(r.get("type_label")) or TYPE_DESCRIPTIONS.get(det_type, "Presumed vegetation fire")
 
             export_records.append({
-                "obs_id": int(r["obs_id"]),
-                "latitude": round(float(r["latitude"]), 5),
-                "longitude": round(float(r["longitude"]), 5),
+                "obs_id": safe_int(r.get("obs_id")),
+                "latitude": safe_float(r.get("latitude"), 5),
+                "longitude": safe_float(r.get("longitude"), 5),
                 "in_uttarakhand": bool(r.get("in_uttarakhand")),
-                "decoded_month": int(r["decoded_month"]),
-                "decoded_hour": int(r["decoded_hour"]),
-                "season": str(r["season"]),
+                "decoded_month": safe_int(r.get("decoded_month"), 1),
+                "decoded_hour": safe_int(r.get("decoded_hour"), 0),
+                "season": safe_str(r.get("season"), ""),
                 "acq_date": acq_d,
                 "acq_time": time_str,
                 "acq_datetime": acq_dt,
                 "date_verified_2025": bool(r.get("date_verified_2025")),
-                "satellite": str(r["satellite"]),
-                "instrument": str(r["instrument"]),
-                "sensor": str(r["sensor"]),
-                "frp_mw": round(float(r["frp"]), 2),
-                "brightness_kelvin": round(float(r["brightness"]), 2),
-                "bright_t31_kelvin": round(float(r["bright_t31"]), 2) if r.get("bright_t31") is not None else None,
-                "scan_km": round(float(r["scan"]), 2),
-                "track_km": round(float(r["track"]), 2),
+                "satellite": safe_str(r.get("satellite"), ""),
+                "instrument": safe_str(r.get("instrument"), ""),
+                "sensor": safe_str(r.get("sensor"), ""),
+                "frp_mw": safe_float(r.get("frp"), 2),
+                "brightness_kelvin": safe_float(r.get("brightness"), 2),
+                "bright_t31_kelvin": safe_float(r.get("bright_t31"), 2),
+                "scan_km": safe_float(r.get("scan"), 2),
+                "track_km": safe_float(r.get("track"), 2),
                 "confidence": conf_raw,
                 "confidence_category": conf_cat,
-                "daynight": str(r["daynight"]),
+                "daynight": safe_str(r.get("daynight"), ""),
                 "detection_type": det_type,
                 "detection_description": det_desc,
-                "coverage_note": str(r.get("coverage_note") or ""),
-                "version": str(r.get("version") or "Harmonised-v1"),
+                "coverage_note": safe_str(r.get("coverage_note"), ""),
+                "version": safe_str(r.get("version"), "Harmonised-v1"),
             })
 
         payload = {
@@ -745,53 +792,52 @@ def export_observations(
     elif fmt == "geojson":
         features = []
         for r in records:
-            lon = round(float(r["longitude"]), 5)
-            lat = round(float(r["latitude"]), 5)
-            time_int = int(r.get("acq_time") or 0) if r.get("acq_time") else None
-            time_str = f"{time_int:04d}" if time_int is not None else None
-            acq_d = str(r["acq_date"]) if r.get("acq_date") else None
-            acq_dt = str(r["acq_datetime_iso"]) if r.get("acq_datetime_iso") else None
+            lon = safe_float(r.get("longitude"), 5)
+            lat = safe_float(r.get("latitude"), 5)
+            time_str = safe_time_str(r.get("acq_time"))
+            acq_d = safe_str(r.get("acq_date"))
+            acq_dt = safe_str(r.get("acq_datetime_iso"))
 
-            conf_raw = str(r.get("confidence") or "").strip()
-            conf_cat = r.get("confidence_label") or "Nominal"
+            conf_raw = safe_str(r.get("confidence"), "") or ""
+            conf_cat = safe_str(r.get("confidence_label"), "Nominal") or "Nominal"
 
-            det_type = int(r.get("type") or 0)
-            det_desc = r.get("type_label") or TYPE_DESCRIPTIONS.get(det_type, "Presumed vegetation fire")
+            det_type = safe_int(r.get("type"), 0)
+            det_desc = safe_str(r.get("type_label")) or TYPE_DESCRIPTIONS.get(det_type, "Presumed vegetation fire")
 
             features.append({
                 "type": "Feature",
-                "id": int(r["obs_id"]),
+                "id": safe_int(r.get("obs_id")),
                 "geometry": {
                     "type": "Point",
                     "coordinates": [lon, lat],  # OGC RFC 7946 Standard: [longitude, latitude]
                 },
                 "properties": {
-                    "obs_id": int(r["obs_id"]),
+                    "obs_id": safe_int(r.get("obs_id")),
                     "latitude": lat,
                     "longitude": lon,
                     "in_uttarakhand": bool(r.get("in_uttarakhand")),
-                    "decoded_month": int(r["decoded_month"]),
-                    "decoded_hour": int(r["decoded_hour"]),
-                    "season": str(r["season"]),
+                    "decoded_month": safe_int(r.get("decoded_month"), 1),
+                    "decoded_hour": safe_int(r.get("decoded_hour"), 0),
+                    "season": safe_str(r.get("season"), ""),
                     "acq_date": acq_d,
                     "acq_time": time_str,
                     "acq_datetime": acq_dt,
                     "date_verified_2025": bool(r.get("date_verified_2025")),
-                    "satellite": str(r["satellite"]),
-                    "instrument": str(r["instrument"]),
-                    "sensor": str(r["sensor"]),
-                    "frp_mw": round(float(r["frp"]), 2),
-                    "brightness_kelvin": round(float(r["brightness"]), 2),
-                    "bright_t31_kelvin": round(float(r["bright_t31"]), 2) if r.get("bright_t31") is not None else None,
-                    "scan_km": round(float(r["scan"]), 2),
-                    "track_km": round(float(r["track"]), 2),
+                    "satellite": safe_str(r.get("satellite"), ""),
+                    "instrument": safe_str(r.get("instrument"), ""),
+                    "sensor": safe_str(r.get("sensor"), ""),
+                    "frp_mw": safe_float(r.get("frp"), 2),
+                    "brightness_kelvin": safe_float(r.get("brightness"), 2),
+                    "bright_t31_kelvin": safe_float(r.get("bright_t31"), 2),
+                    "scan_km": safe_float(r.get("scan"), 2),
+                    "track_km": safe_float(r.get("track"), 2),
                     "confidence": conf_raw,
                     "confidence_category": conf_cat,
-                    "daynight": str(r["daynight"]),
+                    "daynight": safe_str(r.get("daynight"), ""),
                     "detection_type": det_type,
                     "detection_description": det_desc,
-                    "coverage_note": str(r.get("coverage_note") or ""),
-                    "version": str(r.get("version") or "Harmonised-v1"),
+                    "coverage_note": safe_str(r.get("coverage_note"), ""),
+                    "version": safe_str(r.get("version"), "Harmonised-v1"),
                 }
             })
 
