@@ -10,11 +10,13 @@ import ScientificTelemetryDrawer from "./ScientificTelemetryDrawer";
 interface CinematicHimalayanViewerProps {
   onAscendToOrbit: () => void;
   telemetry: any;
+  onTerrainReady?: () => void;
 }
 
 export default function CinematicHimalayanViewer({
   onAscendToOrbit,
   telemetry,
+  onTerrainReady,
 }: CinematicHimalayanViewerProps) {
   const [selectedHotspot, setSelectedHotspot] = useState<any>(null);
   const [targetCoords, setTargetCoords] = useState<[number, number] | null>(null);
@@ -35,6 +37,7 @@ export default function CinematicHimalayanViewer({
         cameraMode="ridge"
         targetCoords={targetCoords}
         onHotspotSelect={(hotspot) => setSelectedHotspot(hotspot)}
+        onTerrainReady={onTerrainReady}
       />
 
       {/* Floating Control Capsule (Top-Left) */}

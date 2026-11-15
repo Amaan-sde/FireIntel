@@ -338,7 +338,9 @@ export default function CinematicEarthCanvas({
     const cloudsTexture = loadTextureWithAniso("/textures/earth/earth_clouds_1024.png", true);
 
     // 6. Natural Directional Sunlight
-    const sunWorldDir = new THREE.Vector3(4.5, 1.2, 3.2).normalize();
+    const baseSunDir = new THREE.Vector3(4.5, 1.2, 3.2).normalize();
+    const targetSunDir = new THREE.Vector3(2.2, 2.5, 3.8).normalize();
+    const sunWorldDir = baseSunDir.clone();
 
     // 7. Photorealistic Earth Surface Shader with Topographic Relief, Cloud Shadows & Ocean Glint
     const earthGeo = new THREE.SphereGeometry(earthRadius, 64, 64);
@@ -1308,6 +1310,12 @@ export default function CinematicEarthCanvas({
 
           cameraRef.current.position.set(0, currentDistanceRef.current * 0.08, currentDistanceRef.current);
           cameraRef.current.lookAt(0, 0, 0);
+
+          sunWorldDir.copy(baseSunDir);
+          if (cameraRef.current.near !== 0.1) {
+            cameraRef.current.near = 0.1;
+            cameraRef.current.updateProjectionMatrix();
+          }
         } else {
           // PARAMETRIC CONTINUOUS 7-ACT SPACE-TO-HIMALAYAS DESCENT
           if (descentStartTimeRef.current === null) {
@@ -1360,6 +1368,18 @@ export default function CinematicEarthCanvas({
             const camY = THREE.MathUtils.lerp(startDistanceRef.current * 0.08, 0.04, easeP);
             cameraRef.current.position.set(0, camY, camZ);
             cameraRef.current.lookAt(0, 0, 0);
+
+            // Dynamically adapt near/far clipping planes to camera altitude to prevent near-clipping of globe/atmosphere
+            const camDist = Math.sqrt(camZ * camZ + camY * camY);
+            const altitude = Math.max(0.01, camDist - earthRadius);
+            const dynamicNear = Math.max(0.005, altitude * 0.15);
+            if (Math.abs(cameraRef.current.near - dynamicNear) > 0.002) {
+              cameraRef.current.near = dynamicNear;
+              cameraRef.current.updateProjectionMatrix();
+            }
+
+            // Smoothly ease sun direction to illuminate the target Himalayan basin in daylight
+            sunWorldDir.lerpVectors(baseSunDir, targetSunDir, easeP).normalize();
           }
 
           if (p >= 1.0) {

@@ -72,9 +72,17 @@ export default function WorkspaceMap({
             encoding: "terrarium",
             tileSize: 256,
             maxzoom: 14,
+            bounds: [76.0, 27.5, 83.0, 32.8],
           },
         },
         layers: [
+          {
+            id: "base-terrain-bedrock",
+            type: "background",
+            paint: {
+              "background-color": "#0d1424",
+            },
+          },
           {
             id: "satellite-layer",
             type: "raster",
@@ -88,7 +96,14 @@ export default function WorkspaceMap({
       zoom: 8.5,
       pitch: 35,
       bearing: -5,
-      maxPitch: 85,
+      minPitch: 0,
+      maxPitch: 70,
+      minZoom: 5.5,
+      maxZoom: 14.5,
+      maxBounds: [
+        [75.5, 27.2],
+        [83.2, 33.0],
+      ],
       antialias: true,
     });
 

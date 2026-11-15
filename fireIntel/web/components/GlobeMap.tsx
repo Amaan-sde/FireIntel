@@ -20,6 +20,7 @@ interface GlobeMapProps {
   showHotspots?: boolean;
   showBoundary?: boolean;
   showGridLines?: boolean;
+  onTerrainReady?: () => void;
 }
 
 export default function GlobeMap({
@@ -36,6 +37,7 @@ export default function GlobeMap({
   showHotspots = true,
   showBoundary = true,
   showGridLines = false,
+  onTerrainReady,
 }: GlobeMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
@@ -77,9 +79,17 @@ export default function GlobeMap({
             encoding: "terrarium",
             tileSize: 256,
             maxzoom: 14,
+            bounds: [76.0, 27.5, 83.0, 32.8],
           },
         },
         layers: [
+          {
+            id: "base-terrain-bedrock",
+            type: "background",
+            paint: {
+              "background-color": "#0d1424",
+            },
+          },
           {
             id: "satellite-layer",
             type: "raster",
@@ -93,7 +103,14 @@ export default function GlobeMap({
       zoom: initialCamera.zoom,
       pitch: initialCamera.pitch,
       bearing: initialCamera.bearing,
-      maxPitch: 85,
+      minPitch: 0,
+      maxPitch: 70,
+      minZoom: 5.5,
+      maxZoom: 14.5,
+      maxBounds: [
+        [75.5, 27.2],
+        [83.2, 33.0],
+      ],
       antialias: true,
     });
 
@@ -120,12 +137,19 @@ export default function GlobeMap({
         if (!map.getTerrain()) {
           map.setTerrain({
             source: "terrain-dem",
-            exaggeration: 1.45,
+            exaggeration: 1.35,
           });
         }
       } catch (err) {
         console.warn("Could not set 3D terrain:", err);
       }
+
+      // Signal when initial terrain and tiles have finished rendering
+      map.once("idle", () => {
+        if (!isDisposed && onTerrainReady) {
+          onTerrainReady();
+        }
+      });
 
       // Add Master Grid Source (2,174 cells with Copernicus GLO-30 DEM geomorphometry)
       try {
@@ -454,8 +478,31 @@ export default function GlobeMap({
       }
     });
 
+    // WebGL Context Loss and Restore guards
+    const canvas = map.getCanvas();
+    const handleContextLost = (e: Event) => {
+      e.preventDefault();
+      console.warn("MapLibre WebGL context lost in 3D Himalayan Terrain, awaiting restore...");
+    };
+    const handleContextRestored = () => {
+      console.log("MapLibre WebGL context restored, triggering repaint...");
+      if (mapRef.current) {
+        mapRef.current.triggerRepaint();
+      }
+    };
+    canvas.addEventListener("webglcontextlost", handleContextLost, false);
+    canvas.addEventListener("webglcontextrestored", handleContextRestored, false);
+
+    map.on("error", (e) => {
+      if (e && e.error) {
+        console.warn("MapLibre tile/render warning intercepted:", e.error.message || e.error);
+      }
+    });
+
     return () => {
       isDisposed = true;
+      canvas.removeEventListener("webglcontextlost", handleContextLost);
+      canvas.removeEventListener("webglcontextrestored", handleContextRestored);
       try {
         if (map.isMoving()) {
           map.stop();
@@ -773,7 +820,7 @@ export default function GlobeMap({
       } else {
         map.setTerrain({
           source: "terrain-dem",
-          exaggeration: 1.45,
+          exaggeration: 1.35,
         });
         setTerrainEnabled(true);
       }

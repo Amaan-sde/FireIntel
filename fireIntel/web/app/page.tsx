@@ -15,6 +15,7 @@ export default function LivingEarthHomePage() {
   const [selectedSatellite, setSelectedSatellite] = useState<SatelliteInfo | null>(null);
   const [telemetry, setTelemetry] = useState<any>(null);
   const [isTelemetryOpen, setIsTelemetryOpen] = useState<boolean>(false);
+  const [isTerrainReady, setIsTerrainReady] = useState<boolean>(false);
 
   // Load telemetry data for scientific drawer and statistics
   useEffect(() => {
@@ -110,6 +111,7 @@ export default function LivingEarthHomePage() {
         <CinematicHimalayanViewer
           onAscendToOrbit={handleAscendToOrbit}
           telemetry={telemetry}
+          onTerrainReady={() => setIsTerrainReady(true)}
         />
       </div>
 
