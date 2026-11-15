@@ -238,7 +238,7 @@ export default function GlobalStudioPage() {
       <NavigationHeader activeTab="studio" />
 
       {/* 2. Main Studio Canvas */}
-      <main className="flex-1 w-full max-w-[1720px] mx-auto px-3 sm:px-6 lg:px-8 py-5 space-y-6">
+      <main className="flex-1 w-full max-w-[1720px] mx-auto px-3 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-12 space-y-6">
         {/* Studio Header Bar */}
         <StudioHeader
           datasetName={datasetName}

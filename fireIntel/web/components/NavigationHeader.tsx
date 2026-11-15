@@ -20,15 +20,15 @@ export default function NavigationHeader({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navItems = [
-    { id: "overview", label: "Mission Overview", href: "/", icon: Orbit },
-    { id: "fires", label: "Fire Intelligence", href: "/fires", badge: "Live Lab", icon: Flame },
-    { id: "calendar", label: "Burning Calendar", href: "/calendar", badge: "2025 Orbit", icon: Calendar },
+    { id: "overview", label: "Overview", href: "/", icon: Orbit },
+    { id: "fires", label: "Fires", href: "/fires", badge: "Live", icon: Flame },
+    { id: "calendar", label: "Calendar", href: "/calendar", badge: "Orbit", icon: Calendar },
     { id: "workspace", label: "Terrain Lab", href: "/workspace", badge: "Research", icon: Compass },
     { id: "studio", label: "Global Studio", href: "/studio", badge: "AutoML", icon: Sparkles },
-    { id: "terrain", label: "3D Topography", href: "/terrain", badge: "3D DEM", icon: Mountain },
+    { id: "terrain", label: "3D Topo", href: "/terrain", badge: "DEM", icon: Mountain },
     { id: "analytics", label: "Analytics", href: "/analytics", icon: BarChart3 },
-    { id: "data", label: "Data Explorer", href: "/data", badge: "Export", icon: Database },
-    { id: "methodology", label: "Methodology & Data", href: "/methodology", icon: FileText },
+    { id: "data", label: "Data", href: "/data", badge: "Export", icon: Database },
+    { id: "methodology", label: "Methodology", href: "/methodology", icon: FileText },
   ];
 
   const handleModalClick = (itemId: string) => {
@@ -39,28 +39,28 @@ export default function NavigationHeader({
 
   return (
     <>
-      <header className="fixed top-4 sm:top-5 left-1/2 -translate-x-1/2 z-30 w-[95%] max-w-6xl flex items-center justify-between">
+      <header className="fixed top-3 sm:top-4 left-1/2 -translate-x-1/2 z-40 w-[96%] max-w-[1440px] flex items-center justify-between pointer-events-auto">
         {/* Brand Identity Capsule */}
         <Link 
           href="/"
-          className="glass-pill rounded-full px-3.5 sm:px-4 py-2 flex items-center gap-2.5 sm:gap-3 cursor-pointer hover:bg-white/[0.08] transition-all"
+          className="glass-pill rounded-full px-3 sm:px-3.5 py-1.5 flex items-center gap-2 sm:gap-2.5 cursor-pointer hover:bg-white/[0.08] transition-all shrink-0"
           title="FIREINTEL Mission Control Home"
         >
           <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
           <span className="text-xs sm:text-sm font-semibold tracking-wider text-white">
             FIREINTEL
           </span>
-          <span className="hidden sm:inline-block text-slate-500 text-xs">/</span>
-          <span className="hidden sm:inline-block text-xs text-slate-400 font-medium">
-            Uttarakhand Earth Observatory
+          <span className="hidden lg:inline-block text-slate-500 text-xs">/</span>
+          <span className="hidden lg:inline-block text-xs text-slate-400 font-medium truncate max-w-[140px]">
+            Observatory
           </span>
         </Link>
 
-        {/* Center Navigation Capsule (Desktop & Laptop) */}
-        <nav className="hidden md:flex items-center glass-pill rounded-full p-1 text-xs shadow-2xl">
+        {/* Center Navigation Capsule (Desktop & Laptop >= 1280px) */}
+        <nav className="hidden xl:flex items-center glass-pill rounded-full p-1 text-xs shadow-2xl overflow-x-auto no-scrollbar whitespace-nowrap">
           {navItems.map((item) => {
             const isActive = activeTab === item.id;
-            const buttonClass = `px-4 py-1.5 rounded-full transition-all flex items-center gap-2 font-medium cursor-pointer ${
+            const buttonClass = `px-2.5 sm:px-3 py-1 rounded-full transition-all flex items-center gap-1.5 text-xs font-medium cursor-pointer shrink-0 ${
               isActive
                 ? "bg-white/20 text-white font-semibold shadow-sm"
                 : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.05]"
@@ -84,38 +84,38 @@ export default function NavigationHeader({
         </nav>
 
         {/* Right Action & Provenance Capsule */}
-        <div className="flex items-center gap-2">
-          <div className="hidden lg:flex items-center gap-2 glass-pill rounded-full px-3.5 py-2 text-xs text-slate-300">
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="hidden xl:flex items-center gap-2 glass-pill rounded-full px-3 py-1.5 text-xs text-slate-300">
             <Activity className="w-3.5 h-3.5 text-emerald-400" />
-            <span className="font-mono-telemetry text-[11px]">43/43 Tests Verified</span>
+            <span className="font-mono-telemetry text-[11px]">43/43 Verified</span>
           </div>
 
           {onOpenTelemetryDrawer && (
             <button
               onClick={onOpenTelemetryDrawer}
-              className="glass-pill rounded-full px-3 sm:px-3.5 py-2 text-xs font-medium text-slate-200 hover:text-white hover:bg-white/10 transition-all flex items-center gap-1.5 sm:gap-2 cursor-pointer shadow-lg"
+              className="glass-pill rounded-full px-3 py-1.5 text-xs font-medium text-slate-200 hover:text-white hover:bg-white/10 transition-all flex items-center gap-1.5 cursor-pointer shadow-lg"
               title="Open Scientific Telemetry & Provenance Drawer"
               aria-label="Open Scientific Telemetry"
             >
               <SlidersHorizontal className="w-3.5 h-3.5 text-amber-400" />
-              <span className="hidden sm:inline">Scientific Telemetry</span>
+              <span className="hidden xl:inline text-xs">Telemetry</span>
             </button>
           )}
 
-          {/* Mobile & Tablet Menu Toggle Button (iOS / Android) */}
+          {/* Mobile & Tablet Menu Toggle Button (iOS / Android / Tablets < 1280px) */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-label={isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
-            className="md:hidden glass-pill rounded-full p-2 text-slate-300 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
+            className="xl:hidden glass-pill rounded-full p-2 text-slate-300 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
           >
             {isMobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
           </button>
         </div>
       </header>
 
-      {/* Mobile Navigation Dropdown (iOS & Small Screen friendly) */}
+      {/* Mobile & Tablet Navigation Dropdown (< 1280px) */}
       {isMobileMenuOpen && (
-        <div className="md:hidden fixed top-16 left-3 right-3 z-40 glass-surface rounded-2xl p-4 border border-white/15 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="xl:hidden fixed top-16 left-3 right-3 sm:left-auto sm:right-6 sm:w-80 z-50 glass-surface rounded-2xl p-4 border border-white/15 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200">
           <div className="text-[10px] font-mono-telemetry text-slate-400 uppercase tracking-wider mb-2.5 px-2">
             Mission Navigation
           </div>
