@@ -897,7 +897,7 @@ export default function CinematicEarthCanvas({
     const mouse = new THREE.Vector2();
 
     const handlePointerDown = (e: MouseEvent | TouchEvent) => {
-      if (isDescending) return;
+      if (isDescendingRef.current) return;
       isDraggingRef.current = true;
       const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
       const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
@@ -1099,8 +1099,10 @@ export default function CinematicEarthCanvas({
       } else if (e.key === "r" || e.key === "R") {
         resetView();
       } else if (e.key === "Escape") {
-        if (isDescending && onSkipDescent) {
-          onSkipDescent();
+        if (isDescendingRef.current) {
+          isDescendingRef.current = false;
+          if (onSkipDescentRef.current) onSkipDescentRef.current();
+          else if (onDescendCompleteRef.current) onDescendCompleteRef.current();
         } else {
           setIsTargetLocked(false);
         }
@@ -1129,7 +1131,7 @@ export default function CinematicEarthCanvas({
     window.addEventListener("resize", handleResize);
 
     // 14. Expose Runtime Debug Object
-    (window as any).__FIREINTEL_DEBUG__ = {
+    const runtimeObj = {
       getScene: () => sceneRef.current,
       getCameraDistance: () => currentDistanceRef.current,
       getTargetDistance: () => targetDistanceRef.current,
@@ -1161,9 +1163,19 @@ export default function CinematicEarthCanvas({
         }
       },
       skipDescent: () => {
-        if (onSkipDescent) onSkipDescent();
+        isDescendingRef.current = false;
+        if (onSkipDescentRef.current) onSkipDescentRef.current();
+        else if (onDescendCompleteRef.current) onDescendCompleteRef.current();
       },
     };
+
+    (window as any).__FIREINTEL_DEBUG__ = runtimeObj;
+    if (typeof window !== "undefined") {
+      (window as any).__LIVING_EARTH_STATE = {
+        ...((window as any).__LIVING_EARTH_STATE || {}),
+        ...runtimeObj,
+      };
+    }
 
     // 15. DELTA-TIME ANIMATION LOOP WITH ZERO GARBAGE COLLECTION ALLOCATIONS
     let pulseTime = 0;
@@ -1351,6 +1363,7 @@ export default function CinematicEarthCanvas({
           }
 
           if (p >= 1.0) {
+            isDescendingRef.current = false;
             if (onDescendCompleteRef.current) {
               onDescendCompleteRef.current();
             }
@@ -1561,20 +1574,7 @@ export default function CinematicEarthCanvas({
         </div>
       )}
 
-      {/* Floating Skip Descent Button (Visible only during active descent) */}
-      {isDescending && onSkipDescent && (
-        <div className="absolute top-8 right-8 z-30 pointer-events-auto animate-in fade-in duration-300">
-          <button
-            onClick={onSkipDescent}
-            className="px-4 py-2 rounded-full glass-pill text-xs font-mono-telemetry text-slate-300 hover:text-white hover:bg-white/15 transition-all flex items-center gap-2 cursor-pointer shadow-xl border border-white/20"
-            title="Skip camera descent directly to 3D Himalayan terrain"
-          >
-            <span>Skip to Himalayas</span>
-            <FastForward className="w-3.5 h-3.5 text-sky-400" />
-            <span className="text-[10px] text-slate-500 font-mono-telemetry">[Esc]</span>
-          </button>
-        </div>
-      )}
+
 
       {/* Live Telemetry Watermark (Bottom-Left) */}
       <div className="pointer-events-none absolute bottom-6 left-8 z-10 hidden sm:flex items-center gap-3 text-[11px] font-mono-telemetry text-slate-500 select-none">

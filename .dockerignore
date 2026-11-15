@@ -1,0 +1,37 @@
+# Git and version control
+.git
+.gitignore
+
+# Node & Next.js build artifacts
+**/node_modules
+**/.next
+**/.turbo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python caches and virtual environments
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+
+# Raw satellite rasters (not needed at production runtime; only processed/parquet are deployed)
+fireIntel/data/environmental/raw/
+fireIntel/data/environmental/intermediate/
+fireIntel/data/raw/
+
+# Test reports, debug scripts, screenshots, and temp logs
+fireIntel/web/tests/
+fireIntel/tests/
+reports/
+screenshots/
+*.log
+.DS_Store

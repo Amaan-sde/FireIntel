@@ -73,7 +73,7 @@ export default function FireSpecimenInspector({
   return (
     <aside 
       aria-label="Fire observation specimen inspector"
-      className="fixed bottom-24 left-8 z-30 w-[92%] max-w-md glass-surface rounded-2xl p-6 shadow-2xl border border-white/10 animate-in fade-in slide-in-from-bottom-4 duration-200"
+      className="fixed bottom-24 left-4 sm:left-8 z-30 w-[94vw] sm:w-[420px] max-w-md bg-[#040810]/90 backdrop-blur-xl rounded-2xl p-5 sm:p-6 shadow-[0_20px_50px_rgba(0,0,0,0.8)] border border-cyan-500/30 animate-in fade-in slide-in-from-bottom-4 duration-200 text-slate-200"
     >
       {/* Header */}
       <div className="flex items-start justify-between border-b border-white/10 pb-3 mb-4">

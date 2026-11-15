@@ -1,0 +1,50 @@
+version: "3.8"
+
+services:
+  # ==============================================================================
+  # 1. FIREINTEL REST API & Telemetry Engine (FastAPI + DuckDB)
+  # ==============================================================================
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    image: fireintel-backend:latest
+    container_name: fireintel-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - FIREINTEL_ENV=production
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+  # ==============================================================================
+  # 2. FIREINTEL Web Application (Next.js 15, Three.js, MapLibre GL)
+  # ==============================================================================
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    image: fireintel-frontend:latest
+    container_name: fireintel-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+      - BACKEND_URL=http://backend:8000
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

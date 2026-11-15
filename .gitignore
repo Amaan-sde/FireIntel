@@ -44,6 +44,7 @@ ENV/
 .coverage.*
 htmlcov/
 .tox/
+*.tsbuildinfo
 
 # Sensitive credentials and secrets (CRITICAL: never commit)
 .env

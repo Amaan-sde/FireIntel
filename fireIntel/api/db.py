@@ -6,6 +6,7 @@ Leverages DuckDB for high-performance direct in-memory querying of Parquet datas
 from pathlib import Path
 import duckdb
 import time
+import threading
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = PROJECT_ROOT / "data"
@@ -20,30 +21,37 @@ SUMMARY_JSON = DATA_DIR / "processed" / "boundary_validated" / "mission_control_
 class DuckDBManager:
     _instance = None
     _connection = None
+    _lock = threading.Lock()
 
     @classmethod
     def get_connection(cls) -> duckdb.DuckDBPyConnection:
         if cls._connection is None:
-            # Create an in-memory DuckDB connection
-            cls._connection = duckdb.connect(":memory:")
-            # Register views for clean querying
-            if FIRES_PARQUET.exists():
-                cls._connection.execute(f"CREATE VIEW fires AS SELECT * FROM '{FIRES_PARQUET}'")
-            if MASTER_GRID_PARQUET.exists():
-                cls._connection.execute(f"CREATE VIEW master_grid AS SELECT * FROM '{MASTER_GRID_PARQUET}'")
-            if DEM_TERRAIN_PARQUET.exists():
-                cls._connection.execute(f"CREATE VIEW dem_terrain AS SELECT * FROM '{DEM_TERRAIN_PARQUET}'")
+            with cls._lock:
+                if cls._connection is None:
+                    # Create an in-memory DuckDB connection
+                    cls._connection = duckdb.connect(":memory:")
+                    # Register views for clean querying
+                    if FIRES_PARQUET.exists():
+                        cls._connection.execute(f"CREATE VIEW fires AS SELECT * FROM '{FIRES_PARQUET}'")
+                    if MASTER_GRID_PARQUET.exists():
+                        cls._connection.execute(f"CREATE VIEW master_grid AS SELECT * FROM '{MASTER_GRID_PARQUET}'")
+                    if DEM_TERRAIN_PARQUET.exists():
+                        cls._connection.execute(f"CREATE VIEW dem_terrain AS SELECT * FROM '{DEM_TERRAIN_PARQUET}'")
         return cls._connection
 
     @classmethod
     def query(cls, sql: str, params=None):
         conn = cls.get_connection()
         t0 = time.perf_counter()
-        if params:
-            res = conn.execute(sql, params)
-        else:
-            res = conn.execute(sql)
-        df = res.df()
+        cursor = conn.cursor()
+        try:
+            if params:
+                res = cursor.execute(sql, params)
+            else:
+                res = cursor.execute(sql)
+            df = res.df()
+        finally:
+            cursor.close()
         elapsed_ms = (time.perf_counter() - t0) * 1000
         return df, elapsed_ms
 
