@@ -102,12 +102,24 @@ export default function WildfireCommandMap({
       antialias: true,
     });
 
+    // Guard MapLibre's internal TaskQueue against re-entrant run() exceptions
+    const tq = (map as any)._renderTaskQueue;
+    if (tq && typeof tq.run === "function") {
+      const originalRun = tq.run;
+      tq.run = function (timeStamp: number = 0) {
+        if (this._currentlyRunning) {
+          return;
+        }
+        return originalRun.call(this, timeStamp);
+      };
+    }
+
     mapRef.current = map;
 
     map.on("load", async () => {
       // 1. Enable 3D Himalayan Terrain Relief
       try {
-        if (terrainEnabled) {
+        if (terrainEnabled && !map.getTerrain()) {
           map.setTerrain({
             source: "terrain-dem",
             exaggeration: 1.45,

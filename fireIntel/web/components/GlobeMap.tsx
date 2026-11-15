@@ -8,12 +8,14 @@ export type TerrainMode = "satellite" | "elevation" | "slope" | "aspect" | "tri"
 
 interface GlobeMapProps {
   onHotspotSelect?: (hotspot: any) => void;
-  onCellSelect?: (cell: any) => void;
+  onCellSelect?: (cell: any, clickLngLat?: [number, number]) => void;
   selectedMonth?: number | null;
   selectedSensor?: string | null;
   cameraMode?: "orbital" | "sector" | "ridge";
   onCameraModeChange?: (mode: "orbital" | "sector" | "ridge") => void;
   targetCoords?: [number, number] | null;
+  selectedCellGeometry?: any | null;
+  targetZoom?: number | null;
   terrainMode?: TerrainMode;
   showHotspots?: boolean;
   showBoundary?: boolean;
@@ -28,6 +30,8 @@ export default function GlobeMap({
   cameraMode = "sector",
   onCameraModeChange,
   targetCoords,
+  selectedCellGeometry,
+  targetZoom,
   terrainMode = "satellite",
   showHotspots = true,
   showBoundary = true,
@@ -37,11 +41,19 @@ export default function GlobeMap({
   const mapRef = useRef<maplibregl.Map | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [terrainEnabled, setTerrainEnabled] = useState(true);
-  const activeCameraModeRef = useRef<string>("sector");
+  const appliedCameraModeRef = useRef<string>(cameraMode || "sector");
+  const prevTargetCoordsRef = useRef<string | null>(null);
 
   // Initialize MapLibre with photorealistic satellite imagery & 3D terrain
   useEffect(() => {
     if (!mapContainer.current) return;
+    let isDisposed = false;
+
+    const initialCamera = cameraMode === "ridge"
+      ? { center: [79.45, 30.38] as [number, number], zoom: 9.8, pitch: 68, bearing: 36 }
+      : cameraMode === "orbital"
+      ? { center: [79.0, 24.0] as [number, number], zoom: 2.2, pitch: 24, bearing: 0 }
+      : { center: [79.2, 30.15] as [number, number], zoom: 7.2, pitch: 48, bearing: -14 };
 
     const map = new maplibregl.Map({
       container: mapContainer.current,
@@ -77,25 +89,40 @@ export default function GlobeMap({
           },
         ],
       },
-      center: [79.2, 30.15],
-      zoom: 7.0,
-      pitch: 48,
-      bearing: -14,
+      center: initialCamera.center,
+      zoom: initialCamera.zoom,
+      pitch: initialCamera.pitch,
+      bearing: initialCamera.bearing,
       maxPitch: 85,
       antialias: true,
     });
 
+    // Guard MapLibre's internal TaskQueue against re-entrant run() exceptions
+    const tq = (map as any)._renderTaskQueue;
+    if (tq && typeof tq.run === "function") {
+      const originalRun = tq.run;
+      tq.run = function (timeStamp: number = 0) {
+        if (this._currentlyRunning) {
+          return;
+        }
+        return originalRun.call(this, timeStamp);
+      };
+    }
+
     mapRef.current = map;
 
     map.on("load", async () => {
+      if (isDisposed) return;
       setMapLoaded(true);
 
-      // Enable 3D Terrain Extrusion for the Himalayas
+      // Enable 3D Terrain Extrusion for the Himalayas safely
       try {
-        map.setTerrain({
-          source: "terrain-dem",
-          exaggeration: 1.45,
-        });
+        if (!map.getTerrain()) {
+          map.setTerrain({
+            source: "terrain-dem",
+            exaggeration: 1.45,
+          });
+        }
       } catch (err) {
         console.warn("Could not set 3D terrain:", err);
       }
@@ -104,6 +131,7 @@ export default function GlobeMap({
       try {
         const gridRes = await fetch("/data/terrain_grid_web.json");
         const gridData = await gridRes.json();
+        if (isDisposed || !mapRef.current) return;
 
         map.addSource("terrain-grid", {
           type: "geojson",
@@ -163,6 +191,40 @@ export default function GlobeMap({
           },
         });
 
+        // Add a selection-pin marker source (shows exact click point)
+        map.addSource("selection-pin-source", {
+          type: "geojson",
+          data: { type: "FeatureCollection", features: [] },
+        });
+
+        // Outer pulse ring
+        map.addLayer({
+          id: "selection-pin-pulse",
+          type: "circle",
+          source: "selection-pin-source",
+          paint: {
+            "circle-radius": 18,
+            "circle-color": "transparent",
+            "circle-stroke-width": 2,
+            "circle-stroke-color": "#55C7E8",
+            "circle-stroke-opacity": 0.75,
+          },
+        });
+
+        // Inner core dot
+        map.addLayer({
+          id: "selection-pin-core",
+          type: "circle",
+          source: "selection-pin-source",
+          paint: {
+            "circle-radius": 5,
+            "circle-color": "#55C7E8",
+            "circle-stroke-width": 1.5,
+            "circle-stroke-color": "#ffffff",
+            "circle-opacity": 0.95,
+          },
+        });
+
         // Click handler for grid cells
         map.on("click", "terrain-grid-fill", (e) => {
           // If a fire hotspot node was clicked directly, prioritize the fire hotspot
@@ -191,8 +253,21 @@ export default function GlobeMap({
             });
           }
 
+          // Update selection-pin to exact click coordinates
+          const pinSource = map.getSource("selection-pin-source") as maplibregl.GeoJSONSource;
+          if (pinSource) {
+            pinSource.setData({
+              type: "FeatureCollection",
+              features: [{
+                type: "Feature",
+                geometry: { type: "Point", coordinates: [e.lngLat.lng, e.lngLat.lat] },
+                properties: {},
+              }],
+            });
+          }
+
           if (onCellSelect) {
-            onCellSelect(props);
+            onCellSelect(props, [e.lngLat.lng, e.lngLat.lat]);
           }
         });
 
@@ -210,6 +285,7 @@ export default function GlobeMap({
       try {
         const boundaryRes = await fetch("/data/uttarakhand_boundary.geojson");
         const boundaryData = await boundaryRes.json();
+        if (isDisposed || !mapRef.current) return;
 
         map.addSource("uttarakhand-boundary", {
           type: "geojson",
@@ -247,6 +323,7 @@ export default function GlobeMap({
       try {
         const firesRes = await fetch("/data/sample_fires_for_web.json");
         const firesData = await firesRes.json();
+        if (isDisposed || !mapRef.current) return;
 
         map.addSource("fire-hotspots", {
           type: "geojson",
@@ -378,7 +455,15 @@ export default function GlobeMap({
     });
 
     return () => {
-      map.remove();
+      isDisposed = true;
+      try {
+        if (map.isMoving()) {
+          map.stop();
+        }
+        map.remove();
+      } catch (err) {
+        console.warn("Map removal error:", err);
+      }
     };
   }, []);
 
@@ -485,69 +570,96 @@ export default function GlobeMap({
     map.setFilter("fire-glow", appliedFilter);
   }, [selectedMonth, selectedSensor, mapLoaded]);
 
-  // Handle camera transitions
+  // Handle camera transitions safely without recursive state loops
   const transitionCamera = useCallback(
-    (mode: "orbital" | "sector" | "ridge") => {
+    (mode: "orbital" | "sector" | "ridge", fromUserClick = false) => {
       const map = mapRef.current;
       if (!map) return;
 
-      activeCameraModeRef.current = mode;
-      if (onCameraModeChange) {
+      if (!fromUserClick && appliedCameraModeRef.current === mode) {
+        return;
+      }
+      appliedCameraModeRef.current = mode;
+
+      if (fromUserClick && onCameraModeChange) {
         onCameraModeChange(mode);
       }
 
-      if (mode === "orbital") {
-        map.flyTo({
-          center: [79.0, 24.0],
-          zoom: 2.2,
-          pitch: 24,
-          bearing: 0,
-          duration: 2500,
-          essential: true,
-        });
-      } else if (mode === "sector") {
-        map.flyTo({
-          center: [79.2, 30.15],
-          zoom: 7.2,
-          pitch: 48,
-          bearing: -14,
-          duration: 2200,
-          essential: true,
-        });
-      } else if (mode === "ridge") {
-        map.flyTo({
-          center: [79.45, 30.38],
-          zoom: 9.8,
-          pitch: 68,
-          bearing: 36,
-          duration: 2600,
-          essential: true,
-        });
+      try {
+        if (map.isMoving()) {
+          map.stop();
+        }
+
+        if (mode === "orbital") {
+          map.flyTo({
+            center: [79.0, 24.0],
+            zoom: 2.2,
+            pitch: 24,
+            bearing: 0,
+            duration: 2200,
+            essential: true,
+          });
+        } else if (mode === "sector") {
+          map.flyTo({
+            center: [79.2, 30.15],
+            zoom: 7.2,
+            pitch: 48,
+            bearing: -14,
+            duration: 2000,
+            essential: true,
+          });
+        } else if (mode === "ridge") {
+          map.flyTo({
+            center: [79.45, 30.38],
+            zoom: 9.8,
+            pitch: 68,
+            bearing: 36,
+            duration: 2200,
+            essential: true,
+          });
+        }
+      } catch (err) {
+        console.warn("Camera transition error:", err);
       }
     },
     [onCameraModeChange]
   );
 
-  // Sync external cameraMode prop
+  // Sync external cameraMode prop safely
   useEffect(() => {
     if (cameraMode && mapLoaded) {
-      transitionCamera(cameraMode);
+      if (appliedCameraModeRef.current !== cameraMode) {
+        transitionCamera(cameraMode, false);
+      }
     }
   }, [cameraMode, mapLoaded, transitionCamera]);
 
-  // Fly to target coordinates when requested
+  // Fly to target coordinates when requested (deduplicating identical coords)
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !mapLoaded || !targetCoords) return;
 
-    map.flyTo({
-      center: targetCoords,
-      zoom: 11.2,
-      pitch: 60,
-      bearing: 25,
-      duration: 2000,
-      essential: true,
-    });
+    const coordsKey = `${targetCoords[0].toFixed(5)},${targetCoords[1].toFixed(5)}_${targetZoom || 11.5}`;
+    if (prevTargetCoordsRef.current === coordsKey) {
+      return;
+    }
+    prevTargetCoordsRef.current = coordsKey;
+
+    try {
+      if (map.isMoving()) {
+        map.stop();
+      }
+      map.flyTo({
+        center: targetCoords,
+        zoom: targetZoom || 11.5,
+        pitch: 58,
+        bearing: 20,
+        duration: 1800,
+        essential: true,
+      });
+    } catch (err) {
+      console.warn("FlyTo target error:", err);
+    }
 
     // Update highlight ring
     const ringSource = map.getSource("selected-hotspot-source") as maplibregl.GeoJSONSource;
@@ -566,34 +678,107 @@ export default function GlobeMap({
         ],
       });
     }
-  }, [targetCoords, mapLoaded]);
+
+    // Update selection-pin marker to exact target
+    const pinSource = map.getSource("selection-pin-source") as maplibregl.GeoJSONSource;
+    if (pinSource) {
+      pinSource.setData({
+        type: "FeatureCollection",
+        features: [
+          {
+            type: "Feature",
+            geometry: {
+              type: "Point",
+              coordinates: targetCoords,
+            },
+            properties: {},
+          },
+        ],
+      });
+    }
+  }, [targetCoords, targetZoom, mapLoaded]);
+
+  // Sync external selectedCellGeometry prop with the cell line layer
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded) return;
+    const cellSource = map.getSource("selected-cell-source") as maplibregl.GeoJSONSource;
+    if (cellSource) {
+      if (selectedCellGeometry) {
+        cellSource.setData({
+          type: "FeatureCollection",
+          features: [
+            {
+              type: "Feature",
+              geometry: selectedCellGeometry,
+              properties: {},
+            },
+          ],
+        });
+      } else {
+        cellSource.setData({
+          type: "FeatureCollection",
+          features: [],
+        });
+      }
+    }
+  }, [selectedCellGeometry, mapLoaded]);
 
   // Interactive Map Controls Handlers
   const handleZoomIn = () => {
-    if (mapRef.current) mapRef.current.zoomIn({ duration: 400 });
+    if (mapRef.current) {
+      try {
+        if (mapRef.current.isMoving()) mapRef.current.stop();
+        mapRef.current.zoomIn({ duration: 300 });
+      } catch (err) {
+        console.warn("ZoomIn error:", err);
+      }
+    }
   };
 
   const handleZoomOut = () => {
-    if (mapRef.current) mapRef.current.zoomOut({ duration: 400 });
+    if (mapRef.current) {
+      try {
+        if (mapRef.current.isMoving()) mapRef.current.stop();
+        mapRef.current.zoomOut({ duration: 300 });
+      } catch (err) {
+        console.warn("ZoomOut error:", err);
+      }
+    }
   };
 
   const handleResetNorth = () => {
-    if (mapRef.current) mapRef.current.resetNorthPitch({ duration: 800 });
+    if (mapRef.current) {
+      try {
+        if (mapRef.current.isMoving()) mapRef.current.stop();
+        mapRef.current.resetNorthPitch({ duration: 600 });
+      } catch (err) {
+        console.warn("ResetNorth error:", err);
+      }
+    }
   };
 
   const handleToggleTerrain = () => {
     const map = mapRef.current;
     if (!map) return;
 
-    if (terrainEnabled) {
-      map.setTerrain(null);
-      setTerrainEnabled(false);
-    } else {
-      map.setTerrain({
-        source: "terrain-dem",
-        exaggeration: 1.45,
-      });
-      setTerrainEnabled(true);
+    try {
+      if (map.isMoving()) {
+        map.stop();
+      }
+
+      if (terrainEnabled) {
+        map.setTerrain(null);
+        setTerrainEnabled(false);
+      } else {
+        map.setTerrain({
+          source: "terrain-dem",
+          exaggeration: 1.45,
+        });
+        setTerrainEnabled(true);
+      }
+    } catch (err) {
+      console.warn("Toggle terrain error:", err);
     }
   };
 
@@ -653,7 +838,7 @@ export default function GlobeMap({
         </button>
 
         <button
-          onClick={() => transitionCamera("sector")}
+          onClick={() => transitionCamera("sector", true)}
           data-control="reset-sector"
           className="p-2 rounded-full hover:bg-white/10 text-slate-300 hover:text-white transition-colors cursor-pointer"
           title="Reset to Uttarakhand Sector"
@@ -666,7 +851,7 @@ export default function GlobeMap({
       {/* Cinematic Perspective Controls (Floating Minimal Capsule, Bottom Right) */}
       <div className="absolute bottom-8 right-6 sm:right-8 z-20 hidden sm:flex items-center glass-pill rounded-full p-1 text-xs shadow-2xl shrink-0">
         <button
-          onClick={() => transitionCamera("orbital")}
+          onClick={() => transitionCamera("orbital", true)}
           data-camera="orbital"
           aria-label="Orbit View"
           className={`px-3.5 py-1.5 rounded-full transition-all text-xs font-medium cursor-pointer whitespace-nowrap ${
@@ -678,7 +863,7 @@ export default function GlobeMap({
           Orbit
         </button>
         <button
-          onClick={() => transitionCamera("sector")}
+          onClick={() => transitionCamera("sector", true)}
           data-camera="sector"
           className={`px-3.5 py-1.5 rounded-full transition-all text-xs font-medium cursor-pointer whitespace-nowrap ${
             cameraMode === "sector"
@@ -689,7 +874,7 @@ export default function GlobeMap({
           Uttarakhand Sector
         </button>
         <button
-          onClick={() => transitionCamera("ridge")}
+          onClick={() => transitionCamera("ridge", true)}
           data-camera="ridge"
           className={`px-3.5 py-1.5 rounded-full transition-all text-xs font-medium cursor-pointer whitespace-nowrap ${
             cameraMode === "ridge"

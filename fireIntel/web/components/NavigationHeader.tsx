@@ -37,28 +37,28 @@ export default function NavigationHeader({
 
   return (
     <>
-      <header className="fixed top-4 sm:top-5 left-1/2 -translate-x-1/2 z-30 w-[95%] max-w-6xl flex items-center justify-between">
+      <header className="fixed top-2.5 sm:top-3 left-1/2 -translate-x-1/2 z-30 w-[98%] max-w-[94rem] flex items-center justify-between pointer-events-none px-2 sm:px-4">
         {/* Brand Identity Capsule */}
         <Link 
           href="/"
-          className="glass-pill rounded-full px-3.5 sm:px-4 py-2 flex items-center gap-2.5 sm:gap-3 cursor-pointer hover:bg-white/[0.08] transition-all"
+          className="pointer-events-auto glass-pill rounded-full px-3 sm:px-3.5 py-1.5 flex items-center gap-2 sm:gap-2.5 cursor-pointer hover:bg-white/[0.08] transition-all shrink-0 whitespace-nowrap shadow-xl"
           title="FIREINTEL Mission Control Home"
         >
-          <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="text-xs sm:text-sm font-semibold tracking-wider text-white">
+          <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+          <span className="text-xs sm:text-sm font-semibold tracking-wider text-white whitespace-nowrap">
             FIREINTEL
           </span>
           <span className="hidden sm:inline-block text-slate-500 text-xs">/</span>
-          <span className="hidden sm:inline-block text-xs text-slate-400 font-medium">
+          <span className="hidden sm:inline-block text-xs text-slate-400 font-medium whitespace-nowrap">
             Uttarakhand Earth Observatory
           </span>
         </Link>
 
         {/* Center Navigation Capsule (Desktop & Laptop) */}
-        <nav className="hidden md:flex items-center glass-pill rounded-full p-1 text-xs shadow-2xl">
+        <nav className="hidden md:flex items-center glass-pill rounded-full p-1 text-xs shadow-2xl pointer-events-auto shrink-0 whitespace-nowrap">
           {navItems.map((item) => {
             const isActive = activeTab === item.id;
-            const buttonClass = `px-4 py-1.5 rounded-full transition-all flex items-center gap-2 font-medium cursor-pointer ${
+            const buttonClass = `px-2.5 lg:px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1.5 font-medium cursor-pointer whitespace-nowrap ${
               isActive
                 ? "bg-white/20 text-white font-semibold shadow-sm"
                 : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.05]"
@@ -70,9 +70,9 @@ export default function NavigationHeader({
                 href={item.href}
                 className={buttonClass}
               >
-                <span>{item.label}</span>
+                <span className="whitespace-nowrap">{item.label}</span>
                 {item.badge && (
-                  <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 font-mono-telemetry border border-amber-500/30">
+                  <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 font-mono-telemetry border border-amber-500/30 whitespace-nowrap">
                     {item.badge}
                   </span>
                 )}
@@ -82,21 +82,21 @@ export default function NavigationHeader({
         </nav>
 
         {/* Right Action & Provenance Capsule */}
-        <div className="flex items-center gap-2">
-          <div className="hidden lg:flex items-center gap-2 glass-pill rounded-full px-3.5 py-2 text-xs text-slate-300">
-            <Activity className="w-3.5 h-3.5 text-emerald-400" />
-            <span className="font-mono-telemetry text-[11px]">43/43 Tests Verified</span>
+        <div className="flex items-center gap-2 pointer-events-auto shrink-0 whitespace-nowrap">
+          <div className="hidden xl:flex items-center gap-2 glass-pill rounded-full px-3 py-1.5 text-xs text-slate-300 whitespace-nowrap">
+            <Activity className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+            <span className="font-mono-telemetry text-[11px] whitespace-nowrap">43/43 Tests Verified</span>
           </div>
 
           {onOpenTelemetryDrawer && (
             <button
               onClick={onOpenTelemetryDrawer}
-              className="glass-pill rounded-full px-3 sm:px-3.5 py-2 text-xs font-medium text-slate-200 hover:text-white hover:bg-white/10 transition-all flex items-center gap-1.5 sm:gap-2 cursor-pointer shadow-lg"
+              className="glass-pill rounded-full px-3 py-1.5 text-xs font-medium text-slate-200 hover:text-white hover:bg-white/10 transition-all flex items-center gap-1.5 cursor-pointer shadow-lg whitespace-nowrap"
               title="Open Scientific Telemetry & Provenance Drawer"
               aria-label="Open Scientific Telemetry"
             >
-              <SlidersHorizontal className="w-3.5 h-3.5 text-amber-400" />
-              <span className="hidden sm:inline">Scientific Telemetry</span>
+              <SlidersHorizontal className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              <span className="hidden sm:inline whitespace-nowrap">Scientific Telemetry</span>
             </button>
           )}
 

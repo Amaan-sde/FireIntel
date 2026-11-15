@@ -98,6 +98,11 @@ fireIntel/web/tests/ascent_frames/
 # Phase 9 Staging Parquet files
 fireIntel/data/staging/phase9/*.parquet
 
+# Archives
+*.tar
+*.tar.gz
+*.zip
+
 
 
 

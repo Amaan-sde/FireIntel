@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -25,11 +25,150 @@ import {
   Activity,
   Maximize2,
   TrendingUp,
-  Info
+  Info,
+  Navigation,
+  Loader2,
+  AlertTriangle,
+  Globe,
+  Radio,
+  Clock,
 } from "lucide-react";
 import GlobeMap, { TerrainMode } from "@/components/GlobeMap";
 import HotspotInspector from "@/components/HotspotInspector";
 import ScientificTelemetryDrawer from "@/components/ScientificTelemetryDrawer";
+import LocationSearchPanel from "@/components/LocationSearchPanel";
+import { UttarakhandPlace } from "@/app/api/location-search/route";
+
+// ─── Helper: decode lat/lon from cell ID (UT_050_{lat}_{lon}) ───────────────
+function parseCellCentroid(cellId: string): [number, number] | null {
+  const parts = cellId?.split("_");
+  if (parts && parts.length >= 4) {
+    const lat = parseFloat(parts[2]);
+    const lon = parseFloat(parts[3]);
+    if (!isNaN(lat) && !isNaN(lon)) return [lon, lat];
+  }
+  return null;
+}
+
+// ─── Nominatim reverse-geocode result shape ──────────────────────────────────
+interface GeoPlace {
+  village?: string;
+  suburb?: string;
+  town?: string;
+  city?: string;
+  county?: string;      // district equivalent
+  state_district?: string; // tehsil / block in India
+  state?: string;
+  country?: string;
+  postcode?: string;
+  display_name?: string;
+  // extra parsed fields we add
+  district?: string;
+  tehsil?: string;
+  locality?: string;
+  error?: string;
+}
+
+function getLocality(place: GeoPlace): string {
+  return (
+    place.village ||
+    place.suburb ||
+    place.town ||
+    place.city ||
+    ""
+  );
+}
+
+function getDistrict(place: GeoPlace): string {
+  return place.district || place.county || "";
+}
+
+function getTehsil(place: GeoPlace): string {
+  return place.tehsil || place.state_district || "";
+}
+
+// ─── Fire Intelligence Buffer Computation (10 km radius) ───────────────────
+function computeFireStats(fires: any[], lng: number, lat: number, radiusKm = 10) {
+  if (!fires || fires.length === 0) return null;
+  let count = 0;
+  let viirsCount = 0;
+  let modisCount = 0;
+  let dayCount = 0;
+  let nightCount = 0;
+  let peakFrp = 0;
+  let sumFrp = 0;
+  let closestDist = Infinity;
+
+  for (const f of fires) {
+    const coords = f.geometry?.coordinates;
+    if (!coords) continue;
+    const [flng, flat] = coords;
+    const dLat = (flat - lat) * 111.32;
+    const dLng = (flng - lng) * 111.32 * Math.cos((lat * Math.PI) / 180);
+    const dist = Math.hypot(dLat, dLng);
+    if (dist <= radiusKm) {
+      count++;
+      if (dist < closestDist) closestDist = dist;
+      const frp = f.properties?.frp || 0;
+      sumFrp += frp;
+      if (frp > peakFrp) peakFrp = frp;
+      const sensor = f.properties?.sensor;
+      if (sensor === "VIIRS") viirsCount++;
+      else if (sensor === "MODIS") modisCount++;
+      const dn = f.properties?.daynight;
+      if (dn === "D") dayCount++;
+      else if (dn === "N") nightCount++;
+    }
+  }
+
+  return {
+    radiusKm,
+    count,
+    viirsCount,
+    modisCount,
+    dayCount,
+    nightCount,
+    peakFrp: count > 0 ? parseFloat(peakFrp.toFixed(1)) : 0,
+    meanFrp: count > 0 ? parseFloat((sumFrp / count).toFixed(1)) : 0,
+    closestKm: count > 0 ? parseFloat(closestDist.toFixed(1)) : null,
+  };
+}
+
+// ─── Master Terrain Grid Point-in-Polygon / Centroid Matcher ────────────────
+function findGridCell(grid: any, lng: number, lat: number) {
+  if (!grid || !grid.features) return null;
+  for (const f of grid.features) {
+    const coords = f.geometry?.coordinates?.[0];
+    if (coords && coords.length >= 4) {
+      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+      for (const [x, y] of coords) {
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+      }
+      if (lng >= minX && lng <= maxX && lat >= minY && lat <= maxY) {
+        return f;
+      }
+    }
+  }
+  let nearest = null;
+  let minDist = Infinity;
+  for (const f of grid.features) {
+    const coords = f.geometry?.coordinates?.[0];
+    if (coords && coords.length >= 3) {
+      const cx = (coords[0][0] + coords[2][0]) / 2;
+      const cy = (coords[0][1] + coords[2][1]) / 2;
+      const d = Math.hypot(lng - cx, lat - cy);
+      if (d < minDist) {
+        minDist = d;
+        nearest = f;
+      }
+    }
+  }
+  if (minDist < 0.15) return nearest;
+  return null;
+}
 
 function getAspectCardinal(aspect: number): { label: string; desc: string; color: string } {
   if (aspect >= 337.5 || aspect < 22.5) {
@@ -63,9 +202,17 @@ export default function TerrainExplorerPage() {
   const [selectedHotspot, setSelectedHotspot] = useState<any>(null);
   const [selectedCell, setSelectedCell] = useState<any>(null);
   const [targetCoords, setTargetCoords] = useState<[number, number] | null>(null);
+  const [targetZoom, setTargetZoom] = useState<number | null>(null);
+  const [selectedCellGeometry, setSelectedCellGeometry] = useState<any>(null);
   const [isTelemetryOpen, setIsTelemetryOpen] = useState(false);
   const [telemetry, setTelemetry] = useState<any>(null);
   const [showProfileDrawer, setShowProfileDrawer] = useState(false);
+
+  // Datasets for point-in-polygon matching & fire proximity calculations
+  const [terrainGrid, setTerrainGrid] = useState<any>(null);
+  const [firesFeatures, setFiresFeatures] = useState<any[]>([]);
+  const [fireStats, setFireStats] = useState<any>(null);
+  const [activePlace, setActivePlace] = useState<UttarakhandPlace | null>(null);
 
   // Geomorphology & Layer Toggles
   const [terrainMode, setTerrainMode] = useState<TerrainMode>("satellite");
@@ -73,18 +220,177 @@ export default function TerrainExplorerPage() {
   const [showBoundary, setShowBoundary] = useState(true);
   const [showGridLines, setShowGridLines] = useState(false);
 
+  // ── Reverse geocoding state ──────────────────────────────────────────────
+  const [geoPlace, setGeoPlace] = useState<GeoPlace | null>(null);
+  const [geoLoading, setGeoLoading] = useState(false);
+  const geocacheRef = React.useRef<Map<string, GeoPlace>>(new Map());
+  const latestLookupRef = React.useRef<string>("");
+
+  // Load datasets on mount
   useEffect(() => {
-    async function loadTelemetry() {
+    async function loadDatasets() {
       try {
-        const res = await fetch("/data/mission_control_summary.json");
-        const data = await res.json();
-        setTelemetry(data);
+        const [gridRes, firesRes, telemetryRes] = await Promise.all([
+          fetch("/data/terrain_grid_web.json"),
+          fetch("/data/sample_fires_for_web.json"),
+          fetch("/data/mission_control_summary.json"),
+        ]);
+        const gridData = await gridRes.json();
+        const firesData = await firesRes.json();
+        const telData = await telemetryRes.json();
+        setTerrainGrid(gridData);
+        setFiresFeatures(firesData.features || []);
+        setTelemetry(telData);
       } catch (err) {
-        console.error("Failed to load telemetry:", err);
+        console.warn("Failed to load terrain/fire datasets:", err);
       }
     }
-    loadTelemetry();
+    loadDatasets();
   }, []);
+
+  // Handler when a location is selected from the Location Explorer Search Panel
+  const handleSelectPlaceFromSearch = useCallback(
+    (place: UttarakhandPlace) => {
+      setActivePlace(place);
+      setTargetCoords([place.lon, place.lat]);
+      setTargetZoom(place.zoom || 12);
+      setSelectedHotspot(null);
+
+      // Find matching Copernicus master grid cell
+      const matching = findGridCell(terrainGrid, place.lon, place.lat);
+      if (matching) {
+        setSelectedCell({
+          ...matching.properties,
+          _clickLng: place.lon,
+          _clickLat: place.lat,
+          _placeCategory: place.category,
+        });
+        setSelectedCellGeometry(matching.geometry);
+      } else {
+        setSelectedCell({
+          id: `UT_LOC_${place.name.toUpperCase().replace(/\s+/g, "_")}`,
+          _clickLng: place.lon,
+          _clickLat: place.lat,
+          _placeCategory: place.category,
+        });
+        setSelectedCellGeometry(null);
+      }
+
+      // Pre-populate verified location details
+      setGeoPlace({
+        village: place.village || (place.category === "Village" ? place.name : ""),
+        town: place.category === "Town" ? place.name : "",
+        city: place.category === "City" ? place.name : "",
+        district: place.district,
+        tehsil: place.tehsil || place.district,
+        locality: place.name,
+        state: "Uttarakhand",
+        display_name: place.displayName,
+      });
+      setGeoLoading(false);
+
+      // Compute actual fire observations around this place
+      const fStats = computeFireStats(firesFeatures, place.lon, place.lat, 10);
+      setFireStats(fStats);
+    },
+    [terrainGrid, firesFeatures]
+  );
+
+  // Reverse-geocode & compute fire stats whenever selectedCell changes (via map click or external selection)
+  useEffect(() => {
+    if (!selectedCell) {
+      setGeoPlace(null);
+      setFireStats(null);
+      return;
+    }
+
+    const centroid = parseCellCentroid(selectedCell.id);
+    const lng = selectedCell._clickLng ?? centroid?.[0];
+    const lat = selectedCell._clickLat ?? centroid?.[1];
+
+    if (lat == null || lng == null) {
+      setGeoPlace({ error: "LOCATION NAME UNAVAILABLE" });
+      return;
+    }
+
+    // Always compute real fire statistics for this point
+    if (firesFeatures.length > 0) {
+      const fStats = computeFireStats(firesFeatures, lng, lat, 10);
+      setFireStats(fStats);
+    }
+
+    // If activePlace already provides verified location details for this point, skip duplicate geocode
+    if (
+      activePlace &&
+      Math.abs(activePlace.lat - lat) < 0.001 &&
+      Math.abs(activePlace.lon - lng) < 0.001
+    ) {
+      return;
+    }
+
+    // Snap to 4-decimal precision for cache key
+    const cacheKey = `${lat.toFixed(4)},${lng.toFixed(4)}`;
+    latestLookupRef.current = cacheKey;
+
+    // Return cached result instantly
+    if (geocacheRef.current.has(cacheKey)) {
+      setGeoPlace(geocacheRef.current.get(cacheKey)!);
+      return;
+    }
+
+    // Uttarakhand study boundary guard
+    const inBounds = lat >= 28.0 && lat <= 31.6 && lng >= 77.0 && lng <= 81.5;
+    if (!inBounds) {
+      const outside: GeoPlace = { error: "OUTSIDE MAPPED STUDY AREA" };
+      setGeoPlace(outside);
+      return;
+    }
+
+    setGeoLoading(true);
+
+    const url =
+      `https://nominatim.openstreetmap.org/reverse?format=jsonv2` +
+      `&lat=${lat.toFixed(6)}&lon=${lng.toFixed(6)}` +
+      `&zoom=14&accept-language=en`;
+
+    fetch(url, { headers: { "User-Agent": "FireIntel/1.0 (academic wildfire research)" } })
+      .then((r) => r.json())
+      .then((data: any) => {
+        // Guard against race conditions
+        if (latestLookupRef.current !== cacheKey) return;
+
+        const addr = data.address || {};
+        const place: GeoPlace = {
+          village: addr.village || addr.hamlet || addr.isolated_dwelling || "",
+          suburb: addr.suburb || addr.neighbourhood || "",
+          town: addr.town || addr.city_district || "",
+          city: addr.city || "",
+          county: addr.county || addr.district || "",
+          state_district: addr.state_district || "",
+          state: addr.state || "",
+          country: addr.country || "",
+          postcode: addr.postcode || "",
+          display_name: data.display_name || "",
+          district: addr.county || addr.district || addr.state_district || "",
+          tehsil: addr.state_district || addr.county || "",
+          locality: addr.village || addr.hamlet || addr.suburb || addr.town || addr.city || "",
+        };
+
+        geocacheRef.current.set(cacheKey, place);
+        if (latestLookupRef.current === cacheKey) {
+          setGeoPlace(place);
+          setGeoLoading(false);
+        }
+      })
+      .catch(() => {
+        if (latestLookupRef.current === cacheKey) {
+          const err: GeoPlace = { error: "LOCATION NAME UNAVAILABLE" };
+          geocacheRef.current.set(cacheKey, err);
+          setGeoPlace(err);
+          setGeoLoading(false);
+        }
+      });
+  }, [selectedCell, activePlace, firesFeatures]);
 
   // Expose selectors for programmatic testing & automated inspection
   useEffect(() => {
@@ -98,8 +404,11 @@ export default function TerrainExplorerPage() {
       (window as any).__SET_TERRAIN_MODE = (mode: TerrainMode) => {
         setTerrainMode(mode);
       };
+      (window as any).__SEARCH_LOCATION = (place: UttarakhandPlace) => {
+        handleSelectPlaceFromSearch(place);
+      };
     }
-  }, []);
+  }, [handleSelectPlaceFromSearch]);
 
   return (
     <main className="relative w-screen h-screen overflow-hidden bg-[#020408] select-none">
@@ -107,13 +416,41 @@ export default function TerrainExplorerPage() {
       <GlobeMap
         cameraMode="ridge"
         targetCoords={targetCoords}
+        targetZoom={targetZoom}
+        selectedCellGeometry={selectedCellGeometry}
         onHotspotSelect={(hotspot) => {
           setSelectedHotspot(hotspot);
           setSelectedCell(null);
         }}
-        onCellSelect={(cellProps) => {
-          setSelectedCell(cellProps);
+        onCellSelect={(cellProps, clickLngLat) => {
           setSelectedHotspot(null);
+          setActivePlace(null);
+          if (!cellProps) {
+            setSelectedCell(null);
+            setSelectedCellGeometry(null);
+            setFireStats(null);
+            return;
+          }
+
+          const centroid = parseCellCentroid(cellProps.id);
+          const lng = clickLngLat?.[0] ?? centroid?.[0] ?? 79.2;
+          const lat = clickLngLat?.[1] ?? centroid?.[1] ?? 30.15;
+
+          setSelectedCell({
+            ...cellProps,
+            _clickLng: lng,
+            _clickLat: lat,
+          });
+
+          // Highlight matching cell boundary
+          const matching = findGridCell(terrainGrid, lng, lat);
+          if (matching) {
+            setSelectedCellGeometry(matching.geometry);
+          }
+
+          // Calculate fire statistics
+          const fStats = computeFireStats(firesFeatures, lng, lat, 10);
+          setFireStats(fStats);
         }}
         terrainMode={terrainMode}
         showHotspots={showHotspots}
@@ -184,6 +521,14 @@ export default function TerrainExplorerPage() {
           </button>
         </nav>
       </header>
+
+      {/* Location Explorer Search Panel (Left Side) */}
+      <div className="absolute top-20 sm:top-24 left-3 sm:left-8 z-30 pointer-events-auto">
+        <LocationSearchPanel
+          onSelectPlace={handleSelectPlaceFromSearch}
+          selectedPlaceName={activePlace?.name || (geoPlace && !geoPlace.error ? getLocality(geoPlace) : null)}
+        />
+      </div>
 
       {/* Geomorphology Controls Capsule (Top-Center) */}
       <div className="absolute top-16 sm:top-20 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 pointer-events-auto max-w-[95vw] overflow-x-auto py-1 scrollbar-none">
@@ -535,89 +880,325 @@ export default function TerrainExplorerPage() {
         </aside>
       )}
 
-      {/* Master Grid Cell Geomorphology Inspector */}
+      {/* ── Master Grid Cell Inspector — Location + Terrain + Fire Intelligence ── */}
       {selectedCell && (
         <aside
           aria-label="Master Grid Cell Geomorphology Inspector"
-          className="absolute top-20 sm:top-24 right-3 sm:right-8 z-30 bg-[#040810]/90 backdrop-blur-xl rounded-2xl p-4 sm:p-5 border border-sky-500/30 shadow-2xl pointer-events-auto max-w-sm w-[92vw] sm:w-full max-h-[calc(100vh-6.5rem)] overflow-y-auto animate-in fade-in slide-in-from-right-4 duration-300 text-slate-200"
+          className="absolute top-20 sm:top-24 right-3 sm:right-8 z-30 bg-[#040810]/95 backdrop-blur-2xl rounded-2xl border border-cyan-500/30 shadow-[0_20px_60px_rgba(0,0,0,0.85)] pointer-events-auto max-w-sm w-[92vw] sm:w-[380px] max-h-[calc(100vh-6.5rem)] overflow-y-auto animate-in fade-in slide-in-from-right-4 duration-300 text-slate-200"
+          style={{ boxShadow: "0 0 0 1px rgba(85,199,232,0.15), 0 24px 60px rgba(0,0,0,0.9)" }}
         >
-          <div className="flex items-start justify-between mb-3 border-b border-white/10 pb-2.5">
-            <div>
-              <div className="flex items-center gap-1.5 text-[10px] font-mono-telemetry text-sky-400 uppercase tracking-wider">
-                <Mountain className="w-3 h-3 text-sky-400" />
-                <span>Master Analytical Cell</span>
+          {/* ── SECTION 1: LOCATION IDENTIFICATION ── */}
+          <div className="p-4 sm:p-5 border-b border-white/[0.08] bg-gradient-to-b from-[#0B3D91]/10 to-transparent">
+            {/* Header row */}
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <div className="relative shrink-0">
+                  <Navigation className="w-4 h-4 text-[#55C7E8]" />
+                  <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-[#55C7E8] animate-pulse" />
+                </div>
+                <div>
+                  <div className="text-[9px] font-mono-telemetry font-bold tracking-widest text-[#55C7E8] uppercase">
+                    Location Identification
+                  </div>
+                  <div className="text-[9px] text-slate-500 font-mono-telemetry">
+                    Survey of India &amp; OSM Geocoded
+                  </div>
+                </div>
               </div>
-              <div className="text-sm font-bold font-mono-telemetry text-white">
-                {selectedCell.id}
-              </div>
+              <button
+                onClick={() => {
+                  setSelectedCell(null);
+                  setSelectedCellGeometry(null);
+                  setActivePlace(null);
+                  setFireStats(null);
+                }}
+                className="p-1 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors shrink-0 cursor-pointer"
+                aria-label="Close Cell Inspector"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
-            <button
-              onClick={() => setSelectedCell(null)}
-              className="p-1 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
-              aria-label="Close Cell Inspector"
-            >
-              <X className="w-4 h-4" />
-            </button>
+
+            {/* Loading state */}
+            {geoLoading && (
+              <div className="flex items-center gap-2.5 py-3 px-3 rounded-xl bg-[#55C7E8]/5 border border-[#55C7E8]/15 mb-3">
+                <Loader2 className="w-4 h-4 text-[#55C7E8] animate-spin shrink-0" />
+                <div className="text-xs font-mono-telemetry text-[#55C7E8]/80 tracking-wider">
+                  IDENTIFYING LOCATION…
+                </div>
+              </div>
+            )}
+
+            {/* Error state */}
+            {!geoLoading && geoPlace?.error && (
+              <div className="flex items-center gap-2.5 py-3 px-3 rounded-xl bg-amber-500/5 border border-amber-500/20 mb-3">
+                <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+                <div className="text-xs font-mono-telemetry text-amber-400 tracking-wider">
+                  {geoPlace.error}
+                </div>
+              </div>
+            )}
+
+            {/* Successful identification */}
+            {!geoLoading && geoPlace && !geoPlace.error && (() => {
+              const locality = getLocality(geoPlace);
+              const district = getDistrict(geoPlace);
+              const tehsil = getTehsil(geoPlace);
+              const centroid = parseCellCentroid(selectedCell.id);
+              const lat = selectedCell._clickLat ?? centroid?.[1];
+              const lng = selectedCell._clickLng ?? centroid?.[0];
+              const category = selectedCell._placeCategory || (geoPlace.village ? "Village" : geoPlace.town ? "Town" : geoPlace.city ? "City" : "Locality");
+
+              return (
+                <div className="space-y-2">
+                  {/* Prominent place name */}
+                  <div className="p-3 rounded-xl bg-gradient-to-br from-[#0B3D91]/25 via-[#101B2B]/40 to-black/60 border border-[#2477B8]/40 shadow-inner">
+                    <div className="text-[9px] font-mono-telemetry text-[#55C7E8]/80 uppercase tracking-widest mb-1 flex items-center justify-between">
+                      <span className="flex items-center gap-1.5">
+                        <MapPin className="w-3 h-3 text-[#55C7E8]" />
+                        Selected Place
+                      </span>
+                      {category && (
+                        <span className="text-[8px] px-1.5 py-0.2 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                          {category}
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-base sm:text-lg font-bold text-[#F2F0E9] leading-tight tracking-tight">
+                      {locality || "Unnamed Locality"}
+                    </div>
+                    {geoPlace.village && geoPlace.suburb && geoPlace.suburb !== geoPlace.village && (
+                      <div className="text-[11px] text-[#55C7E8]/80 mt-0.5 font-medium">
+                        {geoPlace.suburb}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Administrative grid */}
+                  <div className="grid grid-cols-2 gap-1.5 text-[11px] font-mono-telemetry">
+                    {district && (
+                      <div className="p-2 rounded-lg bg-white/[0.03] border border-white/[0.06]">
+                        <div className="text-[9px] text-slate-500 uppercase tracking-wider mb-0.5">District</div>
+                        <div className="text-[#C6A66B] font-semibold">{district}</div>
+                      </div>
+                    )}
+                    {tehsil && (
+                      <div className="p-2 rounded-lg bg-white/[0.03] border border-white/[0.06]">
+                        <div className="text-[9px] text-slate-500 uppercase tracking-wider mb-0.5">Tehsil / Block</div>
+                        <div className="text-[#55C7E8] font-semibold">{tehsil}</div>
+                      </div>
+                    )}
+                    <div className="p-2 rounded-lg bg-white/[0.03] border border-white/[0.06] col-span-2 flex items-center justify-between">
+                      <div>
+                        <div className="text-[9px] text-slate-500 uppercase tracking-wider mb-0.5">State</div>
+                        <div className="text-slate-200 font-semibold">{geoPlace.state || "Uttarakhand"}, India</div>
+                      </div>
+                      <div className="text-[9px] px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-medium">
+                        Verified
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Coordinates */}
+                  {lat != null && lng != null && (
+                    <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-white/[0.02] border border-white/[0.05] font-mono-telemetry text-[10px]">
+                      <div className="flex items-center gap-2">
+                        <Globe className="w-3 h-3 text-[#55C7E8] shrink-0" />
+                        <span className="text-slate-300 font-medium">
+                          {lat.toFixed(5)}°N, {lng.toFixed(5)}°E
+                        </span>
+                      </div>
+                      <span className="text-slate-500 text-[9px]">EPSG:4326</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
+            {/* Show coords even if geo failed */}
+            {!geoLoading && geoPlace?.error && (() => {
+              const centroid = parseCellCentroid(selectedCell.id);
+              const lat = selectedCell._clickLat ?? centroid?.[1];
+              const lng = selectedCell._clickLng ?? centroid?.[0];
+              return lat != null && lng != null ? (
+                <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/[0.02] border border-white/[0.05] font-mono-telemetry text-[10px]">
+                  <Globe className="w-3 h-3 text-[#55C7E8] shrink-0" />
+                  <span className="text-slate-400">
+                    {lat.toFixed(5)}°N, {lng.toFixed(5)}°E
+                  </span>
+                </div>
+              ) : null;
+            })()}
           </div>
 
-          <div className="space-y-3 text-xs">
-            {/* Elevation metrics */}
+          {/* ── SECTION 2: TERRAIN INTELLIGENCE ── */}
+          <div className="p-4 sm:p-5 space-y-3 text-xs">
+            {/* Section label */}
+            <div className="flex items-center gap-2 pb-1 border-b border-white/[0.07]">
+              <Mountain className="w-3.5 h-3.5 text-sky-400" />
+              <span className="text-[9px] font-mono-telemetry font-bold tracking-widest text-sky-400 uppercase">
+                Terrain Intelligence
+              </span>
+              <span className="ml-auto text-[9px] font-mono-telemetry text-slate-400 bg-white/[0.04] px-2 py-0.5 rounded-full border border-white/[0.06] truncate max-w-[140px]" title={selectedCell.id}>
+                {selectedCell.id}
+              </span>
+            </div>
+
+            {/* Elevation */}
             <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/5">
               <div className="text-[10px] text-slate-400 uppercase font-mono-telemetry mb-0.5">
                 Copernicus Elevation (GLO-30)
               </div>
               <div className="text-base font-bold font-mono-telemetry text-emerald-300">
-                {Math.round(selectedCell.elev_mean)} m
-                <span className="text-xs font-normal text-slate-400 ml-2">
-                  (Range: {Math.round(selectedCell.elev_min)}–{Math.round(selectedCell.elev_max)} m)
-                </span>
+                {selectedCell.elev_mean != null ? `${Math.round(selectedCell.elev_mean)} m` : "Data unavailable"}
+                {selectedCell.elev_min != null && selectedCell.elev_max != null && (
+                  <span className="text-xs font-normal text-slate-400 ml-2">
+                    (Range: {Math.round(selectedCell.elev_min)}–{Math.round(selectedCell.elev_max)} m)
+                  </span>
+                )}
               </div>
             </div>
 
-            {/* Slope & Aspect Grid */}
+            {/* Slope & TRI */}
             <div className="grid grid-cols-2 gap-2">
               <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/5">
-                <div className="text-[10px] text-slate-400 uppercase font-mono-telemetry mb-0.5">
-                  Mean Slope
-                </div>
+                <div className="text-[10px] text-slate-400 uppercase font-mono-telemetry mb-0.5">Mean Slope</div>
                 <div className="text-base font-bold font-mono-telemetry text-amber-300">
-                  {selectedCell.slope_mean?.toFixed(1)}°
+                  {selectedCell.slope_mean != null ? `${selectedCell.slope_mean.toFixed(1)}°` : "Data unavailable"}
                 </div>
-                <div className="text-[10px] text-slate-500 mt-0.5">
-                  Max: {selectedCell.slope_max?.toFixed(1)}°
-                </div>
+                {selectedCell.slope_max != null && (
+                  <div className="text-[10px] text-slate-500 mt-0.5">
+                    Max: {selectedCell.slope_max.toFixed(1)}°
+                  </div>
+                )}
               </div>
-
               <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/5">
-                <div className="text-[10px] text-slate-400 uppercase font-mono-telemetry mb-0.5">
-                  Terrain Ruggedness
-                </div>
+                <div className="text-[10px] text-slate-400 uppercase font-mono-telemetry mb-0.5">Terrain Ruggedness</div>
                 <div className="text-base font-bold font-mono-telemetry text-purple-300">
-                  {selectedCell.tri_mean?.toFixed(1)} TRI
+                  {selectedCell.tri_mean != null ? `${selectedCell.tri_mean.toFixed(1)} TRI` : "Data unavailable"}
                 </div>
-                <div className="text-[10px] text-slate-500 mt-0.5">
-                  {getTRIDescription(selectedCell.tri_mean).label}
-                </div>
+                {selectedCell.tri_mean != null && (
+                  <div className="text-[10px] text-slate-500 mt-0.5">
+                    {getTRIDescription(selectedCell.tri_mean).label}
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Solar Aspect Orientation */}
+            {/* Solar Aspect */}
             <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/5">
               <div className="flex items-center justify-between text-[10px] text-slate-400 uppercase font-mono-telemetry mb-0.5">
                 <span>Solar Aspect</span>
-                <span className={getAspectCardinal(selectedCell.aspect_mean).color}>
-                  {getAspectCardinal(selectedCell.aspect_mean).label}
-                </span>
+                {selectedCell.aspect_mean != null && (
+                  <span className={getAspectCardinal(selectedCell.aspect_mean).color}>
+                    {getAspectCardinal(selectedCell.aspect_mean).label}
+                  </span>
+                )}
               </div>
               <div className="text-[11px] text-slate-300 leading-snug">
-                {getAspectCardinal(selectedCell.aspect_mean).desc}
+                {selectedCell.aspect_mean != null
+                  ? getAspectCardinal(selectedCell.aspect_mean).desc
+                  : "Aspect data unavailable"}
               </div>
             </div>
 
-            {/* Scientific Provenance Note */}
-            <div className="pt-2 text-[10px] text-slate-400 font-mono-telemetry leading-normal border-t border-white/5">
-              <span className="text-sky-400 font-semibold">Provenance: </span>
-              Copernicus GLO-30 30m DEM aggregated across 0.05° (~5.5 km) cell. Note: ERA5-Land reanalysis operates at ~9 km native resolution, distinct from 30m DEM.
+            {/* ── SECTION 3: FIRE INTELLIGENCE (10 KM BUFFER) ── */}
+            <div className="pt-2 border-t border-white/[0.08] space-y-2">
+              <div className="flex items-center justify-between pb-1">
+                <div className="flex items-center gap-1.5">
+                  <Flame className="w-3.5 h-3.5 text-amber-400" />
+                  <span className="text-[9px] font-mono-telemetry font-bold tracking-widest text-amber-400 uppercase">
+                    Fire Intelligence
+                  </span>
+                </div>
+                <span className="text-[9px] font-mono-telemetry text-slate-500 bg-white/[0.04] px-2 py-0.5 rounded-full border border-white/[0.06]">
+                  10 km Radius Buffer
+                </span>
+              </div>
+
+              {fireStats ? (
+                fireStats.count > 0 ? (
+                  <div className="space-y-1.5">
+                    {/* Primary Detections Count Card */}
+                    <div className="p-2.5 rounded-xl bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-transparent border border-amber-500/25 flex items-center justify-between">
+                      <div>
+                        <div className="text-[9px] text-amber-400/80 uppercase font-mono-telemetry">
+                          Nearby Satellite Detections
+                        </div>
+                        <div className="text-base font-bold font-mono-telemetry text-amber-300">
+                          {fireStats.count.toLocaleString()} Observations
+                        </div>
+                      </div>
+                      {fireStats.closestKm !== null && (
+                        <div className="text-right font-mono-telemetry">
+                          <div className="text-[8px] text-slate-500 uppercase">Proximity</div>
+                          <div className="text-xs font-bold text-white">
+                            {fireStats.closestKm} km
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Sensor Split & FRP Grid */}
+                    <div className="grid grid-cols-2 gap-1.5 font-mono-telemetry text-[11px]">
+                      <div className="p-2 rounded-lg bg-white/[0.03] border border-white/[0.06]">
+                        <div className="text-[9px] text-slate-500 uppercase mb-0.5">Sensor Breakdown</div>
+                        <div className="text-slate-200">
+                          <span className="text-amber-300 font-semibold">{fireStats.viirsCount}</span> VIIRS ·{" "}
+                          <span className="text-sky-300 font-semibold">{fireStats.modisCount}</span> MODIS
+                        </div>
+                      </div>
+
+                      <div className="p-2 rounded-lg bg-white/[0.03] border border-white/[0.06]">
+                        <div className="text-[9px] text-slate-500 uppercase mb-0.5">Radiative Power (FRP)</div>
+                        <div className="text-slate-200">
+                          Peak <span className="text-amber-400 font-bold">{fireStats.peakFrp}</span> MW
+                          <span className="text-[10px] text-slate-500 ml-1">· avg {fireStats.meanFrp}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Diurnal Overpass Split */}
+                    <div className="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-white/[0.02] border border-white/[0.05] text-[10px] font-mono-telemetry text-slate-400">
+                      <span className="flex items-center gap-1.5">
+                        <Sun className="w-3 h-3 text-amber-400" />
+                        <span>Day: {fireStats.dayCount}</span>
+                      </span>
+                      <span>•</span>
+                      <span className="flex items-center gap-1.5">
+                        <Clock className="w-3 h-3 text-sky-400" />
+                        <span>Night: {fireStats.nightCount}</span>
+                      </span>
+                      <span>•</span>
+                      <span className="text-emerald-400 font-medium">FIRMS Validated</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 font-mono-telemetry text-[11px] flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <div>
+                      <div className="font-bold text-white text-xs">0 Observations Within 10 km</div>
+                      <div className="text-[10px] text-emerald-400/80">Quiescent sector (low recent thermal anomaly activity)</div>
+                    </div>
+                  </div>
+                )
+              ) : (
+                <div className="p-2 rounded-lg bg-white/[0.02] border border-white/5 text-[10px] text-slate-500 font-mono-telemetry flex items-center gap-2">
+                  <Loader2 className="w-3 h-3 text-cyan-400 animate-spin" />
+                  <span>Computing 10 km buffer radiometry…</span>
+                </div>
+              )}
+            </div>
+
+            {/* ── SECTION 4: DATA PROVENANCE ── */}
+            <div className="pt-2 text-[10px] text-slate-400 font-mono-telemetry leading-normal border-t border-white/5 space-y-1">
+              <div>
+                <span className="text-sky-400 font-semibold">Provenance: </span>
+                Copernicus GLO-30 30m DEM aggregated across 0.05° (~5.5 km) cell · NASA FIRMS Multi-Platform Radiometry · Survey of India (ADM1).
+              </div>
+              <div className="text-slate-500 text-[9px]">
+                Restricted to 28°N–31°N study envelope (Alpine &gt;31°N truncated at source).
+              </div>
             </div>
           </div>
         </aside>
