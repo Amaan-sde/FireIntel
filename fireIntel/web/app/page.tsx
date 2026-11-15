@@ -7,6 +7,7 @@ import CinematicHeroOverlay from "@/components/CinematicHeroOverlay";
 import CinematicHimalayanViewer from "@/components/CinematicHimalayanViewer";
 import ScientificTelemetryDrawer from "@/components/ScientificTelemetryDrawer";
 import SatelliteInfoModal from "@/components/SatelliteInfoModal";
+import SpaceEnvironmentBackground from "@/components/SpaceEnvironmentBackground";
 
 export default function LivingEarthHomePage() {
   const router = useRouter();
@@ -82,7 +83,12 @@ export default function LivingEarthHomePage() {
   };
 
   return (
-    <main className="relative w-screen h-screen overflow-hidden bg-[#020408] select-none">
+    <main className="relative w-screen h-screen overflow-hidden bg-[#020306] select-none">
+      {/* Layer 0: Animated 3D Space Environment (renders BEHIND Earth canvas) */}
+      <div className="absolute inset-0 z-0" aria-hidden="true">
+        <SpaceEnvironmentBackground />
+      </div>
+
       {/* Layer 1: Living Earth Canvas (Three.js) - PERSISTENT, NEVER UNMOUNTED */}
       <div className="absolute inset-0 z-10">
         <CinematicEarthCanvas
