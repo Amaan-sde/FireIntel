@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import CinematicEarthCanvas, { SatelliteInfo, SATELLITE_CATALOG } from "@/components/CinematicEarthCanvas";
 import CinematicHeroOverlay from "@/components/CinematicHeroOverlay";
 import CinematicHimalayanViewer from "@/components/CinematicHimalayanViewer";
@@ -10,7 +9,6 @@ import SatelliteInfoModal from "@/components/SatelliteInfoModal";
 import SpaceEnvironmentBackground from "@/components/SpaceEnvironmentBackground";
 
 export default function LivingEarthHomePage() {
-  const router = useRouter();
   const [viewState, setViewState] = useState<"orbit" | "himalayas">("orbit");
   const [isDescending, setIsDescending] = useState<boolean>(false);
   const [descentStage, setDescentStage] = useState<number>(1);
@@ -71,8 +69,6 @@ export default function LivingEarthHomePage() {
     setIsDescending(false);
     setViewState("himalayas");
     setDescentStage(7);
-    // Redirect to the dedicated 3D Himalayan Terrain Explorer
-    router.push("/terrain");
   };
 
   // Return from Himalayas back to global planetary orbit
