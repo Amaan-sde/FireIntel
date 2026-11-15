@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { Activity, SlidersHorizontal, Menu, X, Orbit, Flame, Mountain, BarChart3, FileText, Database, Calendar } from "lucide-react";
+import { Activity, SlidersHorizontal, Menu, X, Orbit, Flame, Mountain, BarChart3, FileText, Database, Calendar, Compass } from "lucide-react";
 
 interface NavigationHeaderProps {
   activeTab: string;
@@ -23,6 +23,7 @@ export default function NavigationHeader({
     { id: "overview", label: "Mission Overview", href: "/", icon: Orbit },
     { id: "fires", label: "Fire Intelligence", href: "/fires", badge: "Live Lab", icon: Flame },
     { id: "calendar", label: "Burning Calendar", href: "/calendar", badge: "2025 Orbit", icon: Calendar },
+    { id: "workspace", label: "Terrain Lab", href: "/workspace", badge: "Research", icon: Compass },
     { id: "terrain", label: "3D Topography", href: "/terrain", badge: "3D DEM", icon: Mountain },
     { id: "analytics", label: "Analytics", href: "/analytics", icon: BarChart3 },
     { id: "data", label: "Data Explorer", href: "/data", badge: "Export", icon: Database },

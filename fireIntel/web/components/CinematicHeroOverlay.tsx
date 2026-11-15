@@ -195,6 +195,14 @@ export default function CinematicHeroOverlay({
           </Link>
 
           <Link
+            href="/workspace"
+            className="flex items-center gap-1.5 glass-pill rounded-full px-3.5 py-1.5 text-xs text-cyan-300 hover:text-white hover:bg-cyan-500/20 border-cyan-500/30 transition-all font-medium cursor-pointer"
+          >
+            <Compass className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Workspace</span>
+          </Link>
+
+          <Link
             href="/analytics"
             className="flex items-center gap-1.5 glass-pill rounded-full px-3.5 py-1.5 text-xs text-slate-300 hover:text-white hover:bg-white/10 transition-all font-medium cursor-pointer"
           >
