@@ -522,8 +522,8 @@ export default function TerrainExplorerPage() {
         </nav>
       </header>
 
-      {/* Location Explorer Search Panel (Left Side) */}
-      <div className="absolute top-20 sm:top-24 left-3 sm:left-8 z-30 pointer-events-auto">
+      {/* Location Explorer Search Panel (Left Side, with full clearance below top geomorphology controls) */}
+      <div className="absolute top-28 sm:top-36 left-3 sm:left-8 z-30 pointer-events-auto">
         <LocationSearchPanel
           onSelectPlace={handleSelectPlaceFromSearch}
           selectedPlaceName={activePlace?.name || (geoPlace && !geoPlace.error ? getLocality(geoPlace) : null)}
