@@ -28,11 +28,50 @@ try:
 except ImportError:
     HAS_XGBOOST = False
 
+import json
+
 router = APIRouter(prefix="/studio", tags=["Global Multi-Satellite Harmonisation & AutoML Studio"])
 
 STUDIO_SESSIONS: Dict[str, Dict[str, Any]] = {}
 MAX_CACHED_SESSIONS = 30
 SAMPLE_DATA_DIR = Path("fireIntel/data/studio_samples")
+SESSION_CACHE_DIR = Path("/tmp/studio_sessions")
+SESSION_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+
+def save_session_cache(session_id: str, data: Dict[str, Any]):
+    """Persists session dataframe and metadata to disk so all uvicorn worker processes share state."""
+    STUDIO_SESSIONS[session_id] = data
+    try:
+        SESSION_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        df: pd.DataFrame = data.get("df_harmonised")
+        if df is not None and not df.empty:
+            df.to_parquet(SESSION_CACHE_DIR / f"{session_id}.parquet", index=False)
+        
+        # Save metadata without dataframe
+        meta = {k: v for k, v in data.items() if k not in ["df_harmonised", "predictions_df"]}
+        with open(SESSION_CACHE_DIR / f"{session_id}_meta.json", "w") as f:
+            json.dump(meta, f)
+    except Exception as e:
+        print(f"Warning: disk persistence error: {e}")
+
+def get_session_cache(session_id: str) -> Optional[Dict[str, Any]]:
+    """Retrieves session from memory cache or shared disk cache across uvicorn workers."""
+    if session_id in STUDIO_SESSIONS:
+        return STUDIO_SESSIONS[session_id]
+        
+    p_file = SESSION_CACHE_DIR / f"{session_id}.parquet"
+    m_file = SESSION_CACHE_DIR / f"{session_id}_meta.json"
+    if p_file.exists() and m_file.exists():
+        try:
+            df = pd.read_parquet(p_file)
+            with open(m_file, "r") as f:
+                meta = json.load(f)
+            meta["df_harmonised"] = df
+            STUDIO_SESSIONS[session_id] = meta
+            return meta
+        except Exception as e:
+            print(f"Warning: disk cache retrieval error: {e}")
+    return None
 
 # -----------------------------------------------------------------------------
 # Canonical Harmonisation Schema & Helper Utilities
@@ -325,22 +364,18 @@ def load_curated_sample(req: LoadSampleRequest):
         combined_df = pd.concat(dfs, ignore_index=True)
         combined_df["harmonised_id"] = range(1, len(combined_df) + 1)
         
-        # Cache Session
-        if len(STUDIO_SESSIONS) >= MAX_CACHED_SESSIONS:
-            oldest = list(STUDIO_SESSIONS.keys())[0]
-            del STUDIO_SESSIONS[oldest]
-            
-        STUDIO_SESSIONS[session_id] = {
+        session_data = {
             "df_harmonised": combined_df,
             "dataset_name": "Global 4-Slot Multi-Satellite Bundle (California 2024)",
             "slots": slot_summaries,
             "is_multi_slot": True
         }
+        save_session_cache(session_id, session_data)
         
         return {
             "status": "SUCCESS",
             "session_id": session_id,
-            "dataset_name": STUDIO_SESSIONS[session_id]["dataset_name"],
+            "dataset_name": session_data["dataset_name"],
             "total_rows": len(combined_df),
             "slots": slot_summaries,
             "preview": sanitize_dataframe_preview(combined_df, 5)
@@ -366,12 +401,8 @@ def load_curated_sample(req: LoadSampleRequest):
     h_df = harmonise_single_dataframe(raw, "generic", fname)
     h_df["harmonised_id"] = range(1, len(h_df) + 1)
 
-    if len(STUDIO_SESSIONS) >= MAX_CACHED_SESSIONS:
-        oldest = list(STUDIO_SESSIONS.keys())[0]
-        del STUDIO_SESSIONS[oldest]
-
     dataset_title = fname.replace(".csv", "").replace("_", " ").title()
-    STUDIO_SESSIONS[session_id] = {
+    session_data = {
         "df_harmonised": h_df,
         "dataset_name": dataset_title,
         "slots": {
@@ -384,13 +415,14 @@ def load_curated_sample(req: LoadSampleRequest):
         },
         "is_multi_slot": False
     }
+    save_session_cache(session_id, session_data)
 
     return {
         "status": "SUCCESS",
         "session_id": session_id,
         "dataset_name": dataset_title,
         "total_rows": len(h_df),
-        "slots": STUDIO_SESSIONS[session_id]["slots"],
+        "slots": session_data["slots"],
         "preview": sanitize_dataframe_preview(h_df, 5)
     }
 
@@ -528,23 +560,22 @@ async def upload_four_firms_slots(
     session_id = f"session_{uuid.uuid4().hex[:8]}"
     clean_name = dataset_name.strip() if dataset_name and dataset_name.strip() else f"Multi-Satellite Global Harmonisation ({len(active_slots)} Sources)"
 
-    if len(STUDIO_SESSIONS) >= MAX_CACHED_SESSIONS:
-        oldest = list(STUDIO_SESSIONS.keys())[0]
-        del STUDIO_SESSIONS[oldest]
+    audit_summary = {
+        "initial_raw_rows": total_raw_rows,
+        "valid_coordinate_rows": initial_count,
+        "nrt_duplicates_removed": nrt_duplicates_removed,
+        "cross_sensor_co_observations": int(cross_sensor_mask.sum()),
+        "net_harmonised_observations": len(combined_df)
+    }
 
-    STUDIO_SESSIONS[session_id] = {
+    session_data = {
         "df_harmonised": combined_df,
         "dataset_name": clean_name,
         "slots": slot_reports,
         "is_multi_slot": len(active_slots) > 1,
-        "harmonisation_audit": {
-            "initial_raw_rows": total_raw_rows,
-            "valid_coordinate_rows": initial_count,
-            "nrt_duplicates_removed": nrt_duplicates_removed,
-            "cross_sensor_co_observations": int(cross_sensor_mask.sum()),
-            "net_harmonised_observations": len(combined_df)
-        }
+        "harmonisation_audit": audit_summary
     }
+    save_session_cache(session_id, session_data)
 
     return {
         "status": "SUCCESS",
@@ -552,7 +583,7 @@ async def upload_four_firms_slots(
         "dataset_name": clean_name,
         "active_slot_count": len(active_slots),
         "slot_reports": slot_reports,
-        "harmonisation_audit": STUDIO_SESSIONS[session_id]["harmonisation_audit"],
+        "harmonisation_audit": audit_summary,
         "columns": CANONICAL_COLUMNS,
         "preview": sanitize_dataframe_preview(combined_df, 5)
     }
@@ -568,7 +599,7 @@ class ProfileRequest(BaseModel):
 @router.post("/profile")
 def profile_dataset(req: ProfileRequest):
     """Generates global geospatial bounding box, radiometric distributions, and MapLibre GeoJSON."""
-    session = STUDIO_SESSIONS.get(req.session_id)
+    session = get_session_cache(req.session_id)
     if not session:
         raise HTTPException(status_code=404, detail="Session expired or invalid. Please upload dataset.")
 
@@ -711,7 +742,7 @@ def execute_ml_pipeline(req: TrainRequest):
     - Supervised Classification: Random Forest Classifier + XGBoost Classifier (with strict spatial coordinate exclusion)
     - Unsupervised Machine Learning: DBSCAN Spatial Clustering + Isolation Forest Radiometric Anomaly Detection
     """
-    session = STUDIO_SESSIONS.get(req.session_id)
+    session = get_session_cache(req.session_id)
     if not session or "df_harmonised" not in session:
         raise HTTPException(status_code=400, detail="Dataset must be loaded and harmonised before training.")
 
@@ -978,7 +1009,7 @@ class ExportRequest(BaseModel):
 @router.post("/export")
 def export_research_package(req: ExportRequest):
     """Generates downloadable scientific research artifacts."""
-    session = STUDIO_SESSIONS.get(req.session_id)
+    session = get_session_cache(req.session_id)
     if not session:
         raise HTTPException(status_code=404, detail="Session expired.")
 
