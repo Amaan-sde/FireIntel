@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { Activity, SlidersHorizontal, Menu, X, Orbit, Flame, Mountain, BarChart3, FileText, Database, Calendar, Compass, Sparkles } from "lucide-react";
+import { Activity, SlidersHorizontal, Menu, X, Orbit, Flame, Mountain, BarChart3, FileText, Database, Calendar, Compass, Sparkles, MapPin } from "lucide-react";
 
 interface NavigationHeaderProps {
   activeTab: string;
@@ -23,6 +23,7 @@ export default function NavigationHeader({
     { id: "overview", label: "Overview", href: "/", icon: Orbit },
     { id: "fires", label: "Fires", href: "/fires", badge: "Live", icon: Flame },
     { id: "calendar", label: "Calendar", href: "/calendar", badge: "Orbit", icon: Calendar },
+    { id: "location", label: "Location", href: "/location-intelligence", badge: "Radius", icon: MapPin },
     { id: "workspace", label: "Terrain Lab", href: "/workspace", badge: "Research", icon: Compass },
     { id: "studio", label: "Global Studio", href: "/studio", badge: "AutoML", icon: Sparkles },
     { id: "terrain", label: "3D Topo", href: "/terrain", badge: "DEM", icon: Mountain },
@@ -39,7 +40,7 @@ export default function NavigationHeader({
 
   return (
     <>
-      <header className="fixed top-3 sm:top-4 left-1/2 -translate-x-1/2 z-40 w-[96%] max-w-[1440px] flex items-center justify-between pointer-events-auto">
+      <header className="fixed top-3 sm:top-4 left-1/2 -translate-x-1/2 z-50 w-[96%] max-w-[1480px] flex items-center justify-between pointer-events-auto">
         {/* Brand Identity Capsule */}
         <Link 
           href="/"
@@ -50,17 +51,17 @@ export default function NavigationHeader({
           <span className="text-xs sm:text-sm font-semibold tracking-wider text-white">
             FIREINTEL
           </span>
-          <span className="hidden lg:inline-block text-slate-500 text-xs">/</span>
-          <span className="hidden lg:inline-block text-xs text-slate-400 font-medium truncate max-w-[140px]">
+          <span className="hidden 2xl:inline-block text-slate-500 text-xs">/</span>
+          <span className="hidden 2xl:inline-block text-xs text-slate-400 font-medium truncate max-w-[140px]">
             Observatory
           </span>
         </Link>
 
-        {/* Center Navigation Capsule (Desktop & Laptop >= 1280px) */}
-        <nav className="hidden xl:flex items-center glass-pill rounded-full p-1 text-xs shadow-2xl overflow-x-auto no-scrollbar whitespace-nowrap">
+        {/* Center Navigation Capsule (Desktop & Laptop >= 1200px) */}
+        <nav className="hidden xl:flex items-center glass-pill rounded-full p-1 text-xs shadow-2xl overflow-x-auto no-scrollbar whitespace-nowrap gap-0.5">
           {navItems.map((item) => {
             const isActive = activeTab === item.id;
-            const buttonClass = `px-2.5 sm:px-3 py-1 rounded-full transition-all flex items-center gap-1.5 text-xs font-medium cursor-pointer shrink-0 ${
+            const buttonClass = `px-2 sm:px-2.5 py-1 rounded-full transition-all flex items-center gap-1 text-[11px] font-medium cursor-pointer shrink-0 ${
               isActive
                 ? "bg-white/20 text-white font-semibold shadow-sm"
                 : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.05]"
