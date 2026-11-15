@@ -203,6 +203,14 @@ export default function CinematicHeroOverlay({
           </Link>
 
           <Link
+            href="/studio"
+            className="flex items-center gap-1.5 glass-pill rounded-full px-3.5 py-1.5 text-xs text-purple-300 hover:text-white hover:bg-purple-500/20 border-purple-500/30 transition-all font-medium cursor-pointer"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+            <span>Studio</span>
+          </Link>
+
+          <Link
             href="/analytics"
             className="flex items-center gap-1.5 glass-pill rounded-full px-3.5 py-1.5 text-xs text-slate-300 hover:text-white hover:bg-white/10 transition-all font-medium cursor-pointer"
           >
