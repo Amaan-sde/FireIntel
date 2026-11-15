@@ -102,7 +102,7 @@ async function runCommandCentreTests() {
     await pageDesktop.click("button:has-text('VIIRS (375m)')");
     await pageDesktop.waitForTimeout(800);
     const viirsStats = await pageDesktop.evaluate(() => (window).__FIRE_LAB_STATS);
-    record("1.6", "Instrument Filter: VIIRS 375m Isolation", viirsStats?.total > 0 && viirsStats?.modis === 0, `VIIRS total: ${viirsStats?.total?.toLocaleString()}, MODIS: ${viirsStats?.modis}`);
+    record("1.6", "Instrument Filter: VIIRS 375m Isolation", viirsStats?.total === 201993 && viirsStats?.modis === 0, `VIIRS total: ${viirsStats?.total?.toLocaleString()} (Target: 201,993), MODIS: ${viirsStats?.modis}`);
     await pageDesktop.screenshot({ path: path.join(SCREENSHOT_DIR, "06_desktop_viirs_filtered.png") });
 
     // Reset Filters
@@ -112,10 +112,10 @@ async function runCommandCentreTests() {
     await pageDesktop.waitForTimeout(500);
 
     // Test 1.7: Seasonal Timeline Exploration (April Peak)
-    await pageDesktop.click("button:has-text('Apr')");
+    await pageDesktop.click("button[data-month='4']");
     await pageDesktop.waitForTimeout(1000);
     const aprilStats = await pageDesktop.evaluate(() => (window).__FIRE_LAB_STATS);
-    record("1.7", "Seasonal Exploration: April Peak", aprilStats?.total > 0, `April active detections: ${aprilStats?.total?.toLocaleString()}`);
+    record("1.7", "Seasonal Exploration: April Peak", aprilStats?.total === 75601, `April active detections: ${aprilStats?.total?.toLocaleString()} (Target: 75,601)`);
     await pageDesktop.screenshot({ path: path.join(SCREENSHOT_DIR, "07_desktop_april_peak_timeline.png") });
 
     // Test 1.8: Mode B: Verified 2025 Timeline

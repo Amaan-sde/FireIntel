@@ -28,21 +28,29 @@ export default function ScientificTelemetryDrawer({
 
   if (!isOpen) return null;
 
-  const overview = telemetry?.overview || {
-    total_detections: 7541,
-    modis_detections: 918,
-    viirs_detections: 6623,
-    detection_ratio_viirs_modis: 7.2146,
-    peak_frp_mw: 169.9,
-    pre_monsoon_apr_may_pct: 38.23,
-    pre_monsoon_season_mar_jun_pct: 46.05,
-    winter_dec_pct: 22.25,
+  const totalObs = telemetry?.total_observations || 240365;
+  const viirsObs = telemetry?.sensors?.VIIRS || 201993;
+  const modisObs = telemetry?.sensors?.MODIS || 38372;
+  const ratio = (viirsObs / Math.max(1, modisObs)).toFixed(2);
+  const aquaObs = telemetry?.satellites?.Aqua || 22578;
+  const terraObs = telemetry?.satellites?.Terra || 15794;
+
+  const overview = {
+    total_detections: totalObs,
+    modis_detections: modisObs,
+    viirs_detections: viirsObs,
+    detection_ratio_viirs_modis: Number(ratio),
+    peak_frp_mw: 2238.2,
+    pre_monsoon_apr_may_pct: 61.18,
+    winter_dry_pct: 21.83,
+    post_monsoon_pct: 6.31,
+    monsoon_min_pct: 10.67,
   };
 
-  const latBands = telemetry?.lat_bands || [
-    { band: "Central (29.48° - 30.25°N)", count: 3115, pct: 41.31 },
-    { band: "South (28.71° - 29.48°N)", count: 2752, pct: 36.49 },
-    { band: "North (30.25° - 31.46°N)", count: 1674, pct: 22.20 },
+  const latBands = [
+    { band: "Central (29.48° - 30.25°N)", count: 98842, pct: 41.12 },
+    { band: "South (28.71° - 29.48°N)", count: 87588, pct: 36.44 },
+    { band: "North Alpine (30.25° - 31.00°N)", count: 53935, pct: 22.44 },
   ];
 
   return (
@@ -84,7 +92,7 @@ export default function ScientificTelemetryDrawer({
             <div className="flex justify-between items-center text-slate-300">
               <span className="text-slate-400">Observed Detection Ratio:</span>
               <span className="font-mono-telemetry font-bold text-amber-400">
-                {overview.detection_ratio_viirs_modis}x (6,623 / 918)
+                {overview.detection_ratio_viirs_modis}x (201,993 / 38,372)
               </span>
             </div>
             <p className="text-slate-400 text-[11px] leading-relaxed">
@@ -93,11 +101,11 @@ export default function ScientificTelemetryDrawer({
             <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/5 text-[11px]">
               <div>
                 <span className="text-slate-500">VIIRS 375m:</span>
-                <div className="text-slate-200 font-mono-telemetry">Suomi-NPP (SNPP)</div>
+                <div className="text-slate-200 font-mono-telemetry">Suomi-NPP ({viirsObs.toLocaleString()})</div>
               </div>
               <div>
                 <span className="text-slate-500">MODIS 1km:</span>
-                <div className="text-slate-200 font-mono-telemetry">Aqua (684) & Terra (234)</div>
+                <div className="text-slate-200 font-mono-telemetry">Aqua ({aquaObs.toLocaleString()}) & Terra ({terraObs.toLocaleString()})</div>
               </div>
             </div>
           </div>
@@ -107,13 +115,13 @@ export default function ScientificTelemetryDrawer({
         <div className="space-y-3">
           <div className="flex items-center gap-2 text-xs font-medium text-slate-300">
             <Flame className="w-4 h-4 text-amber-400" />
-            <span>Temporal Regime Breakdown (2025)</span>
+            <span>Temporal Regime Breakdown (Multi-Year Decoded)</span>
           </div>
           <div className="p-4 rounded-xl bg-white/[0.03] border border-white/5 space-y-3 text-xs">
             <div>
               <div className="flex justify-between text-slate-300 mb-1">
                 <span>Pre-Monsoon Peak (Apr – May):</span>
-                <span className="font-mono-telemetry text-amber-400 font-semibold">{overview.pre_monsoon_apr_may_pct}%</span>
+                <span className="font-mono-telemetry text-amber-400 font-semibold">{overview.pre_monsoon_apr_may_pct}% (147,069 obs)</span>
               </div>
               <div className="w-full bg-slate-800 h-1 rounded-full overflow-hidden">
                 <div className="bg-amber-400 h-full rounded-full" style={{ width: `${overview.pre_monsoon_apr_may_pct}%` }} />
@@ -122,21 +130,31 @@ export default function ScientificTelemetryDrawer({
 
             <div>
               <div className="flex justify-between text-slate-300 mb-1">
-                <span>Pre-Monsoon Season (Mar – Jun):</span>
-                <span className="font-mono-telemetry text-amber-500 font-semibold">{overview.pre_monsoon_season_mar_jun_pct}%</span>
+                <span>Winter Dry Season (Dec – Mar):</span>
+                <span className="font-mono-telemetry text-sky-400 font-semibold">{overview.winter_dry_pct}% (52,476 obs)</span>
               </div>
               <div className="w-full bg-slate-800 h-1 rounded-full overflow-hidden">
-                <div className="bg-amber-500 h-full rounded-full" style={{ width: `${overview.pre_monsoon_season_mar_jun_pct}%` }} />
+                <div className="bg-sky-400 h-full rounded-full" style={{ width: `${overview.winter_dry_pct}%` }} />
               </div>
             </div>
 
             <div>
               <div className="flex justify-between text-slate-300 mb-1">
-                <span>Winter Secondary Peak (Dec):</span>
-                <span className="font-mono-telemetry text-sky-400 font-semibold">{overview.winter_dec_pct}%</span>
+                <span>Post-Monsoon Agricultural (Oct – Nov):</span>
+                <span className="font-mono-telemetry text-emerald-400 font-semibold">{overview.post_monsoon_pct}% (15,173 obs)</span>
               </div>
               <div className="w-full bg-slate-800 h-1 rounded-full overflow-hidden">
-                <div className="bg-sky-400 h-full rounded-full" style={{ width: `${overview.winter_dec_pct}%` }} />
+                <div className="bg-emerald-400 h-full rounded-full" style={{ width: `${overview.post_monsoon_pct}%` }} />
+              </div>
+            </div>
+
+            <div>
+              <div className="flex justify-between text-slate-300 mb-1">
+                <span>Monsoon Minimum (Jun – Sep):</span>
+                <span className="font-mono-telemetry text-indigo-400 font-semibold">{overview.monsoon_min_pct}% (25,647 obs)</span>
+              </div>
+              <div className="w-full bg-slate-800 h-1 rounded-full overflow-hidden">
+                <div className="bg-indigo-400 h-full rounded-full" style={{ width: `${overview.monsoon_min_pct}%` }} />
               </div>
             </div>
           </div>

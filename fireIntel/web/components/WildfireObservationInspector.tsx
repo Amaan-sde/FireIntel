@@ -76,7 +76,7 @@ export default function WildfireObservationInspector({
   let intensityClass = "Subtle / Ground Surface Thermal Anomaly";
   let intensityColor = "text-amber-400";
   if (frp >= 50) {
-    intensityClass = "Extreme Crown / High-Intensity Flaming Front";
+    intensityClass = "High Radiative Power (>50 MW) // Severe Thermal Anomaly (FRP indicates radiative intensity, not ground fuel combustion type or crown fire severity without canopy confirmation)";
     intensityColor = "text-purple-300";
   } else if (frp >= 20) {
     intensityClass = "Severe Radiative Energy Release";
@@ -118,7 +118,7 @@ export default function WildfireObservationInspector({
           <div>
             <div className="text-[10px] uppercase tracking-wider text-cyan-400 flex items-center gap-1.5 font-bold">
               <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-              <span>RADAR DETECTION RECORD #{hotspot.id}</span>
+              <span>SATELLITE THERMAL OBSERVATION #{hotspot.id}</span>
             </div>
             <h3 className="text-base font-bold text-white flex items-center gap-2">
               <span>{hotspot.sensor}</span>
@@ -230,10 +230,10 @@ export default function WildfireObservationInspector({
             <span>Ground Footprint</span>
           </div>
           <div className="font-bold text-white text-sm">
-            {hotspot.scan ? `${hotspot.scan} × ${hotspot.track} km` : hotspot.sensor === "MODIS" ? "1.00 × 1.00 km" : "0.39 × 0.36 km"}
+            {hotspot.scan ? `${hotspot.scan} × ${hotspot.track} km` : hotspot.sensor === "MODIS" ? "1.00 × 1.00 km (Nadir)" : "0.375 × 0.375 km (Nadir)"}
           </div>
           <div className="text-[10px] text-slate-500 mt-0.5">
-            Scan: {hotspot.scan || (hotspot.sensor === "MODIS" ? 1.0 : 0.39)} km
+            Scan: {hotspot.scan || (hotspot.sensor === "MODIS" ? "1.00" : "0.375")} km
           </div>
         </div>
 

@@ -203,11 +203,25 @@ def build_filter_clause(
             params.extend(m_list)
             applied_filters["month"] = m_list
 
-    # 8. Seasonal Regime Filter
+    # 8. Seasonal Regime Filter (Decoded phenological fire seasons)
     if season and season.upper() != "ALL":
-        conditions.append("LOWER(season) = LOWER(?)")
-        params.append(season.strip())
-        applied_filters["season"] = season.strip()
+        s_clean = season.strip().lower().replace("-", "_").replace(" ", "_")
+        if s_clean in ("pre_monsoon", "pre_monsoon_peak", "peak_wildfire"):
+            conditions.append("decoded_month IN (4, 5)")
+            applied_filters["season"] = "Pre-Monsoon Peak (Apr-May)"
+        elif s_clean in ("post_monsoon", "post_monsoon_agricultural"):
+            conditions.append("decoded_month IN (10, 11)")
+            applied_filters["season"] = "Post-Monsoon Agricultural (Oct-Nov)"
+        elif s_clean in ("winter", "winter_biomass_burning"):
+            conditions.append("decoded_month IN (12, 1, 2, 3)")
+            applied_filters["season"] = "Winter Dry Season (Dec-Mar)"
+        elif s_clean in ("monsoon", "monsoon_minimum"):
+            conditions.append("decoded_month IN (6, 7, 8, 9)")
+            applied_filters["season"] = "Monsoon Minimum (Jun-Sep)"
+        else:
+            conditions.append("LOWER(season) = LOWER(?)")
+            params.append(season.strip())
+            applied_filters["season"] = season.strip()
 
     # 9. Hotspot Type Filter (0: Vegetation, 2: Static Land Source)
     if hotspot_type is not None:

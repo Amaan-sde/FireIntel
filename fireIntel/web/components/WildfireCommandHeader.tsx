@@ -84,7 +84,7 @@ export default function WildfireCommandHeader({
               </span>
               <span className="text-slate-600 hidden sm:inline">|</span>
               <span className="text-cyan-400 text-[10px] hidden sm:inline">
-                HIMALAYAN SATELLITE RADAR
+                HIMALAYAN SATELLITE RADIOMETRY
               </span>
             </div>
 

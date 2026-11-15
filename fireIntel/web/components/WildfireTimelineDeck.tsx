@@ -269,6 +269,8 @@ export default function WildfireTimelineDeck({
               return (
                 <button
                   key={m.num}
+                  data-month={m.num}
+                  aria-label={`Select ${m.name}`}
                   onClick={() => handleMonthClick(m.num)}
                   className={`group relative flex flex-col items-center justify-end h-16 sm:h-20 p-1 rounded-xl transition-all cursor-pointer ${
                     isSelected
